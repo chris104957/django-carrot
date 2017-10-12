@@ -1,0 +1,13 @@
+{% ot "table" class=table_class %}
+    {% ot "tr" %}
+        {% el "th" "Field" %}
+        {% el "th" "Value" %}
+    {% ct "tr" %}
+    {% for attr in attributes %}
+        {% ot "tr" %}
+            {% el "td" attr.0 %}
+            {% el "td" attr.1 %}
+        {% ct "tr" %}
+    {% endfor %}
+
+{% ct "table" %}

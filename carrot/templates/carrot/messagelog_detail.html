@@ -1,0 +1,25 @@
+{% extends "carrot/base_site.html" %}
+
+{% block content %}
+    {% el "h2" object %}
+    {% ot "div" class="task-info" %}
+        {% el "h3" "Basic information" %}
+        {% info_table object %}
+        {% el "h3" "Task inputs" %}
+        {{ object.parsed_content|jsonblock }}
+        {% if object.status == 'FAILED' %}
+            {% el "h3" "Failure information" %}
+            {% ot "div" class="strapline" %}
+                This task failed due to the following exception: {{ object.exception }} {% el "br" %}
+                Click {% el "a" "here" href=object.retry_url %} to retry the task or
+                {% el "a" "here" href=object.delete_url %} to delete it
+            {% ct "div" %}
+            {{ object.traceback|formatted_traceback }}
+        {% elif object.status == 'COMPLETED' %}
+            {% el "h3" "Log" %}
+            {{ object.log|formatted_traceback }}
+            {% el "h3" "Task output" %}
+            {{ object.output|outputblock }}
+        {% endif %}
+    {% ct "div" %}
+{% endblock %}

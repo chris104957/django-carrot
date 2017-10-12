@@ -1,0 +1,14 @@
+{% ot "table" class=table_class %}
+    {% ot "tr" %}
+        {% for header in headers %}
+            {% ot "th" %}{{ header }}{% ct "th" %}
+        {% endfor %}
+    {% ct "tr" %}
+    {% for msg in object_list %}
+        {% ot "tr" %}
+            {% for attr in attributes %}
+                {% ot "td" %}{% get_attr msg attr %}{% ct "td" %}
+            {% endfor %}
+        {% ct "tr" %}
+    {% endfor %}
+{% ct "table" %}

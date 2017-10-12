@@ -1,0 +1,142 @@
+* {
+    font-family:"Helvetica Neue", Helvetica, Arial;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    padding: 10px 0 10px 10px;
+    color: white;
+    background-color: #e68a00;
+}
+
+a.title {
+    text-decoration:none !important;
+}
+
+h2 {
+    background-color: #f2f2f2;
+    padding: 10px;
+}
+
+.task-info h3 {
+    padding: 25px 0 10px 0;
+}
+
+
+.task-queue {
+    width: 90%;
+    border-collapse: collapse;
+
+}
+
+.container {
+    margin-top: 10px;
+    margin-left:100px;
+}
+
+
+.task-queue th {
+    color: white;
+    background-color: rgb(41, 128, 185);
+    font-size: 14px;
+    padding:6px 12px;
+    text-align: left;
+
+}
+
+.failed th {
+    background-color: rgb(234, 97, 83) !important;
+}
+
+.completed th {
+    background-color: rgb(39, 174, 96) !important;
+}
+
+.task-queue td {
+    padding:6px 12px;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    color: #3b3b3b;
+}
+
+.task-queue tr:nth-of-type(odd) {
+    background-color: rgb(233, 233, 233);
+}
+
+.strapline {
+    margin: 10px 0;
+}
+
+.task-info {
+    padding: 10px 50px;
+}
+
+
+.traceback {
+    list-style-type: none;
+    font-family: "Courier New", Courier, monospace !important;
+    width: 90%;
+    padding: 10px;
+}
+
+.tb {
+    font-family: "Courier New", Courier, monospace !important;
+    padding-bottom: 5px;
+}
+
+.indent_level_1 {
+    padding-left: 25px;
+}
+
+.indent_level_2 {
+    padding-left: 50px;
+    padding-bottom: 25px;
+}
+
+.yellow {
+    background-color: lightyellow;
+    border: solid 1px #ffdb99;
+    background-color: lightyellow;
+}
+
+.green {
+    background-color: #d9f2d9;
+    border: solid 1px lightgreen;
+}
+
+form.standard input, form.standard select, form.standard textarea {
+    width: 300px;
+}
+
+.btn_standard {
+    margin: 10px 0 0 45%;
+    width: 100px;
+    color: white;
+    padding: 6px;
+    font-size: 16px;
+    background-color: rgb(41, 128, 185);
+    border: solid 2px rgb(41, 128, 185);
+    border-radius: 3px;
+}
+
+.delete {
+    background-color: darkred;
+    border: solid 2px darkred;
+
+}
+
+.left {
+    margin: 10px 0 !important;
+}
+
+.delete:hover {
+    color: darkred;
+}
+
+.btn_standard:hover {
+    background-color: white;
+    color: rgb(41, 128, 185);
+    transition-duration: 1s;
+
+}

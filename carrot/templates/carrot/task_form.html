@@ -1,0 +1,31 @@
+{% ot "form" method="post" class="standard" %}
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    {% for hidden_field in form.hidden_fields %}
+        {{ hidden_field.errors }}
+        {{ hidden_field }}
+    {% endfor %}
+
+    {% ot "table" class="task-queue" %}
+        {% ot "tr" %}
+            {% el "th" "Field" %}
+            {% el "th" "Value" %}
+        {% ct "tr" %}
+        {% for field in form.visible_fields %}
+            {% ot "tr" %}
+                {% el "td" field.label_tag %}
+                {% ot "td" %}
+                    {{ field }}
+                    {{ field.errors }}
+                    {{ field.help_text }}
+                {% ct "td" %}
+            {% ct "tr" %}
+        {% endfor %}
+    {% ct "table" %}
+
+    {% el "button" "Save" type="submit" class="btn_standard" %}
+
+
+{% ct "form" %}

@@ -1,0 +1,20 @@
+{% extends "carrot/base_site.html" %}
+
+
+{% block content %}
+    {% if object %}
+        {% el "h2" object %}
+    {% else %}
+        {% el "h2" "Create a new scheduled task" %}
+    {% endif %}
+    {% ot "div" class="task-info" %}
+        {% el "h3" "Enter values" %}
+        {% task_form form %}
+        {% if object %}
+            <a href="{% url 'delete-scheduled-task' object.pk %}">
+                {% el "button" "Delete" class="btn_standard delete" %}
+            </a>
+        {% endif %}
+
+    {% ct "div" %}
+{% endblock %}

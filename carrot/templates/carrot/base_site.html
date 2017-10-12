@@ -1,0 +1,15 @@
+{% load staticfiles %}
+{% load filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Carrot Monitor</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'carrot/default.css' %}?{% now "U" %}"/>
+</head>
+<body>
+    <a class="title" href="{% url 'carrot-monitor' %}"><h1>Carrot monitor</h1></a>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
