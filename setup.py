@@ -18,7 +18,7 @@ setup(
     long_description=readme(),
     author='Christopher Davies',
     author_email='christopherdavies553@gmail.com',
-    url='https://readthedocs.org',
+    url='https://django-carrot.readthedocs.org',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
