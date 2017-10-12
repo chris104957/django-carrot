@@ -27,7 +27,7 @@ class Command(BaseCommand):
                             default='carrot.objects.Consumer')
         parser.add_argument('--loglevel', type=str, default='DEBUG', help='The logging level. Must be one of DEBUG, '
                                                                           'INFO, WARNING, ERROR, CRITICAL')
-        parser.add_argument('--testmode', dest='testmode', action='store_true', default=True,
+        parser.add_argument('--testmode', dest='testmode', action='store_true', default=False,
                             help='Run in test mode. Prevents the command from running as a service. Should only be '
                                  'used when running Carrot\'s tests')
 
@@ -96,7 +96,10 @@ class Command(BaseCommand):
                 if options.get('loglevel', None):
                     kwargs['loglevel'] = options['loglevel']
 
-                vhost = VirtualHost(**queue['host'])
+                try:
+                    vhost = VirtualHost(**queue['host'])
+                except TypeError:
+                    vhost = VirtualHost(url=queue['host'])
 
                 c = ConsumerSet(host=vhost, **kwargs)
                 c.start_consuming()
@@ -112,6 +115,7 @@ class Command(BaseCommand):
 
             while True:
                 time.sleep(1)
+
                 if self.scheduler or options['testmode']:
                     new_qs = ScheduledTask.objects.filter(active=True)
 

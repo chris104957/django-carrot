@@ -342,7 +342,7 @@ class ConsumerSet(object):
         self.channel = self.connection.channel()
         self.queue = queue
         self.concurrency = concurrency
-        self.name = name
+        self.name = '%s-%s' % (self.queue, name)
         self.consumer_class = self.get_consumer_class(consumer_class)
         self.threads = []
 
@@ -354,7 +354,7 @@ class ConsumerSet(object):
             t.join()
             print('Closed thread %s' % t)
 
-        sys.exit()
+        # sys.exit()
 
     def start_consuming(self):
         """
