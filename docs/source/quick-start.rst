@@ -27,7 +27,7 @@ Install with *pip*
 
 .. code-block:: bash
 
-    pip install django-carrot-0.1.dev0.tar.gz
+    pip install django-carrot
 
 Setting up RabbitMQ
 *******************
@@ -109,6 +109,29 @@ scheduled the **my_task** function to run every 5 seconds, use the following cod
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 The above will schedule the **my_task** function to run every 5 seconds (while the Carrot service is running)
+
+
+Daemonizing the service
+-----------------------
+
+The django-admin command is a blocking command. To run it in the background, you will need to daemonize it. A sample
+script for this has been provided for convenience - to run it, copy the below code to **/etc/init.d/carrot**
+
+.. literalinclude:: ../../carrot/service.sh
+    :linenos:
+    :language: bash
+
+Once copied, make it executable:
+
+.. code-block:: bash
+
+    sudo chmod +x /etc/init.d/carrot
+
+It can then be run as follows
+
+.. code-block:: bash
+
+    sudo /etc/init.d/carrot start|stop|restart
 
 
 The Carrot monitor

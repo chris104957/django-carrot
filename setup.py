@@ -3,14 +3,14 @@ from setuptools import find_packages, setup
 
 
 def readme():
-    with open('docs/source/readme.rst') as f:
+    with open('README.rst') as f:
         return f.read()
 
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-carrot',
-    version='0.1.0',
+    version='0.1.0.3',
     packages=find_packages(),
     include_package_data=True,
     license='BSD License',
@@ -22,6 +22,8 @@ setup(
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
+        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
@@ -33,5 +35,5 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires=['django>=1.11', 'json2html==1.2.1', 'pika>=0.10.0']
+    install_requires=['django>=1.9', 'json2html==1.2.1', 'pika>=0.10.0']
 )
