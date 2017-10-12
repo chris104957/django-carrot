@@ -23,9 +23,7 @@ Installation and configuration
 Install Carrot
 **************
 
-#. Download the installation package, **django-carrot-0.1.dev0.tar.gz**
-
-#. Install with *pip*
+Install with *pip*
 
 .. code-block:: bash
 
@@ -35,7 +33,7 @@ Setting up RabbitMQ
 *******************
 
 Carrot requires a connection to a RabbitMQ server. Installing and configuring RabbitMQ is currently beyond the scope of
-this tutorial. Refer to the `RabbitMQ web site <http://www.rabbitmq.com/download.html>`_
+this tutorial. Refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.html>`_
 
 Configuring your Django project
 *******************************
@@ -82,7 +80,8 @@ Once you have configured carrot, you can start the service using the following d
 Publishing tasks
 ****************
 
-Carrot implements a number of utilities for publishing tasks to the message queue. Here is a simple example:
+While the service is running, tasks will be consumed from your RabbitMQ queue. To publish messages to the queue, use
+provided helper function:
 
 .. code-block:: python
 
@@ -109,7 +108,7 @@ scheduled the **my_task** function to run every 5 seconds, use the following cod
 
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
-The above will schedule the **my_task** function to run every 5 seconds.
+The above will schedule the **my_task** function to run every 5 seconds (while the Carrot service is running)
 
 
 The Carrot monitor
@@ -134,8 +133,8 @@ To implement it, simply add the carrot url config to your Django project's main 
 Contribute
 ----------
 
-- Issue Tracker: github.com/$project/$project/issues
-- Source Code: github.com/$project/$project
+- Issue Tracker: https://github.com/chris104957/django-carrot/issues
+- Source Code: https://github.com/chris104957/django-carrot
 
 Support
 -------
