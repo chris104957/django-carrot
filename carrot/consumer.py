@@ -203,9 +203,8 @@ class Consumer(threading.Thread):
                 args, kwargs = self.serializer.serialize_arguments(body.decode())
 
             except Exception as err:
-
                 self.fail(log,
-                          'Unable to process the message due to an error parsing the message body to JSON: %s' % err,
+                          'Unable to process the message due to an error collecting the task arguments: %s' % err,
                           method_frame.delivery_tag)
                 return
 

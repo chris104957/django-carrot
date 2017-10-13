@@ -255,7 +255,7 @@ class CarrotTestCase(TestCase):
         from django.utils.safestring import SafeText
         msg = publish_message(test_task, 0, None)
         self.assertTrue(isinstance(msg.virtual_host, VirtualHost))
-        self.assertTrue(isinstance(msg.parsed_content, SafeText))
+        self.assertTrue(isinstance(msg.keywords, SafeText))
         self.assertTrue(isinstance(msg.href, SafeText))
         self.client.get(msg.get_url())
         self.client.get(msg.retry_url)

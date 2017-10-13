@@ -3,7 +3,6 @@ import json
 import pika
 from django.utils import timezone
 import logging
-import ast
 import importlib
 
 
@@ -191,9 +190,8 @@ class BaseMessageSerializer(object):
         """
         content = json.loads(body)
         args = content.get('args', ())
-        parsed_args = [ast.literal_eval(arg.strip()) for arg in args]
         kwargs = content.get('kwargs', {})
-        return parsed_args, kwargs
+        return args, kwargs
 
 
 class DefaultMessageSerializer(BaseMessageSerializer):
@@ -223,7 +221,7 @@ class Message(object):
     """
     def __init__(self, task, virtual_host=None, queue='default', routing_key=None, exchange='', priority=0,
                  task_args=(), task_kwargs=None):
-        if not task_kwargs:
+        if not task_kwargs or task_kwargs in ['{}', '"{}"']:
             task_kwargs = {}
 
         if not routing_key:
@@ -273,6 +271,11 @@ class Message(object):
         connection, channel = self.connection_channel
         from carrot.models import MessageLog
 
+        try:
+            keyword_arguments = json.dumps(json.loads(self.task_kwargs or '{}') or {})
+        except TypeError:
+            keyword_arguments = json.dumps(self.task_kwargs)
+
         log = MessageLog.objects.create(
             status='PUBLISHED',
             queue=self.queue,
@@ -281,7 +284,7 @@ class Message(object):
             uuid=str(self.uuid),
             priority=self.priority,
             task_args=self.task_args,
-            content=json.dumps(self.task_kwargs or {}),
+            content=keyword_arguments,
             task=self.task,
             publish_time=timezone.now(),
         )

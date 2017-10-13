@@ -63,11 +63,11 @@ class MessageLog(models.Model):
         return get_host_from_name(self.queue)
 
     @property
-    def parsed_content(self):
+    def keywords(self):
         """
         Used in :class:`carrot.views.MessageView` to display the keyword arguments as a table
         """
-        return mark_safe(json.dumps(self.content, indent=4, sort_keys=True))
+        return json.loads(self.content or '{}')
 
     def __str__(self):
         return self.task
@@ -118,26 +118,20 @@ class MessageLog(models.Model):
         """
         return reverse('delete-task', args=[self.pk])
 
+    @property
+    def positionals(self):
+        import ast
+        return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',')]
+
     # noinspection PyTypeChecker
     def requeue(self):
         """
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
-        from carrot.objects import Message
-        from carrot.utilities import get_host_from_name
-        host = get_host_from_name(self.queue)
+        from carrot.utilities import publish_message
+        publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue, exchange=self.exchange,
+                        routing_key=self.routing_key, **self.keywords)
 
-        new_message = Message(
-            virtual_host=host,
-            queue=self.queue,
-            routing_key=self.routing_key,
-            exchange='' if self.exchange == 'default' else self.exchange,
-            task=self.task,
-            priority=self.priority,
-            task_args=self.task_args,
-            task_kwargs=self.content,
-        )
-        new_message.publish()
         self.delete()
 
     class Meta:

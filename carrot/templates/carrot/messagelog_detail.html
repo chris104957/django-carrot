@@ -6,7 +6,7 @@
         {% el "h3" "Basic information" %}
         {% info_table object %}
         {% el "h3" "Task inputs" %}
-        {{ object.parsed_content|jsonblock }}
+        {{ object|jsonblock }}
         {% if object.status == 'FAILED' %}
             {% el "h3" "Failure information" %}
             {% ot "div" class="strapline" %}

@@ -118,14 +118,13 @@ def create_message(task, priority=0, task_args=(), queue=None, exchange='', rout
     task = validate_task(task)
 
     vhost = get_host_from_name(queue)
-    print('VHOST:', vhost)
     msg = Message(virtual_host=vhost, queue=queue, routing_key=routing_key, exchange=exchange, task=task,
                   priority=priority, task_args=task_args, task_kwargs=task_kwargs)
 
     return msg
 
 
-def publish_message(task, priority=0, queue=None, exchange='', routing_key=None, *task_args, **task_kwargs):
+def publish_message(task, *task_args, priority=0, queue=None, exchange='', routing_key=None, **task_kwargs):
     """
     Wrapped for :func:`.create_message`, which publishes the task to the queue
 

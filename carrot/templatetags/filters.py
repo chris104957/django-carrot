@@ -53,17 +53,20 @@ def task_form(form):
 
 
 @register.filter
-def jsonblock(content):
+def jsonblock(object):
+    content = object.keywords
     if not content or str(content) == '"{}"':
         return format_html('<ul {}>{}</ul>',
                            flatatt({'class': 'traceback green'}),
                            'No information provided'
                            )
+
     converter = JsonConverter()
-    first_row = format_html('<tr><th>{}</th><th>{}</th></tr', 'Field', 'Value')
+    first_row = format_html('<tr><th>{}</th><th>{}</th></tr><tr><td>Positional arguments</td><td>{}</td></tr', 'Field',
+                            'Value', object.positionals)
 
     return mark_safe(converter.convert(
-        json=json.loads(content or '{}'),
+        json=object.keywords,
         first_row=first_row,
         table_attributes=flatatt({'class': 'task-queue'}),
     ))
