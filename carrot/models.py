@@ -121,7 +121,10 @@ class MessageLog(models.Model):
     @property
     def positionals(self):
         import ast
-        return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',')]
+        if self.task_args == '()':
+            return ()
+        else:
+            return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',')]
 
     # noinspection PyTypeChecker
     def requeue(self):

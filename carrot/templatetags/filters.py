@@ -62,8 +62,11 @@ def jsonblock(object):
                            )
 
     converter = JsonConverter()
-    first_row = format_html('<tr><th>{}</th><th>{}</th></tr><tr><td>Positional arguments</td><td>{}</td></tr', 'Field',
-                            'Value', object.positionals)
+    if object.positionals:
+        first_row = format_html('<tr><th>{}</th><th>{}</th></tr><tr><td>Positional arguments</td><td>{}</td></tr',
+                                'Field', 'Value', object.positionals)
+    else:
+        first_row = format_html('<tr><th>{}</th><th>{}</th></tr', 'Field', 'Value')
 
     return mark_safe(converter.convert(
         json=object.keywords,
@@ -75,7 +78,20 @@ def jsonblock(object):
 @register.filter
 def outputblock(content):
     try:
-        return jsonblock(content)
+        if not content or str(content) == '"{}"':
+            return format_html('<ul {}>{}</ul>',
+                               flatatt({'class': 'traceback green'}),
+                               'No information provided'
+                               )
+        converter = JsonConverter()
+        first_row = format_html('<tr><th>{}</th><th>{}</th></tr', 'Field', 'Value')
+
+        return mark_safe(converter.convert(
+            json=json.loads(content or '{}'),
+            first_row=first_row,
+            table_attributes=flatatt({'class': 'task-queue'}),
+        ))
+
     except json.JSONDecodeError:
         return format_html('<ul {}>{}</ul>',
                            flatatt({'class': 'traceback green'}),
