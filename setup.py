@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-carrot',
-    version='0.1.0.3',
+    version='0.1.1-alpha',
     packages=find_packages(),
     include_package_data=True,
     license='BSD License',
@@ -18,7 +18,7 @@ setup(
     long_description=readme(),
     author='Christopher Davies',
     author_email='christopherdavies553@gmail.com',
-    url='https://readthedocs.org',
+    url='https://django-carrot.readthedocs.org',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
