@@ -133,6 +133,7 @@ class Command(BaseCommand):
                         self.pks = [t.pk for t in new_qs]
 
                 if options['testmode']:
+                    print('TESTMODE:', options['testmode'])
                     raise SystemExit()
 
         except Exception as err:
