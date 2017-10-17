@@ -68,7 +68,8 @@ class VirtualHost(object):
         """
         credentials = pika.PlainCredentials(username=self.username, password=self.password)
         params = pika.ConnectionParameters(host=self.host, port=self.port, virtual_host=self.name,
-                                           credentials=credentials, connection_attempts=10, ssl=self.secure)
+                                           credentials=credentials, connection_attempts=10, ssl=self.secure,
+                                           heartbeat=1200)
         return pika.BlockingConnection(parameters=params)
 
 
@@ -118,7 +119,7 @@ class BaseMessageSerializer(object):
         exchange = self.message.exchange or ''
         routing_key = self.message.routing_key or 'default'
         body = self.body()
-        return dict(exchange=exchange, routing_key=routing_key, body=body)
+        return dict(exchange=exchange, routing_key=routing_key, body=body, mandatory=True)
 
     def body(self):
         """

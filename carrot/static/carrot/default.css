@@ -140,3 +140,51 @@ form.standard input, form.standard select, form.standard textarea {
     transition-duration: 1s;
 
 }
+
+li.DEBUG {
+    color: grey;
+}
+
+li.INFO {
+    color: green;
+}
+
+li.WARNING {
+    color: orange;
+}
+
+li.ERROR {
+    color: red;
+}
+
+li.CRITICAL {
+    color: red;
+    font-weight: bold;
+}
+
+
+
+.levelselect {
+    list-style-type: none;
+    height: 15px;
+    width: 300px;
+    padding: 5px 15px;
+    margin: 10px;
+    background: lightgrey;
+    border: solid 1px grey;
+    border-radius: 3px;
+
+}
+
+.levelselect li {
+    float: left;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.levelselect li a {
+    text-decoration: none;
+    color: black;
+    font-weight: normal;
+}
+

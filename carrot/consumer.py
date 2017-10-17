@@ -15,10 +15,9 @@ import importlib
 import sys
 from carrot.objects import DefaultMessageSerializer
 from django.db.utils import OperationalError
-import time
 
 
-LOGGING_FORMAT = '%(threadName)-10s %(asctime)s:: %(message)s'
+LOGGING_FORMAT = '%(threadName)-10s %(asctime)-10s %(levelname)s:: %(message)s'
 
 
 class ListHandler(logging.Handler):
@@ -36,8 +35,21 @@ class ListHandler(logging.Handler):
         return '\n'.join([str(line) for line in self.output])
 
 
+class KeepAlive(threading.Thread):
+    def __init__(self, connection):
+        threading.Thread.__init__(self)
+        self.connection = connection
+        self.keep_alive = True
+
+    def run(self):
+        if self.keep_alive:
+            self.connection.sleep(0.1)
+        else:
+            return
+
+
 class LoggingTask(object):
-    def __init__(self, task, logger, thread_name, *args, **kwargs):
+    def __init__(self, task, logger, thread_name, connection, *args, **kwargs):
         self.task = task
         self.args = args
         self.kwargs = kwargs
@@ -53,9 +65,21 @@ class LoggingTask(object):
         self.logger.addHandler(self.stream_handler)
 
         self._run = False
+        self._keep_alive = None
+        self.connection = connection
+
+    def keep_alive(self):
+        self._ka = KeepAlive(self.connection)
+        self._ka.start()
+
+    def stop_keep_live(self):
+        self._ka.keep_alive = False
+        self._ka.join(1)
 
     def run(self):
+        self.keep_alive()
         output = self.task(*self.args, **self.kwargs)
+        self.stop_keep_live()
         self._run = True
         return output
 
@@ -178,6 +202,7 @@ class Consumer(threading.Thread):
         if self.signal:
             try:
                 log = self.get_message_log(properties, body)
+                self.channel.basic_ack(method_frame.delivery_tag)
             except ObjectDoesNotExist:
                 self.logger.error('Unable to find a MessageLog matching the uuid %s. Ignoring this task' %
                                   properties.message_id)
@@ -188,7 +213,7 @@ class Consumer(threading.Thread):
                 task_type = self.get_task_type(properties.headers, body)
             except KeyError as err:
                 self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s'
-                          % err, method_frame.delivery_tag)
+                          % err)
                 return
 
             self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
@@ -196,7 +221,7 @@ class Consumer(threading.Thread):
             try:
                 func = self.serializer.get_task(properties, body)
             except (ValueError, ModuleNotFoundError, AttributeError) as err:
-                self.fail(log, err, method_frame.delivery_tag)
+                self.fail(log, err)
                 return
 
             try:
@@ -204,25 +229,24 @@ class Consumer(threading.Thread):
 
             except Exception as err:
                 self.fail(log,
-                          'Unable to process the message due to an error collecting the task arguments: %s' % err,
-                          method_frame.delivery_tag)
+                          'Unable to process the message due to an error collecting the task arguments: %s' % err)
                 return
 
             try:
-                start_msg = '{} {}:: Starting task {}.{}'.format(self.name,
+                start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
                                                                  timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
                                                                  func.__module__, func.__name__)
                 self.logger.info(start_msg)
                 self.task_log = [
                     start_msg
                 ]
-                task = LoggingTask(func, self.logger, self.name, *args, **kwargs)
+                task = LoggingTask(func, self.logger, self.name, self.connection, *args, **kwargs)
 
                 output = task.run()
                 self.task_log.append(task.get_logs())
                 self.logger.info(task.get_logs())
 
-                success = '{} {}:: Task {} completed successfully with response {}'.format(self.name,
+                success = '{} {} INFO:: Task {} completed successfully with response {}'.format(self.name,
                                                                                            timezone.now().strftime(
                                                                                                "%Y-%m-%d %H:%M:%S,%f")[
                                                                                            :-3],
@@ -254,14 +278,12 @@ class Consumer(threading.Thread):
                                                    'of carrot threads is too high. Either reduce the amount of '
                                                    'scheduled tasks consumers, or increase the max number of '
                                                    'connections supported by your database')
-                        time.sleep(10)
-
-                self.channel.basic_ack(method_frame.delivery_tag)
+                        self.connection.sleep(10)
 
             except Exception as err:
-                self.fail(log, 'An unknown error occurred: %s' % err, method_frame.delivery_tag)
+                self.fail(log, 'An unknown error occurred: %s' % err)
 
-    def fail(self, log, err, delivery_tag):
+    def fail(self, log, err):
         """
         This function is called if there is any kind of error with the `.consume()` function
 
@@ -273,7 +295,6 @@ class Consumer(threading.Thread):
 
         """
         self.logger.error('Task %s failed due to the following exception: %s' % (log.task, err))
-        self.channel.basic_nack(delivery_tag, requeue=False)
         log.status = 'FAILED'
         log.failure_time = timezone.now()
         log.exception = err
@@ -282,18 +303,22 @@ class Consumer(threading.Thread):
 
     def run(self):
         """
-        The actual thread process. Waits for messages to be ready to consume
+        The consume process. Waits for a message then calls :meth:`.consume' when it finds one.
+
+        When :prop:`.signal` is set to False (which can be done by the parent :class:`.ConsumerSet` objects
+        :meth:`.ConsumerSet.stop` method), this is a break point that stops the consumer from running and terminates
+        the connection
         """
         self.logger.info('Started consumer %s' % self.name)
-
-        while True:
+        for message in self.channel.consume(self.queue or 'default', inactivity_timeout=1):
             if not self.signal:
+                self.connection.close()
                 break
-            method_frame, header_frame, body = self.channel.basic_get(self.queue or 'default')
-            if method_frame:
+            self.connection.sleep(0.1)
+
+            if message:
+                method_frame, header_frame, body = message
                 self.consume(method_frame, header_frame, body)
-                if self.run_once:
-                    break
 
 
 class ConsumerSet(object):

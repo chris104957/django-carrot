@@ -119,7 +119,6 @@ class Command(BaseCommand):
                 if self.scheduler or options['testmode']:
                     new_qs = ScheduledTask.objects.filter(active=True)
 
-                    print(new_qs.count(),  len(self.pks))
                     if new_qs.count() > len(self.pks):
                         print('New active scheduled tasks have been added to the queryset')
                         new_tasks = new_qs.exclude(pk__in=self.pks) or [ScheduledTask()]
@@ -134,8 +133,6 @@ class Command(BaseCommand):
 
                 if options['testmode']:
                     print('TESTMODE:', options['testmode'])
-                    raise SystemExit()
-
         except Exception as err:
             self.stderr.write(self.style.ERROR(err))
 

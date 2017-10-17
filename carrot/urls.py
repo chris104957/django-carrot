@@ -9,8 +9,8 @@ from django.conf import settings
 decorators = settings.CARROT.get('monitor_authentication', [])
 
 
-def _(v):
-    return decorate_class_view(v, decorators).as_view()
+def _(v, **kwargs):
+    return decorate_class_view(v, decorators).as_view(**kwargs)
 
 
 def _f(v):
@@ -19,7 +19,8 @@ def _f(v):
 
 urlpatterns = [
     url(r'^$', _(MessageList), name='carrot-monitor'),
-    url(r'^(?P<pk>[0-9]+)/view/$', _(MessageView), name='task-info'),
+    url(r'^(?P<pk>[0-9]+)/view/level=(?P<level>[a-zA-Z0-9-]+)$', _(MessageView), name='task-info'),
+    # url(r'^(?P<pk>[0-9]+)/view?$', _(MessageView), name='task-info'),
     url(r'^(?P<pk>[0-9]+)/requeue/$', _f(requeue), name='requeue-task'),
     url(r'requeue-all/$', _f(requeue_all), name='requeue-all'),
     url(r'delete-all/$', _f(delete_all), name='delete-all'),

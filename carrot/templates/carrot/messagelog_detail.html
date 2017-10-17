@@ -17,7 +17,14 @@
             {{ object.traceback|formatted_traceback }}
         {% elif object.status == 'COMPLETED' %}
             {% el "h3" "Log" %}
-            {{ object.log|formatted_traceback }}
+            {% ot "ul" class="levelselect" %}
+                {% ot "li" %}{% if loglevel == "DEBUG" %}Debug{% else %}{% el "a" "Debug" href="level=DEBUG" %}{% endif %}{% ct "li" %}
+                {% ot "li" %}{% if loglevel == "INFO" %}Info{% else %}{% el "a" "Info" href="level=INFO" %}{% endif %}{% ct "li" %}
+                {% ot "li" %}{% if loglevel == "WARNING" %}Warning{% else %}{% el "a" "Warning" href="level=WARNING" %}{% endif %}{% ct "li" %}
+                {% ot "li" %}{% if loglevel == "ERROR" %}Error{% el "a" "Debug" class="selected" href="level=DEBUG" %}{% else %}{% el "a" "Error" href="level=ERROR" %}{% endif %}{% ct "li" %}
+                {% ot "li" %}{% if loglevel == "CRITICAL" %}Critical{% el "a" "Debug" class="selected" href="level=DEBUG" %}{% else %}{% el "a" "Critical" href="level=CRITICAL" %}{% endif %}{% ct "li" %}
+            {% ct "ul" %}
+            {{ object.log|formatted_traceback:loglevel }}
             {% el "h3" "Task output" %}
             {{ object.output|outputblock }}
         {% endif %}

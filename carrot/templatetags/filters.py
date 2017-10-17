@@ -31,8 +31,8 @@ def ct(tag):
 def task_queue(object_list):
     return {
         'table_class': 'task-queue',
-        'headers': ['Priority', 'Task', 'Queue', 'Exchange', 'Routing key'],
-        'attributes': ['priority', 'href', 'queue', 'exchange', 'routing_key'],
+        'headers': ['Priority', 'Task', 'Arguments', 'Keyword arguments', 'Queue', 'Exchange', 'Routing key'],
+        'attributes': ['priority', 'href', 'task_args', 'content', 'queue', 'exchange', 'routing_key'],
         'object_list': object_list[:30]
     }
 
@@ -123,8 +123,8 @@ def failed_task_queue(object_list):
     object_list = object_list.order_by('-failure_time')
     return {
         'table_class': 'task-queue failed',
-        'headers': ['Failure Time', 'Task', 'Exchange', 'Routing key', 'Exception'],
-        'attributes': ['display_failure_time', 'href', 'exchange', 'routing_key', 'exception'],
+        'headers': ['Failure Time', 'Task', 'Arguments', 'Keyword arguments', 'Exchange', 'Routing key', 'Exception'],
+        'attributes': ['display_failure_time', 'href', 'task_args', 'content', 'exchange', 'routing_key', 'exception'],
         'object_list': object_list[:30]
     }
 
@@ -134,8 +134,8 @@ def completed_task_queue(object_list):
     object_list = object_list.order_by('-completion_time')
     return {
         'table_class': 'task-queue completed',
-        'headers': ['Completion Time', 'Task', 'Exchange', 'Routing key',],
-        'attributes': ['display_completion_time', 'href', 'exchange', 'routing_key',],
+        'headers': ['Completion Time', 'Task', 'Arguments', 'Keyword arguments', 'Exchange', 'Routing key',],
+        'attributes': ['display_completion_time', 'href', 'task_args', 'content', 'exchange', 'routing_key',],
         'object_list': object_list[:30]
     }
 
@@ -204,14 +204,29 @@ def table_strapline_completed(object_list):
 
 
 @register.filter
-def formatted_traceback(traceback):
+def formatted_traceback(traceback, loglevel='WARNING'):
+    levels = {
+        'DEBUG': 0,
+        'INFO': 1,
+        'WARNING': 2,
+        'ERROR': 3,
+        'CRITICAL': 4,
+    }
+
     items = []
     traceback = traceback.split('\n')
     for line in traceback:
         def get_indent(l):
             return int((len(l) - len(l.lstrip())) / 2)
-        items.append((get_indent(line), line.strip()))
+        try:
+            data, msg = line.strip().split('::')[0:2]
+            consumer, date, time, level = data.split()
+            msg = '%s %s: %s' % (date, time, level)
+            if levels[level] >= levels[loglevel]:
+                items.append((get_indent(line), level, msg))
+        except ValueError:
+            items.append((get_indent(line), 'ERROR', line.strip()))
 
-    list_items = format_html_join('\n', '<li class="tb indent_level_{}">{}</li>', ((item) for item in items))
+    list_items = format_html_join('\n', '<li class="tb indent_level_{} {}">{}</li>', ((item) for item in items))
 
     return format_html('<ul class="traceback yellow">{}</ul>', list_items)

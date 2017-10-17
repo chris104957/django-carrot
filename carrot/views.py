@@ -34,6 +34,9 @@ class TaskForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(TaskForm, self).clean()
+
+        if not self.cleaned_data['queue']:
+            raise forms.ValidationError({'queue': 'This field is required'})
         try:
             json.loads(self.cleaned_data['content'] or '{}')
         except json.JSONDecodeError:
@@ -94,6 +97,11 @@ class DeleteFailedTaskView(DeleteView):
 class MessageView(DetailView):
     model = MessageLog
     pk_url_kwarg = 'pk'
+
+    def get_context_data(self, **kwargs):
+        context = super(MessageView, self).get_context_data(**kwargs)
+        context['loglevel'] = self.kwargs.get('level', "INFO")
+        return context
 
 
 class CreateScheduledTaskView(CreateView):

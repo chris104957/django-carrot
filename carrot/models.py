@@ -76,7 +76,7 @@ class MessageLog(models.Model):
         """
         Creates a url that points to :class:`carrot.views.MessageView`
         """
-        return reverse('task-info', args=[self.pk])
+        return reverse('task-info', args=[self.pk, 'INFO'])
 
     @property
     def href(self):
