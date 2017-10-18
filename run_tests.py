@@ -6,6 +6,7 @@ from carrot.objects import VirtualHost
 
 def runner(options):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(BASE_DIR)
 
     vhost = {
         'host': options.host,
@@ -16,7 +17,6 @@ def runner(options):
         'secure': options.secure,
     }
     _vhost = VirtualHost(**vhost)
-    print(_vhost)
 
     settings.configure(
         DEBUG=True,

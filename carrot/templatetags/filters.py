@@ -221,7 +221,7 @@ def formatted_traceback(traceback, loglevel='WARNING'):
         try:
             data, msg = line.strip().split('::')[0:2]
             consumer, date, time, level = data.split()
-            msg = '%s %s: %s' % (date, time, level)
+            msg = '%s %s: %s' % (date, time, msg)
             if levels[level] >= levels[loglevel]:
                 items.append((get_indent(line), level, msg))
         except ValueError:

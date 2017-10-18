@@ -14,4 +14,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-DEFAULT_BROKER = {'url': 'amqp://guest:guest@localhost:5672/'}
+DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/test'

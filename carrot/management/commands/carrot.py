@@ -7,6 +7,9 @@ from carrot.scheduler import ScheduledTaskManager
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from carrot import DEFAULT_BROKER
+import signal
+import os
+import sys
 
 
 class Command(BaseCommand):
@@ -15,6 +18,25 @@ class Command(BaseCommand):
     """
     help = 'Starts the carrot service.'
     scheduler = None
+
+    def terminate(self, *args):
+        self.stdout.write(self.style.WARNING('Shutdown requested'))
+
+        if self.scheduler:
+            self.scheduler.stop()
+
+            self.stdout.write(self.style.SUCCESS('Successfully closed scheduler'))
+
+        self.stdout.write('Terminating running consumer sets (%i)...' % len(self.active_consumer_sets))
+        count = 0
+        for consumer_set in self.active_consumer_sets:
+            print('Terminating consumer set %s' % consumer_set)
+            count += 1
+            consumer_set.stop_consuming()
+            print('Consumer set %s terminated' % consumer_set)
+
+        self.stdout.write(self.style.SUCCESS('Successfully closed %i consumer sets' % count))
+        sys.exit()
 
     def add_arguments(self, parser):
         parser.add_argument("-l", "--logfile", type=str, help='The path to the log file',
@@ -55,8 +77,9 @@ class Command(BaseCommand):
         :param options: provided by **argparse** (see above for the full list of available options)
 
         """
+        signal.signal(signal.SIGINT, self.terminate)
 
-        active_consumer_sets = []
+        self.active_consumer_sets = []
         run_scheduler = options['run_scheduler']
 
         try:
@@ -103,12 +126,13 @@ class Command(BaseCommand):
 
                 c = ConsumerSet(host=vhost, **kwargs)
                 c.start_consuming()
-                active_consumer_sets.append(c)
+                self.active_consumer_sets.append(c)
                 self.stdout.write(self.style.SUCCESS('Successfully started %i consumers for queue %s'
                                                      % (c.concurrency, queue['name'])))
 
-            self.stdout.write(self.style.SUCCESS('All queues consumer sets started successfully. Full logs are at %s'
-                                                 % options['logfile']))
+            self.stdout.write(self.style.SUCCESS('All queues consumer sets started successfully. Full logs are at %s.'
+                                                 'PIDFILE: %i'
+                                                 % (options['logfile'], os.getpid())))
 
             qs = ScheduledTask.objects.filter(active=True)
             self.pks = [t.pk for t in qs]
@@ -133,23 +157,10 @@ class Command(BaseCommand):
 
                 if options['testmode']:
                     print('TESTMODE:', options['testmode'])
+                    raise SystemExit()
+
         except Exception as err:
             self.stderr.write(self.style.ERROR(err))
 
         except (SystemExit, KeyboardInterrupt):
-            self.stdout.write(self.style.WARNING('Shutdown requested'))
-
-            if self.scheduler:
-                self.scheduler.stop()
-
-                self.stdout.write(self.style.SUCCESS('Successfully closed scheduler'))
-
-            self.stdout.write('Terminating running consumer sets (%i)...' % len(active_consumer_sets))
-            count = 0
-            for consumer_set in active_consumer_sets:
-                print('Terminating consumer set %s' % consumer_set)
-                count += 1
-                consumer_set.stop_consuming()
-                print('Consumer set %s terminated' % consumer_set)
-
-            self.stdout.write(self.style.SUCCESS('Successfully closed %i consumer sets' % count))
+            self.terminate()

@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-carrot',
-    version='0.1.5-alpha',
+    version='0.1.0-alpha3',
     packages=find_packages(),
     include_package_data=True,
     license='BSD License',
@@ -37,3 +37,4 @@ setup(
     ],
     install_requires=['django>=1.9', 'json2html==1.2.1', 'pika>=0.10.0']
 )
+

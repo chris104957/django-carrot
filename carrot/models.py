@@ -195,9 +195,12 @@ class ScheduledTask(models.Model):
 
     def publish(self, priority=0):
         from carrot.utilities import publish_message
+        kwargs = json.loads(self.content or '{}')
+        if isinstance(kwargs, str):
+            kwargs = {}
         return publish_message(self.task, *self.positional_arguments, priority=priority, queue=self.queue,
                                exchange=self.exchange or '', routing_key=self.routing_key or self.queue,
-                               **json.loads(self.content or '{}'))
+                               **kwargs)
 
     def __str__(self):
         return self.task

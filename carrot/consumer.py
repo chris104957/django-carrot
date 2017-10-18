@@ -44,8 +44,6 @@ class KeepAlive(threading.Thread):
     def run(self):
         if self.keep_alive:
             self.connection.sleep(0.1)
-        else:
-            return
 
 
 class LoggingTask(object):
@@ -312,8 +310,8 @@ class Consumer(threading.Thread):
         self.logger.info('Started consumer %s' % self.name)
         for message in self.channel.consume(self.queue or 'default', inactivity_timeout=1):
             if not self.signal:
-                self.connection.close()
-                break
+                return self.connection.close()
+
             self.connection.sleep(0.1)
 
             if message:
@@ -378,7 +376,7 @@ class ConsumerSet(object):
             t.join()
             print('Closed thread %s' % t)
 
-        # sys.exit()
+        sys.exit()
 
     def start_consuming(self):
         """

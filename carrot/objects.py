@@ -43,8 +43,10 @@ class VirtualHost(object):
                     self.username = username
                     self.password = password
 
-                url, self.name = url.split('/')
-                if not self.name:
+                try:
+                    url, self.name = url.split('/')
+                except ValueError:
+                    url = url.split('/')[0]
                     self.name = name
 
                 self.host, _port = url.split(':')

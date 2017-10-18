@@ -11,7 +11,7 @@ from django.db.models import QuerySet
 
 from carrot.models import ScheduledTask, MessageLog
 from carrot.consumer import ConsumerSet, Consumer
-from carrot.objects import VirtualHost, Message
+from carrot.objects import VirtualHost, Message, DefaultMessageSerializer
 from carrot.scheduler import ScheduledTaskManager, ScheduledTaskThread
 from carrot.utilities import (
     get_host_from_name, publish_message, create_consumer_set, create_scheduled_task, JsonConverter, decorate_class_view,
@@ -23,7 +23,7 @@ from carrot.views import (
 from carrot.templatetags.filters import (
     task_queue, strapline_with_url, outputblock, failed_task_queue, completed_task_queue,
     scheduled_task_queue, get_attr, table_strapline, table_strapline_completed, table_strapline_failed,
-    formatted_traceback
+    formatted_traceback, jsonblock
 )
 from carrot import DEFAULT_BROKER
 
@@ -32,7 +32,7 @@ logger = logging.getLogger('carrot')
 
 
 def test_task(*args, **kwargs):
-    logger.warning('blah')
+    logger.error('blah')
 
 
 def dict_task(*args, **kwargs):
@@ -48,6 +48,11 @@ ALT_CARROT = {
     'queues': [
         {
             'name': 'test',
+            'host': DEFAULT_BROKER,
+            'consumer_class': 'carrot.consumer.Consumer',
+        },
+        {
+            'name': 'default',
             'host': DEFAULT_BROKER,
             'consumer_class': 'carrot.consumer.Consumer',
         }
@@ -82,6 +87,10 @@ def mocked_connection(**kwargs):
     class MethodFrame:
         delivery_tag = 1
 
+        def __iter__(self):
+            for i in []:
+                yield
+
     class Properties:
         def __init__(self, fail_properties, task):
             self.fail_properties = fail_properties
@@ -101,11 +110,11 @@ def mocked_connection(**kwargs):
             self.fail_properties = fail_properties
             self.task = task
 
-        def basic_get(self, *args, **kwargs):
+        def consume(self, *args, **kwargs):
             mframe = MethodFrame()
             properties = Properties(self.fail_properties, self.task)
             content = b'{}'
-            return mframe, properties, content
+            return [mframe, properties, content], properties, content
 
         def basic_nack(self, *args, **kwargs):
             return
@@ -117,6 +126,9 @@ def mocked_connection(**kwargs):
         def __init__(self, *args, **kwargs):
             self.fail_properties = kwargs.pop('fail_properties', False)
             self.task = kwargs.pop('task', 'test_task')
+
+        def sleep(self, duration):
+            return
 
         def channel(self):
             return Channel(self.task, self.fail_properties)
@@ -166,9 +178,11 @@ class CarrotTestCase(TestCase):
         with self.settings(CARROT=ALT_CARROT):
             with mock.patch('time.sleep'):
                 with mock.patch('carrot.models.ScheduledTask.objects', mocked_model(ScheduledTask, count=300)):
-                    call_command('carrot', **kwargs)
+                    with self.assertRaises(SystemExit):
+                        call_command('carrot', **kwargs)
                 with mock.patch('carrot.models.ScheduledTask.objects', mocked_model(ScheduledTask, count=-1)):
-                    call_command('carrot', **kwargs)
+                    with self.assertRaises(SystemExit):
+                        call_command('carrot', **kwargs)
 
         with mock.patch('carrot.scheduler.ScheduledTaskManager.start',
                         side_effect=Exception('Generic Exception from test_commands')):
@@ -199,13 +213,13 @@ class CarrotTestCase(TestCase):
             consume_one(True, fail_properties=True)
 
             with mock.patch('carrot.objects.DefaultMessageSerializer.serialize_arguments', side_effect=Exception('test')):
-                consume_one(task='test_task')
+                consume_one(task='dict_task')
 
         with mock.patch('carrot.models.MessageLog.objects.get', mocked_object):
             consume_one(True, task='test_task')
 
     @mock.patch('pika.BlockingConnection')
-    def test_utitlies(self, *args):
+    def test_utilities(self, *args):
         host = get_host_from_name(None)
         self.assertTrue(isinstance(host, VirtualHost))
 
@@ -255,7 +269,7 @@ class CarrotTestCase(TestCase):
         from django.utils.safestring import SafeText
         msg = publish_message(test_task, 0, None)
         self.assertTrue(isinstance(msg.virtual_host, VirtualHost))
-        self.assertTrue(isinstance(msg.keywords, SafeText))
+        self.assertTrue(isinstance(msg.keywords, dict))
         self.assertTrue(isinstance(msg.href, SafeText))
         self.client.get(msg.get_url())
         self.client.get(msg.retry_url)
@@ -282,10 +296,18 @@ class CarrotTestCase(TestCase):
         self.assertTrue(isinstance(task.delete_href, SafeText))
 
     def test_objects(self):
-        Message('carrot.tests.test_task', VirtualHost(**DEFAULT_BROKER))
+        self.assertEqual('amqp://guest:guest@localhost:5672//', str(VirtualHost(url='amqp://localhost:5672')))
+        with self.assertRaises(Exception):
+            VirtualHost(url='blah')
+        msg = Message('carrot.tests.test_task', VirtualHost(url=DEFAULT_BROKER), task_kwargs={'blah': True})
+
+        serializer = DefaultMessageSerializer(msg)
+        self.assertTrue(isinstance(serializer.body(), str))
+        with self.settings(CARROT=ALT_CARROT):
+            Message('carrot.tests.test_task', None)
 
     def test_scheduler(self):
-        task = create_scheduled_task(test_task, {'seconds': 1})
+        task = create_scheduled_task(test_task, {'seconds': 1}, blah=True)
         s = ScheduledTaskManager()
         s.start()
         s.stop()
@@ -318,6 +340,7 @@ class CarrotTestCase(TestCase):
         valid_data = {
             'content': '{"blah": "yes"}',
             'task': 'carrot.tests.test_task',
+            'queue': 'default',
             'interval_type': 'seconds',
             'interval_count': 1,
             'task_args': '"blah"',
@@ -328,12 +351,20 @@ class CarrotTestCase(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
         invalid_data = {
+            'queue': 'default',
             'content': '{"2]34[]er[2][e][234][][{}{}"}',
         }
         form = TaskForm(data=invalid_data)
         self.assertFalse((form.is_valid()))
 
+        invalid_data = {}
+
+        with self.settings(CARROT=ALT_CARROT):
+            form = TaskForm(data=invalid_data)
+            self.assertFalse((form.is_valid()))
+
         invalid_data = {
+            'queue': 'default',
             'task_args': 'blah',
         }
 
@@ -346,6 +377,10 @@ class CarrotTestCase(TestCase):
         strapline_with_url([])
         outputblock(json.dumps({'blah': True}))
         outputblock('fjdioju438u{}{£}!"£}"£}!{£}!"£!}{£!}')
+        outputblock({})
+
+        jsonblock(MessageLog(task_args="['blah', None]", content=json.dumps({'blah':True})))
+        jsonblock(MessageLog(task_args='()', content=json.dumps({'blah': True})))
         failed_task_queue(MessageLog.objects.none())
         completed_task_queue(MessageLog.objects.none())
         scheduled_task_queue(MessageLog.objects.none())
@@ -363,6 +398,7 @@ class CarrotTestCase(TestCase):
         table_strapline_failed(mocked_model(MessageLog, 10))
         table_strapline_failed(mocked_model(MessageLog, 40))
 
+        formatted_traceback('consumer date time WARNING:: message')
         formatted_traceback('blah')
 
 
