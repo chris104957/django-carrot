@@ -38,10 +38,26 @@ To enable to carrot monitor, simply add the URLs to your project's main urls.py 
         ...
     ]
 
+You will also need to register Carrot's template filters in your Django project's settings:
+
+.. code-block:: python
+
+    TEMPLATES = [
+        ...
+        'OPTIONS': {
+            ...
+            'builtins': [
+                ...
+                'carrot.templatetags.filters'
+            ]
+        }
+    ]
+
+
 
 You will now be able to see the monitor at the path you have specified, eg: http://localhost:8000/carrot/
 
-In order to create scheduled tasks using Carrot monitor, you will need to specify your task modules in your Django
+In order to create scheduled tasks using Carrot monitor, you should also specify your task modules in your Django
 project's settings.module. This is done as follows:
 
 .. code-block:: python

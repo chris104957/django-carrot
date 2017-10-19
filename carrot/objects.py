@@ -187,8 +187,8 @@ class BaseMessageSerializer(object):
         """
         Extracts positional and keyword arguments to be sent to a function from the message body
 
-        :param body:
-        :return:
+        :param str body: the message body as a JSON string
+        :return: a tuple of the positional and keyword arguments
 
         """
         content = json.loads(body)
@@ -220,6 +220,10 @@ class Message(object):
         define the x-max-priority header when creating your RabbitMQ queue to do this. See
         `Priority Queue Support <https://www.rabbitmq.com/priority.html>`_ for more details. Carrot applies a maximum
         priority of **255** by default to all queues it creates automatically.
+
+    .. warning::
+        You should not attempt to create instances of this object yourself. You should use the
+        :func:`carrot.utilities.create_msg` function instead
 
     """
     def __init__(self, task, virtual_host=None, queue='default', routing_key=None, exchange='', priority=0,

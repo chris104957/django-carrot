@@ -5,6 +5,19 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class ScheduledTaskThread(threading.Thread):
+    """
+    A thread that handles a single :class:`carrot.models.ScheduledTask` object. When started, it waits for the interval
+    to pass before publishing the task to the required queue
+
+    While waiting for the task to be due for publication, the process continuously monitors the object in the Django
+    project's database for changes to the interval, task, or arguments, or in case it gets deleted/marked as inactive
+    and response accordingly
+
+    :param carrot.models.ScheduledTask scheduled_task: the scheduled task to be published periodically
+    :param bool run_now: whether or not to run the task before waiting for the first interval
+    :param dict filters: for limiting the queryset of ScheduledTasks for montoring (defaults to `active=True`)
+
+    """
     def __init__(self, scheduled_task, run_now=False, **filters):
         threading.Thread.__init__(self)
         self.id = scheduled_task.id
@@ -48,6 +61,14 @@ class ScheduledTaskThread(threading.Thread):
 
 
 class ScheduledTaskManager(object):
+    """
+    The main scheduled task manager project. For every active :class:`carrot.models.ScheduledTask`, a
+    :class:`ScheduledTaskThread` is created and started
+
+    This object exists for the purposes of starting these threads on startup, or when a new ScheduledTask object
+    gets created, and implements a .stop() method to stop all threads
+
+    """
     def __init__(self, **options):
         self.threads = []
         self.filters = options.pop('filters', {'active': True})

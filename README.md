@@ -57,13 +57,12 @@ Configuration
 Full documentation
 ------------------
 
-The full documentation is available at `readthedocs.io <http://django-carrot.readthedocs.io/en/latest/index.html>`
+The full documentation is available at [readthedocs.io](http://django-carrot.readthedocs.io/en/latest/index.html>)
 
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/chris104957/django-carrot/issues
-- Source Code: https://github.com/chris104957/django-carrot
+Please refer to [Contributing to Carrot](https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>)
 
 Support
 -------

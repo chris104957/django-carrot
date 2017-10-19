@@ -26,6 +26,8 @@ function stop {
            cat $PIDFILE | while read line
            do
               sudo kill -SIGINT $line
+              echo "Terminating process: $line"
+              wait
               echo "Terminated process: $line"
            done
            sudo rm $PIDFILE

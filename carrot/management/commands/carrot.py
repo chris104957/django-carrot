@@ -18,6 +18,7 @@ class Command(BaseCommand):
     """
     help = 'Starts the carrot service.'
     scheduler = None
+    active_consumer_sets = []
 
     def terminate(self, *args):
         self.stdout.write(self.style.WARNING('Shutdown requested'))
@@ -70,16 +71,15 @@ class Command(BaseCommand):
                to the :class:`carrot.objects.ScheduledTask` queryset are detected, carrot updates the scheduler
                accordingly
 
-        On receiving a **KeyboardInterrupt** or **SystemExit**, the service first turns off each of the schedulers in
-        turn (so no new tasks can be published to RabbitMQ), before turning off the Consumers in turn. The more
-        Consumers/ScheduledTask objects you have, the longer this will take.
+        On receiving a **KeyboardInterrupt**, **SystemExit** or SIGTERM, the service first turns off each of the
+        schedulers in turn (so no new tasks can be published to RabbitMQ), before turning off the Consumers in turn.
+        The more Consumers/ScheduledTask objects you have, the longer this will take.
 
         :param options: provided by **argparse** (see above for the full list of available options)
 
         """
         signal.signal(signal.SIGINT, self.terminate)
 
-        self.active_consumer_sets = []
         run_scheduler = options['run_scheduler']
 
         try:

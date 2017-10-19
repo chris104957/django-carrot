@@ -15,9 +15,7 @@ Contents:
    settings
    monitor
    api
-
-
-
+   faq
 
 
 

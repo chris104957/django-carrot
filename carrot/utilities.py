@@ -95,18 +95,18 @@ def create_message(task, priority=0, task_args=(), queue=None, exchange='', rout
     Creates a :class:`carrot.objects.Message` object without publishing it
 
     The task to execute (as a string or a callable) needs to be supplied. All other arguments are optional
+    :param task: the task to be handled asynchronously.
+    :type task: str or func
+    :param int priority: the priority to be applied to the message when it is published to RabbitMQ
 
-    :param queue: the name of the queue to publish the message to. Will be defaulted if not provided
-    :type queue: str or NoneType
+    :param tuple task_args: the positional arguments to be passed to the function when it is called
+
+    :param queue: the name of the queue to publish the message to. Will be set to "default" if not provided
+    :type queue: str or None
     :param str exchange: the exchange name
     :param routing_key: the routing key
     :type routing_key: str or NoneType
 
-    :param task: the task to be handled asynchronously. Can either be a callable, or a string in the format
-        'pathto.module.function'
-    :type task: str or func
-    :param int priority: the priority to be applied to the message when it is published to RabbitMQ
-    :param tuple task_args: the positional arguments to be passed to the function when it is called
     :param dict task_kwargs: the keyword arguments to be passed to the function when it is called
     :rtype: :class:`carrot.objects.Message`
 

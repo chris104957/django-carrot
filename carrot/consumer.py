@@ -21,6 +21,13 @@ LOGGING_FORMAT = '%(threadName)-10s %(asctime)-10s %(levelname)s:: %(message)s'
 
 
 class ListHandler(logging.Handler):
+    """
+    A :class:`logging.Handler` that records each log entry to a python list object, provided that the entry is coming
+    from the correct thread.
+
+    Allows for task-specific logging
+
+    """
     def __init__(self, thread_name, level):
         self.output = []
         self.thread_name = thread_name
@@ -36,6 +43,10 @@ class ListHandler(logging.Handler):
 
 
 class KeepAlive(threading.Thread):
+    """
+    This thread is started every time carrot executes a function, and sends a heartbeat to RabbitMQ so as to avoid
+    dropping the connection (which can happen with long-running functions)
+    """
     def __init__(self, connection):
         threading.Thread.__init__(self)
         self.connection = connection
@@ -47,6 +58,10 @@ class KeepAlive(threading.Thread):
 
 
 class LoggingTask(object):
+    """
+    Turns a function into a class with :meth:`.run()` method, and attaches a :class:`KeepAlive` object and a
+    :class:`ListHandler` logging handler
+    """
     def __init__(self, task, logger, thread_name, connection, *args, **kwargs):
         self.task = task
         self.args = args
@@ -285,11 +300,10 @@ class Consumer(threading.Thread):
         """
         This function is called if there is any kind of error with the `.consume()` function
 
-        :param log: the associated MessageLog object
-        :param err: the exception
-        :param delivery_tag: the message delivery tag
+        :param MessageLog log: the associated MessageLog object
+        :param str err: the exception
 
-        The exception message is logged, and the message is rejected. The MessageLog is also updated with the result
+        The exception message is logged, and the MessageLog is updated with the result
 
         """
         self.logger.error('Task %s failed due to the following exception: %s' % (log.task, err))
@@ -328,7 +342,7 @@ class ConsumerSet(object):
         :param concurrency: the number of consumers to create. Defaults to 1
         :param name: the name to assign to the individual consumers. Will be rendered as *Consumer-1, Consumer-2,* etc.
         :param logfile: the path to the log file. Defaults to carrot.log
-        :param loglevel: the logging level. Defaults to logging.INFO
+        :param loglevel: the logging level. Defaults to logging.DEBUG
 
     """
 

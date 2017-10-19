@@ -69,11 +69,13 @@ To define your own queues, add a list of *queues* to your carrot configuration:
         'queues': [
             {
                 'name': 'my-queue-1',
-                'host': 'amqp://myusername:mypassword@192.168.0.1:5672/my-virtual-host'
+                'host': 'amqp://myusername:mypassword@192.168.0.1:5672/my-virtual-host',
+                'concurrency': 5,
             },
             {
                 'name': 'my-queue-2',
-                'host': 'amqp://myusername:mypassword@192.168.0.1:5672/my-virtual-host-2'
+                'host': 'amqp://myusername:mypassword@192.168.0.1:5672/my-virtual-host-2',
+                'consumable': False,
             },
         ]
    }
@@ -99,6 +101,7 @@ Each *queue* supports the following configuration options:
 
 :concurrency:
     the number of consumers to be attached to the queue, as an integer. Defaults to *1*
+
 :consumable:
     Whether or not the service should consume messages in this queue, as a Boolean. Defaults to *True*
 

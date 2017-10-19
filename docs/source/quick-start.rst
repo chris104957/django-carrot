@@ -32,8 +32,8 @@ Install with *pip*
 Setting up RabbitMQ
 *******************
 
-Carrot requires a connection to a RabbitMQ server. Installing and configuring RabbitMQ is currently beyond the scope of
-this tutorial. Refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.html>`_
+Carrot requires a connection to a RabbitMQ broker to work. If you do not already have a RabbitMQ server to connect to,
+you can refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.html>`_
 
 Configuring your Django project
 *******************************
@@ -99,8 +99,9 @@ called with the keyword argument *hello=True*
 Scheduling tasks
 ****************
 
-Scheduled tasks are stored in your Django project's database as **ScheduledTask** objects. To
-scheduled the **my_task** function to run every 5 seconds, use the following code:
+Scheduled tasks are stored in your Django project's database as **ScheduledTask** objects. The Carrot service will
+publish tasks to your RabbitMQ queue at the required intervals. To scheduled the **my_task** function to run every 5
+seconds, use the following code:
 
 .. code-block:: python
 
@@ -108,7 +109,7 @@ scheduled the **my_task** function to run every 5 seconds, use the following cod
 
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
-The above will schedule the **my_task** function to run every 5 seconds (while the Carrot service is running)
+The above will publish the **my_task** function to the queue every 5 seconds
 
 
 Daemonizing the service
@@ -151,13 +152,27 @@ To implement it, simply add the carrot url config to your Django project's main 
         url(r'^carrot/', include('carrot.urls')),
     ]
 
+You will also need to register Carrot's template filters in your Django project's settings:
+
+
+.. code-block:: python
+
+    TEMPLATES = [
+        ...
+        'OPTIONS': {
+            ...
+            'builtins': [
+                ...
+                'carrot.templatetags.filters'
+            ]
+        }
+    ]
 
 
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/chris104957/django-carrot/issues
-- Source Code: https://github.com/chris104957/django-carrot
+Please refer to `Contributing to Carrot <https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>`
 
 Support
 -------
