@@ -13,7 +13,7 @@ setup(
     version='0.1.0',
     packages=find_packages(),
     include_package_data=True,
-    license='BSD License',
+    license='Apache Software License',
     description='A RabbitMQ asynchronous task queue for Django.',
     long_description=readme(),
     author='Christopher Davies',
