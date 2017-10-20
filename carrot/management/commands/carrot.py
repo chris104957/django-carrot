@@ -1,6 +1,6 @@
 import time
 
-from carrot.consumer import ConsumerSet
+from carrot.consumer import ConsumerSet, LOGGING_FORMAT
 from carrot.models import ScheduledTask
 from carrot.objects import VirtualHost
 from carrot.scheduler import ScheduledTaskManager
@@ -10,6 +10,7 @@ from carrot import DEFAULT_BROKER
 import signal
 import os
 import sys
+import logging
 
 
 class Command(BaseCommand):
@@ -104,20 +105,35 @@ class Command(BaseCommand):
                 self.scheduler.start()
                 self.stdout.write(self.style.SUCCESS('Successfully started scheduler'))
 
-            # consumers
+            # logger
+            loglevel = getattr(logging, options.get('loglevel', 'DEBUG'))
 
+            logger = logging.getLogger('carrot')
+            logger.setLevel(loglevel)
+
+            file_handler = logging.FileHandler(options['logfile'])
+            file_handler.setLevel(loglevel)
+
+            streaming_handler = logging.StreamHandler(sys.stdout)
+            streaming_handler.setLevel(loglevel)
+
+            formatter = logging.Formatter(LOGGING_FORMAT)
+            streaming_handler.setFormatter(formatter)
+            file_handler.setFormatter(formatter)
+
+            logger.addHandler(file_handler)
+            logger.addHandler(streaming_handler)
+
+            # consumers
             for queue in queues:
                 kwargs = {
                     'queue': queue['name'],
-                    'logfile': options['logfile'],
+                    'logger': logger,
                     'concurrency': queue.get('concurrency', 1),
                 }
 
                 if queue.get('consumer_class', None):
                     kwargs['consumer_class'] = queue.get('consumer_class')
-
-                if options.get('loglevel', None):
-                    kwargs['loglevel'] = options['loglevel']
 
                 try:
                     vhost = VirtualHost(**queue['host'])
@@ -131,8 +147,7 @@ class Command(BaseCommand):
                                                      % (c.concurrency, queue['name'])))
 
             self.stdout.write(self.style.SUCCESS('All queues consumer sets started successfully. Full logs are at %s.'
-                                                 'PIDFILE: %i'
-                                                 % (options['logfile'], os.getpid())))
+                                                 % options['logfile']))
 
             qs = ScheduledTask.objects.filter(active=True)
             self.pks = [t.pk for t in qs]

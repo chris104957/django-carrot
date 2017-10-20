@@ -296,6 +296,9 @@ class Consumer(threading.Thread):
             except Exception as err:
                 self.fail(log, 'An unknown error occurred: %s' % err)
 
+        else:
+            sys.exit()
+
     def fail(self, log, err):
         """
         This function is called if there is any kind of error with the `.consume()` function
@@ -324,7 +327,8 @@ class Consumer(threading.Thread):
         self.logger.info('Started consumer %s' % self.name)
         for message in self.channel.consume(self.queue or 'default', inactivity_timeout=1):
             if not self.signal:
-                return self.connection.close()
+                self.connection.close()
+                sys.exit()
 
             self.connection.sleep(0.1)
 
@@ -353,26 +357,8 @@ class ConsumerSet(object):
         mod = importlib.import_module(module)
         return getattr(mod, _cls)
 
-    def __init__(self, host, queue, concurrency=1, name='consumer', logfile='/var/log/carrot.log',
-                 consumer_class='carrot.consumer.Consumer', loglevel='DEBUG'):
-        loglevel = getattr(logging, loglevel)
-
-        self.logfile = logfile
-        self.logger = logging.getLogger('carrot')
-        self.logger.setLevel(loglevel)
-
-        file_handler = logging.FileHandler(self.logfile)
-        file_handler.setLevel(loglevel)
-
-        streaming_handler = logging.StreamHandler(sys.stdout)
-        streaming_handler.setLevel(loglevel)
-
-        formatter = logging.Formatter(LOGGING_FORMAT)
-        streaming_handler.setFormatter(formatter)
-        file_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(streaming_handler)
+    def __init__(self, host, queue, logger, concurrency=1, name='consumer', consumer_class='carrot.consumer.Consumer'):
+        self.logger = logger
         self.host = host
         self.connection = host.blocking_connection
         self.channel = self.connection.channel()
@@ -389,8 +375,6 @@ class ConsumerSet(object):
             t.signal = False
             t.join()
             print('Closed thread %s' % t)
-
-        sys.exit()
 
     def start_consuming(self):
         """
