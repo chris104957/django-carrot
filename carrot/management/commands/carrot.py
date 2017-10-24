@@ -7,8 +7,6 @@ from carrot.scheduler import ScheduledTaskManager
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from carrot import DEFAULT_BROKER
-import signal
-import os
 import sys
 import logging
 
@@ -79,7 +77,7 @@ class Command(BaseCommand):
         :param options: provided by **argparse** (see above for the full list of available options)
 
         """
-        signal.signal(signal.SIGINT, self.terminate)
+        # signal.signal(signal.SIGINT, self.terminate)
 
         run_scheduler = options['run_scheduler']
 
@@ -114,15 +112,15 @@ class Command(BaseCommand):
             file_handler = logging.FileHandler(options['logfile'])
             file_handler.setLevel(loglevel)
 
-            streaming_handler = logging.StreamHandler(sys.stdout)
-            streaming_handler.setLevel(loglevel)
+            # streaming_handler = logging.StreamHandler(sys.stdout)
+            # streaming_handler.setLevel(loglevel)
 
             formatter = logging.Formatter(LOGGING_FORMAT)
-            streaming_handler.setFormatter(formatter)
+            # streaming_handler.setFormatter(formatter)
             file_handler.setFormatter(formatter)
 
             logger.addHandler(file_handler)
-            logger.addHandler(streaming_handler)
+            # logger.addHandler(streaming_handler)
 
             # consumers
             for queue in queues:
