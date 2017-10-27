@@ -1,24 +1,27 @@
 {% extends "carrot/base_site.html" %}
 
 {% block content %}
+    <div v-on:click='hideOverlay' v-if="highlightMode" id="overlay"></div>
+    <div class="task-view">
+        <task-detail v-if="selectedObject" v-bind:task="selectedObject" v-bind:log-level="logLevel"></task-detail>
+        <select v-model="logLevel">
+
+        </select>
+    </div>
     {% el "h2" "Queued tasks" %}
     {% ot "div" class="container" %}
-        {% task_queue object_list %}
-        {{ object_list|table_strapline }}
+        {% task_queue %}
     {% ct "div" %}
     {% el "h2" "Failed tasks" %}
     {% ot "div" class="container" %}
-        {% failed_task_queue failed_tasks %}
-        {{ failed_tasks|table_strapline_failed }}
+        {% failed_task_queue %}
     {% ct "div" %}
     {% el "h2" "Completed tasks" %}
     {% ot "div" class="container" %}
-        {% completed_task_queue completed_tasks %}
-        {{ completed_tasks|table_strapline_completed }}
+        {% completed_task_queue %}
     {% ct "div" %}
     {% el "h2" "Scheduled tasks" %}
     {% ot "div" class="container" %}
-        {% scheduled_task_queue scheduled_tasks %}
-        {% strapline_with_url "" %}
+        {% scheduled_task_queue %}
     {% ct "div" %}
 {% endblock %}

@@ -12,6 +12,12 @@ h1 {
 
 a.title {
     text-decoration:none !important;
+    position: fixed;
+    top: 0;
+    height: 59x;
+    left: 0;
+    right: 0;
+
 }
 
 h2 {
@@ -64,6 +70,10 @@ h2 {
     background-color: rgb(233, 233, 233);
 }
 
+.task-queue tr:hover {
+    cursor: pointer;
+    background-color: #96c7e8;
+}
 .strapline {
     margin: 10px 0;
 }
@@ -188,3 +198,94 @@ li.CRITICAL {
     font-weight: normal;
 }
 
+.paginator {
+    margin: 10px 0;
+}
+
+
+.paginator li {
+    display: inline-block;
+    list-style-type: none;
+    vertical-align: middle;
+}
+
+button.page {
+    font-size: 24px;
+    color: rgb(41, 128, 185);
+    background-color: white;
+    float: left;
+    padding: 3px 10px;
+    border: none;
+    transition: .3s;
+}
+
+button.page:disabled, button.page:disabled:hover {
+    color: grey;
+    background-color: white;
+    border: none;
+
+}
+
+button.page:hover {
+    background-color: rgb(41, 128, 185);
+    border-radius: 5px;
+    color: white;
+}
+
+
+#overlay {
+    position: fixed;
+    overflow: hidden;
+    width:100%;
+    top: 59px;
+    height:100%;
+    z-index: 1;
+    background: #000000;
+    opacity: 0.7;
+}
+
+body {
+    position: absolute;
+    overflow: scroll;
+    left: 0;
+    right:0;
+    top: 0;
+    bottom: 0;
+}
+
+.clear {
+    height: 60px;
+}
+
+.task-view {
+	background-color: white !important;
+	position: absolute;
+	padding: 20px 0 0 65px;
+	height: 200%;
+	width: auto;
+	min-width: 800px;
+    min-height: 1200px;
+    top: 20px;
+    right: 300px;
+    left: 300px;
+    bottom: 10px;
+    z-index: 10000;
+}
+
+.task-view h2 {
+    background-color:white !important;
+    padding: 0;
+}
+
+.task-view h3 {
+    margin-top: 25px;
+}
+
+.task-view .task-queue tr:hover {
+    cursor: auto;
+    background-color: white;
+}
+
+.task-view .task-queue tr:nth-of-type(odd) {
+    background-color: rgb(233, 233, 233);
+}

@@ -9,6 +9,19 @@ from django.core.urlresolvers import reverse
 register = template.Library()
 
 
+@register.inclusion_tag('carrot/carrot.js')
+def vue():
+    from django.template.response import SimpleTemplateResponse
+
+    task_detail_template = 'carrot/task_detail.html'
+
+    temp = SimpleTemplateResponse(task_detail_template, context={})
+
+    content = temp.rendered_content.replace('\n', '')
+
+    return {'task_detail_template': mark_safe(content)}
+
+
 @register.simple_tag
 def el(tag, content=None, **opts):
     if content:
@@ -27,13 +40,11 @@ def ct(tag):
     return format_html('</{}>', tag)
 
 
-@register.inclusion_tag('carrot/table.html')
-def task_queue(object_list):
+@register.inclusion_tag('carrot/published_table.html')
+def task_queue():
     return {
         'table_class': 'task-queue',
-        'headers': ['Priority', 'Task', 'Arguments', 'Keyword arguments', 'Queue', 'Exchange', 'Routing key'],
-        'attributes': ['priority', 'href', 'task_args', 'content', 'queue', 'exchange', 'routing_key'],
-        'object_list': object_list[:30]
+        'headers': ['Priority', 'Task', 'Arguments', 'Keyword arguments'],
     }
 
 
@@ -98,6 +109,13 @@ def outputblock(content):
                            format_html_join('\n', '<li class="tb">{}</li>', ((line,) for line in content.split('\n'))))
 
 
+class Objectify(object):
+    def __init__(self, object):
+        kwargs = json.loads(object)
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
 @register.inclusion_tag('carrot/info_table.html')
 def info_table(object):
     attributes = [
@@ -118,55 +136,33 @@ def info_table(object):
     }
 
 
-@register.inclusion_tag('carrot/table.html')
-def failed_task_queue(object_list):
-    object_list = object_list.order_by('-failure_time')
+@register.inclusion_tag('carrot/failed_table.html')
+def failed_task_queue():
     return {
         'table_class': 'task-queue failed',
-        'headers': ['Failure Time', 'Task', 'Arguments', 'Keyword arguments', 'Exchange', 'Routing key', 'Exception'],
-        'attributes': ['display_failure_time', 'href', 'task_args', 'content', 'exchange', 'routing_key', 'exception'],
-        'object_list': object_list[:30]
+        'headers': ['Failure Time', 'Task', 'Arguments', 'Keyword arguments', 'Exception'],
     }
 
 
-@register.inclusion_tag('carrot/table.html')
-def completed_task_queue(object_list):
-    object_list = object_list.order_by('-completion_time')
+@register.inclusion_tag('carrot/completed_table.html')
+def completed_task_queue():
     return {
         'table_class': 'task-queue completed',
-        'headers': ['Completion Time', 'Task', 'Arguments', 'Keyword arguments', 'Exchange', 'Routing key',],
-        'attributes': ['display_completion_time', 'href', 'task_args', 'content', 'exchange', 'routing_key',],
-        'object_list': object_list[:30]
+        'headers': ['Completion Time', 'Task', 'Arguments', 'Keyword arguments',],
     }
 
 
-@register.inclusion_tag('carrot/table.html')
-def scheduled_task_queue(object_list):
+@register.inclusion_tag('carrot/scheduled_table.html')
+def scheduled_task_queue():
     return {
         'table_class': 'task-queue',
-        'headers': ['Task', 'Interval', 'Exchange', 'Routing key', 'Active?'],
-        'attributes': ['href', 'interval_display', 'exchange', 'routing_key', 'active'],
-        'object_list': object_list[:30]
+        'headers': ['Task', 'Interval', 'Active?'],
     }
-
 
 
 @register.simple_tag
 def get_attr(instance, field, default=None):
     return getattr(instance, field, default)
-
-
-@register.filter
-def table_strapline(object_list):
-    if object_list.count() > 30:
-        msg = 'Showing the next 30 tasks to be processed (out of a total of %i)' % object_list.count()
-    elif object_list.count() == 0:
-        msg = 'No items currently in the queue'
-
-    else:
-        msg = 'Showing all %i tasks currently in the queue' % object_list.count()
-
-    return format_html('<p {}>{}<p>', flatatt({'class':'strapline'}), msg)
 
 
 @register.filter

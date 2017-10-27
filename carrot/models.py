@@ -60,7 +60,7 @@ class MessageLog(models.Model):
     @property
     def virtual_host(self):
         from carrot.utilities import get_host_from_name
-        return get_host_from_name(self.queue)
+        return str(get_host_from_name(self.queue))
 
     @property
     def keywords(self):
@@ -206,8 +206,12 @@ class ScheduledTask(models.Model):
         return self.task
 
     @property
+    def url(self):
+        return reverse('edit-scheduled-task', args=[self.pk])
+
+    @property
     def href(self):
-        return format_html('<a {}>{}</a>', flatatt({'href': reverse('edit-scheduled-task', args=[self.pk])}), self.task)
+        return format_html('<a {}>{}</a>', flatatt({'href': self.url}), self.task)
 
     @property
     def delete_href(self):

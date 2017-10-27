@@ -1,4 +1,4 @@
-from django.views.generic.list import ListView
+from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from carrot.models import MessageLog, ScheduledTask
@@ -59,15 +59,8 @@ class TaskForm(forms.ModelForm):
         )
 
 
-class MessageList(ListView):
-    queryset = MessageLog.objects.filter(status='PUBLISHED')
-
-    def get_context_data(self, **kwargs):
-        context = super(MessageList, self).get_context_data(**kwargs)
-        context['failed_tasks'] = MessageLog.objects.filter(status='FAILED')
-        context['completed_tasks'] = MessageLog.objects.filter(status='COMPLETED')
-        context['scheduled_tasks'] = ScheduledTask.objects.all()
-        return context
+class MessageList(TemplateView):
+    template_name = 'carrot/messagelog_list.html'
 
 
 def requeue(request, pk):
