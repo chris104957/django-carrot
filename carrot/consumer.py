@@ -142,9 +142,6 @@ class Consumer(threading.Thread):
         self.signal = True
         self.run_once = run_once
 
-    def reconnect(self):
-        self.connection = self.host.blocking_connection
-
     def get_message_log(self, properties, body):
         """
         Finds and returns the :class:`carrot.models.MessageLog` object associated with a RabbitMQ message
@@ -357,26 +354,8 @@ class ConsumerSet(object):
         mod = importlib.import_module(module)
         return getattr(mod, _cls)
 
-    def __init__(self, host, queue, concurrency=1, name='consumer', logfile='/var/log/carrot.log',
-                 consumer_class='carrot.consumer.Consumer', loglevel='DEBUG'):
-        loglevel = getattr(logging, loglevel)
-
-        self.logfile = logfile
-        self.logger = logging.getLogger('carrot')
-        self.logger.setLevel(loglevel)
-
-        file_handler = logging.FileHandler(self.logfile)
-        file_handler.setLevel(loglevel)
-
-        streaming_handler = logging.StreamHandler(sys.stdout)
-        streaming_handler.setLevel(loglevel)
-
-        formatter = logging.Formatter(LOGGING_FORMAT)
-        streaming_handler.setFormatter(formatter)
-        file_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(streaming_handler)
+    def __init__(self, host, queue, logger, concurrency=1, name='consumer', consumer_class='carrot.consumer.Consumer'):
+        self.logger = logger
         self.host = host
         self.connection = host.blocking_connection
         self.channel = self.connection.channel()
