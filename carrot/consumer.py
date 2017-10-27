@@ -296,9 +296,6 @@ class Consumer(threading.Thread):
             except Exception as err:
                 self.fail(log, 'An unknown error occurred: %s' % err)
 
-        else:
-            sys.exit()
-
     def fail(self, log, err):
         """
         This function is called if there is any kind of error with the `.consume()` function
@@ -327,8 +324,8 @@ class Consumer(threading.Thread):
         self.logger.info('Started consumer %s' % self.name)
         for message in self.channel.consume(self.queue or 'default', inactivity_timeout=1):
             if not self.signal:
-                self.connection.close()
-                sys.exit()
+                self.channel.cancel()
+                return self.connection.close()
 
             self.connection.sleep(0.1)
 
