@@ -142,6 +142,9 @@ class Consumer(threading.Thread):
         self.signal = True
         self.run_once = run_once
 
+    def reconnect(self):
+        self.connection = self.host.blocking_connection
+
     def get_message_log(self, properties, body):
         """
         Finds and returns the :class:`carrot.models.MessageLog` object associated with a RabbitMQ message
@@ -324,6 +327,7 @@ class Consumer(threading.Thread):
         self.logger.info('Started consumer %s' % self.name)
         for message in self.channel.consume(self.queue or 'default', inactivity_timeout=1):
             if not self.signal:
+                self.channel.cancel()
                 return self.connection.close()
 
             self.connection.sleep(0.1)
@@ -389,8 +393,6 @@ class ConsumerSet(object):
             t.signal = False
             t.join()
             print('Closed thread %s' % t)
-
-        sys.exit()
 
     def start_consuming(self):
         """
