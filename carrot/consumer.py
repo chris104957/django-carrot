@@ -215,6 +215,8 @@ class Consumer(threading.Thread):
         if self.signal:
             try:
                 log = self.get_message_log(properties, body)
+                log.status = 'IN_PROGRESS'
+                log.save()
                 self.channel.basic_ack(method_frame.delivery_tag)
             except ObjectDoesNotExist:
                 self.logger.error('Unable to find a MessageLog matching the uuid %s. Ignoring this task' %
@@ -264,7 +266,6 @@ class Consumer(threading.Thread):
                                                                                                "%Y-%m-%d %H:%M:%S,%f")[
                                                                                            :-3],
                                                                                            log.task, output)
-                print(success)
                 self.logger.info(success)
                 self.task_log.append(success)
 
@@ -366,10 +367,20 @@ class ConsumerSet(object):
         self.threads = []
 
     def stop_consuming(self):
+        """
+        Stops all running threads. Loops through the threads twice - firstly, to set the signal to **False** on all
+        threads, secondly to wait for them all to finish
+
+        If a single loop was used here, the latter threads could still consume new tasks while the parent process waited
+        for the earlier threads to finish. The second loop allows for quicker consumer stoppage and stops all consumers
+        from consuming new tasks from the moment the signal is received
+        """
         print('%i thread(s) to close' % len(self.threads))
         for t in self.threads:
-            print('Closing thread %s' % t)
             t.signal = False
+
+        for t in self.threads:
+            print('Closing thread %s' % t)
             t.join()
             print('Closed thread %s' % t)
 

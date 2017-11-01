@@ -1,0 +1,7 @@
+<ul class="paginator">
+    <li><button class="page" v-bind:disabled="page() == 1" v-on:click="setPage(1)"><icon type="first_page"></icon></button></li>
+    <li><button class="page" v-bind:disabled="page() < 2" v-on:click="setPage(page() - 1)"><icon type="chevron_left"></icon></button></li>
+    <li>Showing page [[ page() ]] of [[ pageCount() ]]</li>
+    <li><button class="page" v-bind:disabled="page() >= pageCount()" v-on:click="setPage(page() + 1)"><icon type="chevron_right"></icon></button></li>
+    <li><button class="page" v-bind:disabled="page() >= pageCount()" v-on:click="setPage(pageCount())"><icon type="last_page"></icon></button></li>
+</ul>

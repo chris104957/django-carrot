@@ -30,13 +30,13 @@ class MessageLog(models.Model):
 
     """
     STATUS_CHOICES = (
-        ('UNPUBLISHED', 'Not yet published'),
         ('PUBLISHED', 'Published'),
+        ('IN_PROGRESS', 'In progress'),
         ('FAILED', 'Failed'),
         ('COMPLETED', 'Completed'),
     ) #:
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UNPUBLISHED')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PUBLISHED')
     exchange = models.CharField(max_length=200, blank=True, null=True) #: the exchange
     queue = models.CharField(max_length=200, blank=True, null=True)
     routing_key = models.CharField(max_length=200, blank=True, null=True)
@@ -132,13 +132,15 @@ class MessageLog(models.Model):
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
         from carrot.utilities import publish_message
-        publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue, exchange=self.exchange,
-                        routing_key=self.routing_key, **self.keywords)
+        msg = publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue,
+                              exchange=self.exchange, routing_key=self.routing_key, **self.keywords)
 
         self.delete()
 
+        return msg
+
     class Meta:
-        ordering = '-priority', 'pk',
+        ordering = '-failure_time', '-completion_time', 'status', '-priority', '-publish_time',
 
 
 class ScheduledTask(models.Model):

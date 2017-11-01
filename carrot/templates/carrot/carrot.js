@@ -1,80 +1,81 @@
 Vue.component('task-detail', {
     delimiters: ['[[', ']]'],
-    props: ['task', 'logLevel'],
+    props: ['task', 'logLevel',],
     filters: {
         formatDate: function(rawDate) {
             // filter for converting a raw string to something more human-readable
             return moment(String(rawDate)).format('DD/MM/YYYY hh:mm')
         },
-        sentence: function(raw) {
-            // convert "STRING" to "String"
-            var firstLetter = raw.substr(0, 1);
-            var rest = raw.substr(1);
-            return firstLetter + rest.toLowerCase();
-        }
+        cropped: function(data) {
+            console.log(this.app.$options.filters.cropped);
+            return this.app.$options.filters.cropped(data);
+
+        },
+        croppedKwargs: function(data) {
+            return this.app.$options.filters.croppedKwargs(data);
+        },
     },
     methods: {
-        splitTraceback: function(rawTraceback) {
-            // splits a task's traceback at the line breaks
-            return rawTraceback.split('\n');
-        },
-        getLevel: function() {
-            var levels = {
-                DEBUG: 1,
-                INFO: 2,
-                WARNING: 3,
-                ERROR: 4,
-                CRITICAL: 5
-            };
-            var elem = document.getElementById('selector');
-            var levelNumber;
-            if (elem) {
-                return levels[elem.value];
-            } else {
-                return 2;
-            };
-        },
-        renderLog: function(rawLog) {
-            // converts the lines of the rawLog object to a list of dictionaries
-            var levels = {
-                DEBUG: 1,
-                INFO: 2,
-                WARNING: 3,
-                ERROR: 4,
-                CRITICAL: 5
-            };
-
-            var rawLines = rawLog.split('\n');
-            var output = [];
-
-            for (i = 0; i < rawLines.length; i ++) {
-                if (rawLines[i]) {
-                    var splitLine = rawLines[i].split('::')
-                    var preColon = splitLine[0].split(' ')
-                    var message = splitLine[1]
-
-                    var rowData = {
-                        consumer: preColon[0],
-                        date: preColon[1],
-                        time: preColon[2],
-                        level: levels[preColon[3]],
-                        message: message,
-                    };
-                    output.push(rowData);
-                }
-            };
-            console.log(output);
-            return output;
-        },
         getIndent: function(line) {
             // calculates the indent_level class to apply to the LI elements in the traceback, eg class="indent_level_2"
             var level = (line.length - line.trim().length) / 2;
             return 'indent_level_' + level;
-        }
+        },
+        splitTraceback: function(rawTraceback) {
+            return rawTraceback.split('\n');
+        },
     },
     template: '{{ task_detail_template }}',
 })
 
+
+Vue.component('scheduled-task', {
+    delimiters: ['[[', ']]'],
+    props: ['task', 'errors'],
+    methods: {
+        taskChoices: function() {
+            return {{ task_options }}
+        },
+        intervalChoices: function() {
+            return {{ interval_options }}
+        },
+        getClass: function(errors) {
+            if (errors) {
+                return 'error_td'
+            }
+        },
+    },
+    template: '{{ scheduled_task_template }}',
+})
+
+Vue.component('field-errors', {
+    delimiters: ['[[', ']]'],
+    props: ['errors'],
+    template: '{{ field_errors }}'
+})
+
+Vue.component('icon', {
+    delimiters: ['[[', ']]'],
+    props: ['type'],
+    template: '<i class="material-icons">[[ type ]]</i>'
+})
+
+Vue.component('paginator', {
+    delimiters: ['[[', ']]'],
+    props: ['type'],
+    methods: {
+        page: function() {
+            return this.$parent.getPage(this.type)
+        },
+        pageCount: function() {
+            return this.$parent.getPageCount(this.type)
+        },
+        setPage: function(newCount) {
+            this.$parent.setPage(this.type, newCount)
+        }
+    },
+    template: '{{ paginator_template }}'
+})
 
 var app = new Vue({
     el: '#app',
@@ -84,14 +85,24 @@ var app = new Vue({
         highlightMode: false,
         selectedObjectId: null,
         selectedObject: null,
-        logLevel: 3,
-        logLevels: {
-            DEBUG: 1,
-            INFO: 2,
-            WARNING: 3,
-            ERROR: 4,
-            CRITICAL: 5
-        };
+        logLevel: 'INFO',
+        logLevels: [
+            'DEBUG',
+            'INFO',
+            'WARNING',
+            'ERROR',
+            'CRITICAL'
+        ],
+        log : null,
+        traceback : null,
+
+        refreshInterval: 5,
+
+        showSave: false,
+        formErrors: {},
+
+        selectedScheduledObjectId: null,
+        selectedScheduledObject: null,
 
         publishedObjects: [],
         publishedPage: 1,
@@ -123,94 +134,88 @@ var app = new Vue({
         this.getCompletedMessageLogs()
         this.getScheduledTasks()
     },
+    mounted: function() {
+        // carrot monitor calls getPublishedMessageLogs, getFailedMessageLogs, getCompletedMessageLogs periodically
+        // to ensure that users can see tasks moving from the published to the failed/completed queues without having
+        // to manually refresh the page every time.
+        setInterval(function () {
+            this.getPublishedMessageLogs();
+            this.getFailedMessageLogs()
+            this.getCompletedMessageLogs();
+        }.bind(this), this.refreshInterval * 1000);
+
+    },
     filters: {
         formatDate: function(rawDate) {
             // filter for converting a raw string to something more human-readable
             return moment(String(rawDate)).format('DD/MM/YYYY hh:mm')
         },
+        cropped: function(task_args) {
+            // crop the list of task arguments to a reasonable length
+            var full = task_args.split(',');
+            var cropped = full.slice(0, 10);
+
+            if (full.length > cropped.length) {
+                var diff = full.length - cropped.length;
+                cropped.push('(' + diff + ' more items not displayed)')
+            }
+            return cropped.join(', ')
+        },
+        croppedKwargs: function(rawKwargs) {
+            var obj = JSON.parse(rawKwargs)
+            var count = 0;
+            var value;
+            var cleaned = {};
+            for (var key in obj) {
+                count = count + 1
+                if (count > 10) {
+                    break
+                }
+                value = obj[key]
+                var maxLength;
+                if (Array.isArray(value)) {
+                    maxLength = 10;
+                } else {
+                    maxLength = 50;
+                }
+
+                if (value.length > maxLength) {
+                    value = value.slice(0, maxLength) + '...'
+                }
+                cleaned[key] = value
+            }
+
+            return cleaned
+        }
     },
     methods: {
-        // methods for determining whether the next/previous pagingation buttons should be disabled
-        publishedPreviousDisabled: function () {
-            if (this.publishedPage <= 1) {
-                return true
+        setLog: function() {
+            // splits a task's traceback at the line breaks
+            var self = this;
+            if (self.selectedObject.log) {
+                var rawLines = self.selectedObject.log.split('\n');
+                var output = [];
+
+                for (i = 0; i < rawLines.length; i ++) {
+                    if (rawLines[i]) {
+                        var splitLine = rawLines[i].split('::')
+                        var preColon = splitLine[0].split(' ')
+                        var message = splitLine[1]
+                        var level = self.getLevel(preColon[3]);
+                        if (level >= self.getLevel(self.logLevel)) {
+                            var rowData = {
+                                consumer: preColon[0],
+                                date: preColon[1],
+                                time: preColon[2],
+                                level: preColon[3],
+                                message: message,
+                            };
+                            output.push(rowData);
+                        }
+                    }
+                };
+                this.log = output;
             }
-            if (!this.publishedPreviousPage) {
-                return true
-            };
-            return false;
-        },
-        publishedNextDisabled: function () {
-            if (!this.publishedNextPage) {
-                return true
-            }
-        },
-        failedPreviousDisabled: function () {
-            if (this.failedPage <= 1) {
-                return true
-            }
-            if (!this.failedPreviousPage) {
-                return true
-            };
-            return false;
-        },
-        failedNextDisabled: function () {
-            if (!this.failedNextPage) {
-                return true
-            }
-        },
-        completedPreviousDisabled: function () {
-            if (this.completedPage <= 1) {
-                return true
-            }
-            if (!this.completedPage) {
-                return true
-            };
-            return false;
-        },
-        completedNextDisabled: function () {
-            if (!this.completedNextPage) {
-                return true
-            }
-        },
-        scheduledPreviousDisabled: function () {
-            if (this.scheduledPage <= 1) {
-                return true
-            }
-            if (!this.scheduledPage) {
-                return true
-            };
-            return false;
-        },
-        scheduledNextDisabled: function () {
-            if (!this.scheduledNextPage) {
-                return true
-            }
-        },
-        // methods for bumping/reducing the page numbers
-        bumpPublishedPage: function () {
-            this.publishedPage = parseInt(this.publishedPage) + 1;
-        },
-        prevPublishedPage: function () {
-            this.publishedPage = parseInt(this.publishedPage) - 1;
-        },
-        bumpFailedPage: function () {
-            this.failedPage = parseInt(this.failedPage) + 1;
-        },
-        prevFailedPage: function () {
-            this.failedPage = parseInt(this.failedPage) - 1;
-        },
-        bumpCompletedPage: function () {
-            this.completedPage = parseInt(this.completedPage) + 1;
-        },
-        prevCompletedPage: function () {
-            this.completedPage = parseInt(this.completedPage) - 1;
-        },
-        bumpScheduledPage: function () {
-            this.scheduledPage = parseInt(this.scheduledPage) + 1;
-        },
-        prevScheduledPage: function () {
-            this.scheduledPage = parseInt(this.scheduledPage) - 1;
         },
         // methods for calling the REST API
         getPublishedMessageLogs: function () {
@@ -229,7 +234,6 @@ var app = new Vue({
             })
             .catch(function (error) {
                 console.log(error);
-                this.fetchError = error
             })
         },
         getFailedMessageLogs: function () {
@@ -249,7 +253,6 @@ var app = new Vue({
             })
             .catch(function (error) {
                 console.log(error);
-                this.fetchError = error
             })
         },
         getCompletedMessageLogs: function () {
@@ -269,7 +272,6 @@ var app = new Vue({
             })
             .catch(function (error) {
                 console.log(error);
-                this.fetchError = error
             })
         },
         getScheduledTasks: function () {
@@ -289,10 +291,10 @@ var app = new Vue({
             })
             .catch(function (error) {
                 console.log(error);
-                this.fetchError = error
             })
         },
         highlight: function(event) {
+            window.scrollTo(0,0);
             var self = this;
             var elementId = event.target.parentElement.id;
             var taskId = elementId.split('_')[1];
@@ -300,10 +302,24 @@ var app = new Vue({
             self.highlightMode = true;
             self.selectedObjectId = taskId;
         },
+        highlightScheduled: function(event) {
+            window.scrollTo(0,0);
+            var self = this;
+            var elementId = event.target.parentElement.id;
+            var taskId = elementId.split('_')[1];
+            var overlay = document.getElementById('overlay');
+            self.highlightMode = true;
+            self.selectedScheduledObjectId = taskId;
+        },
         hideOverlay: function() {
             this.highlightMode = false;
             this.selectedObjectId = null;
             this.selectedObject = null;
+            this.selectedScheduledObjectId = null;
+            this.selectedScheduledObject = null;
+            this.getScheduledTasks();
+            this.formErrors = {};
+            this.showSave = false;
         },
         getTask: function(taskId) {
             // returns the data for a single task object by calling the REST API
@@ -314,9 +330,188 @@ var app = new Vue({
             })
             .catch(function (error) {
                 console.log(error);
+            })
+        },
+        getScheduledTask: function() {
+            // returns the data for a single task object by calling the REST API
+            var self = this;
+            return axios.get('/carrot/api/scheduled-tasks/' + self.selectedScheduledObjectId)
+            .then(function (response) {
+                self.selectedScheduledObject = response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+        },
+        getLevel: function(levelName) {
+            // converts a level name to an int e.g. converts 'WARNING' to '3'
+            var levels = {
+                DEBUG: 1,
+                INFO: 2,
+                WARNING: 3,
+                ERROR: 4,
+                CRITICAL: 5
+            };
+            return levels[levelName];
+        },
+        requeueAll: function () {
+            // calls the API that requeues ALL failed MessageLogs. On getting a success callback, getFailedMessageLogs
+            // and getPublishedMessageLogs are called
+            var self = this;
+            return axios.put('/carrot/api/message-logs/failed/', {},
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+            .then(function (response) {
+                self.getFailedMessageLogs()
+                self.getPublishedMessageLogs()
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+        },
+        deleteAll: function () {
+            // calls the API that deletes ALL failed MessageLogs. On getting a success callback, getFailedMessageLogs
+            // is called
+            var self = this;
+            return axios.delete('/carrot/api/message-logs/failed/',
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+            .then(function (response) {
+                self.getFailedMessageLogs()
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+        },
+        requeueOne: function(objectPk) {
+            // requeues a single task
+            var self = this;
+            return axios.put('/carrot/api/message-logs/' + objectPk + '/', {},
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+            .then(function (response) {
+                self.hideOverlay();
+                self.getFailedMessageLogs();
+                self.getPublishedMessageLogs();
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+        },
+        deleteOne: function(objectPk) {
+            // deletes a single failed MessageLog objects
+            var self = this;
+            return axios.delete('/carrot/api/message-logs/' + objectPk + '/',
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+            .then(function (response) {
+                self.hideOverlay();
+                self.getFailedMessageLogs()
+            })
+            .catch(function (error) {
+                console.log(error);
                 this.fetchError = error
             })
-        }
+        },
+        save: function(task) {
+            // save a ScheduledTask object
+            console.log(task);
+            var self = this;
+            this.formErrors = {};
+            if (task.pk) {
+                return axios.patch('/carrot/api/scheduled-tasks/' + task.pk + '/', task, {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(function (response) {
+                    self.showSave = true;
+                })
+                .catch(function (error) {
+                    var errors = error.response.data;
+                    self.formErrors = errors;
+                })
+            } else {
+                return axios.post('/carrot/api/scheduled-tasks/', task, {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(function (response) {
+                    self.showSave = true;
+                })
+                .catch(function (error) {
+                    var errors = error.response.data;
+                    self.formErrors = errors;
+                })
+            }
+        },
+        deleteScheduledTask: function() {
+            var self = this;
+            if (self.selectedScheduledObject) {
+                return axios.delete('/carrot/api/scheduled-tasks/' + self.selectedScheduledObjectId + '/', {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(function (response) {
+                    self.selectedScheduledObjectId = null;
+                    self.getScheduledTasks()
+                    self.hideOverlay()
+                })
+                .catch(function (error) {
+                    var errors = error.response.data;
+                    console.log(errors);
+                })
+            }
+        },
+        hideSaveMsg: function () {
+            this.showSave = false;
+        },
+        openCreateTaskForm: function() {
+            var self = this;
+            self.selectedScheduledObject = {};
+            self.highlightMode = true;
+            window.scrollTo(0,0);
+        },
+        isNotEmpty: function(dict) {
+            if (Object.keys(dict).length == 0) {
+                return false;
+            };
+            return true
+        },
+        // methods for setting and getting page numbers
+        setPage: function(type, newPage) {
+            var self = this;
+            var attributeName = type + 'Page';
+            Vue.set(self, attributeName, newPage);
+        },
+        getPage: function(type) {
+            var self = this;
+            var attributeName = type + 'Page';
+            return self[attributeName];
+        },
+        getPageCount: function(type) {
+            var self = this;
+            var attributeName = type + 'PageCount';
+            return self[attributeName];
+        },
     }
 })
 
@@ -334,13 +529,35 @@ app.$watch('completedPage', function (newVal, oldVal) {
 })
 
 app.$watch('scheduledPage', function (newVal, oldVal) {
-    app.getCompletedMessageLogs()
+    app.getScheduledTasks()
 })
 
 // watcher that calls app.getTask() whenever there is a change to the selected object pk, and that pk is not null
 app.$watch('selectedObjectId', function (newVal, oldVal) {
     if (newVal) {
         app.getTask();
+    }
+})
+
+// watch for changed to selectedScheduledObjectId and call getScheduledTask()
+app.$watch('selectedScheduledObjectId', function (newVal, oldVal) {
+    if (newVal) {
+        app.getScheduledTask();
+    }
+})
+
+
+// the next two watchers call setLog, which updates the app.log value from the selectedObject.log, on changes to the
+// selectedObject or logLevel variables
+app.$watch('selectedObject', function (newVal, oldVal) {
+    if (newVal) {
+        app.setLog();
+    }
+})
+
+app.$watch('logLevel', function (newVal, oldVal) {
+    if (newVal) {
+        app.setLog();
     }
 })
 

@@ -1,0 +1,68 @@
+<div>
+    <h2>[[ task.task ]]</h2>
+    <ul class="task-form">
+        <li v-bind:class="getClass(errors.task)">
+            <label>Task</label>
+            <div v-if="taskChoices().length > 0">
+                <select v-model="task.task">
+                    <option v-bind:value="option" v-for="option in taskChoices()" v-bind:selected="option == task.task">
+                        [[option]]
+                    </option>
+                </select>
+                <field-errors v-bind:errors="errors.task"></field-errors>
+            </div>
+            <div v-else>
+                <input type="text" v-model="task.task">
+                <field-errors v-if="errors.task" v-bind:errors="errors.task"></field-errors>
+            </div>
+        </li>
+        <li v-bind:class="getClass(errors.task_args)">
+            <label>Positional arguments</label>
+            <textarea name="task_args" id="id_task_args" v-model="task.task_args"></textarea>
+            <field-errors v-bind:errors="errors.task_args"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.content)">
+            <label>Keyword arguments</label>
+            <textarea name="task_args" id="id_task_args" v-model="task.content"></textarea>
+            <field-errors v-bind:errors="errors.content"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.queue)">
+            <label>Queue</label>
+            <input type="text" v-model="task.queue">
+            <field-errors v-bind:errors="errors.queue"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.exchange)">
+            <label>Exchange</label>
+            <input type="text" v-model="task.exchange">
+            <field-errors v-bind:errors="errors.exchange"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.routing_key)">
+            <label>Routing key</label>
+            <input type="text" v-model="task.routing_key">
+            <field-errors v-bind:errors="errors.routing_key"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.interval_type)">
+            <label>Interval type</label>
+            <select v-model="task.interval_type">
+                <option v-bind:value="option" v-for="option in intervalChoices()"
+                        v-bind:selected="option == task.interval_type">
+                    [[option]]
+                </option>
+            </select>
+            <field-errors v-bind:errors="errors.interval_type"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.interval_count)">
+            <label>Interval count</label>
+            <input type="number" v-model="task.interval_count">
+            <field-errors v-bind:errors="errors.interval_count"></field-errors>
+        </li>
+        <li v-bind:class="getClass(errors.active)">
+            <label>Active:</label>
+            <div class="checkbox">
+               <input type="checkbox" value="1" id="checkbox1" v-model="task.active"/>
+               <label for="checkbox1"></label>
+            </div>
+            <field-errors v-bind:errors="errors.active"></field-errors>
+        </li>
+    </ul>
+</div>

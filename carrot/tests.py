@@ -22,7 +22,7 @@ from carrot.views import (
 )
 from carrot.templatetags.filters import (
     task_queue, strapline_with_url, outputblock, failed_task_queue, completed_task_queue,
-    scheduled_task_queue, get_attr, table_strapline, table_strapline_completed, table_strapline_failed,
+    scheduled_task_queue, get_attr, table_strapline_completed, table_strapline_failed,
     formatted_traceback, jsonblock
 )
 from carrot import DEFAULT_BROKER

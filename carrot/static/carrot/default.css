@@ -17,7 +17,6 @@ a.title {
     height: 59x;
     left: 0;
     right: 0;
-
 }
 
 h2 {
@@ -78,16 +77,14 @@ h2 {
     margin: 10px 0;
 }
 
-.task-info {
-    padding: 10px 50px;
-}
-
 
 .traceback {
     list-style-type: none;
     font-family: "Courier New", Courier, monospace !important;
     width: 90%;
+    margin-top: 10px;
     padding: 10px;
+    font-size: 14px;
 }
 
 .tb {
@@ -115,40 +112,9 @@ h2 {
     border: solid 1px lightgreen;
 }
 
-form.standard input, form.standard select, form.standard textarea {
-    width: 300px;
-}
-
-.btn_standard {
-    margin: 10px 0 0 45%;
-    width: 100px;
-    color: white;
-    padding: 6px;
-    font-size: 16px;
-    background-color: rgb(41, 128, 185);
-    border: solid 2px rgb(41, 128, 185);
-    border-radius: 3px;
-}
-
-.delete {
-    background-color: darkred;
-    border: solid 2px darkred;
-
-}
 
 .left {
     margin: 10px 0 !important;
-}
-
-.delete:hover {
-    color: darkred;
-}
-
-.btn_standard:hover {
-    background-color: white;
-    color: rgb(41, 128, 185);
-    transition-duration: 1s;
-
 }
 
 li.DEBUG {
@@ -171,8 +137,6 @@ li.CRITICAL {
     color: red;
     font-weight: bold;
 }
-
-
 
 .levelselect {
     list-style-type: none;
@@ -210,11 +174,10 @@ li.CRITICAL {
 }
 
 button.page {
-    font-size: 24px;
     color: rgb(41, 128, 185);
     background-color: white;
     float: left;
-    padding: 3px 10px;
+    padding: 3px;
     border: none;
     transition: .3s;
 }
@@ -289,3 +252,222 @@ body {
 .task-view .task-queue tr:nth-of-type(odd) {
     background-color: rgb(233, 233, 233);
 }
+
+.buttonlist {
+    margin: 20px;
+}
+
+.buttonlist button {
+    background-color: rgb(41, 128, 185);
+    border: none;
+    padding: 10px;
+    color: white;
+    transition-duration: 0.3s;
+    cursor: pointer;
+    font-size: 14px;
+    border: solid 1px white;
+}
+
+.buttonlist button:hover {
+    color: rgb(41, 128, 185);
+    background-color: white;
+    border: solid 1px rgb(41, 128, 185);
+}
+
+.buttonlist button.delete {
+    background-color: rgb(234, 97, 83);
+}
+
+.buttonlist button.delete:hover {
+    color: rgb(234, 97, 83);
+    background-color: white;
+    border: solid 1px rgb(234, 97, 83);
+}
+
+#save-msg {
+    padding-left: 5px;
+    font-size: 14px;
+}
+
+#save-msg.success {
+    color: green;
+}
+
+#save-msg.failure {
+    color: red;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0
+}
+
+.field_error {
+    list-style-type: none;
+    color: red;
+}
+
+.field_error li {
+    padding: 5px !important;
+    margin: 0 !important;
+}
+
+.error_td {
+    background-color: #ffe6e6;
+    width: 325px;
+}
+
+.task-info {
+    width: 90%;
+    border-collapse: collapse;
+    padding: 10px 50px;
+
+}
+
+input[type=text], input[type=number] {
+    width: 300px;
+    border: 2px solid lightgrey;
+    padding: 10px;
+    outline: none;
+    border-radius: 15px;
+    font-size: 14px;
+    transition-duration: 0.5s;
+}
+
+
+input:focus {
+    border: 2px solid rgb(41, 128, 185);
+    box-shadow: 3px 3px 5px grey;
+}
+
+select {
+    margin-top: 3px;
+    width: 320px;
+    border: 2px solid lightgrey;
+    border-radius: 15px;
+    padding: 10px 0 10px 10px;
+    box-shadow: none;
+    background: transparent;
+    font-size: 14px;
+    background: white url("ic_keyboard_arrow_down_black_24px.svg") no-repeat 95% 80%;
+    -webkit-appearance: none;
+    transition-duration: 0.5s;
+}
+
+select:hover {
+    cursor: pointer;
+}
+
+select:focus {
+    border: 2px solid rgb(41, 128, 185);
+    box-shadow: 3px 3px 5px grey;
+}
+
+option {
+    padding: 50px;
+}
+
+.task-form {
+    list-style-type: none;
+}
+
+.task-form label {
+    display: block;
+}
+
+.task-form li {
+    margin: 10px 5px;
+    border-radius: 5px;
+    padding: 0 10px;
+
+}
+
+textarea {
+    margin-top: 3px;
+    resize: none;
+    padding: 10px;
+    border: 2px solid lightgrey;
+    border-radius: 15px;
+    width: 300px;
+    height: 100px;
+    outline: none;
+    transition-duration: 0.5s
+}
+
+textarea:focus {
+    border: 2px solid rgb(41, 128, 185);
+    box-shadow: 3px 3px 5px grey;
+}
+
+.checkbox > input[type=checkbox] {
+    visibility: hidden;
+}
+
+
+.checkbox {
+   position: relative;
+   display: block;
+   width: 80px;
+   height: 26px;
+   margin: 0;
+   background: #FFF;
+   border: 2px solid lightgrey;
+   border-radius: 5px;
+   -webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+}
+
+.checkbox:after {
+   position: absolute;
+   display: inline;
+   right: 10px;
+   content: 'No';
+   color: #E53935;
+   font: 12px/26px Arial, sans-serif;
+   font-weight: bold;
+   z-index: 0;
+}
+
+.checkbox:before {
+   position: absolute;
+   display: inline;
+   left: 10px;
+   content: 'Yes';
+   color: #43A047;
+   font: 12px/26px Arial, sans-serif;
+   font-weight: bold;
+   z-index: 0;
+}
+
+.checkbox label {
+   position: absolute;
+   display: block;
+   top: 3px;
+   left: 3px;
+   width: 34px;
+   height: 20px;
+   background-color: rgb(41, 128, 185);
+   cursor: pointer;
+   transition: all 0.5s linear;
+   -webkit-transition: all 0.5s linear;
+   -moz-transition: all 0.5s linear;
+   border-radius: 2px;
+   -webkit-border-radius: 2px;
+   -moz-border-radius: 2px;
+   z-index: 1;
+}
+
+.checkbox input[type=checkbox]:checked + label {
+   left: 43px;
+}
+
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+

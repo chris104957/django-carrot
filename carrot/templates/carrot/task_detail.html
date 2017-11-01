@@ -1,4 +1,4 @@
-
+<div>
     <h2>[[ task.task ]]</h2>
     <h3>Basic information</h3>
     <table class="task-queue">
@@ -55,11 +55,11 @@
             </tr>
             <tr v-if="task.task_args != \'()\'">
                 <td>Positional arguments</td>
-                <td>[[ task.task_args ]]</td>
+                <td>[[ task.task_args | cropped ]]</td>
             </tr>
             <tr v-if="task.content">
                 <td>Keyword arguments</td>
-                <td>[[ task.content ]]</td>
+                <td>[[ task.content | croppedKwargs ]]</td>
             </tr>
         </table>
     </div>
@@ -69,21 +69,6 @@
             <li class="tb ERROR" v-bind:class="getIndent(line)" v-for="line in splitTraceback(task.traceback)">
                 [[ line ]]
             </li>
-        </ul>
-    </div>
-    <div v-if="task.status == \'COMPLETED\'">
-        <h3 >Log</h3>
-        <p>Log level:
-            <select id="selector">
-                <option value="DEBUG">Debug</option>
-                <option value="INFO">Info</option>
-                <option value="WARNING" selected>Warning</option>
-                <option value="ERROR">Error</option>
-                <option value="CRITICAL">Critical</option>
-            </select>
-        </p>
-        <ul class="traceback green">
-            <li class="tb" v-if="show(row)" v-for="row in rows">[[ row.date ]] [[ row.time ]]:[[ row.message ]]</li>
         </ul>
     </div>
 

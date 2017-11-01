@@ -5,12 +5,12 @@ from carrot.views import (
 )
 from carrot.utilities import decorate_class_view, decorate_function_view
 from django.conf import settings
-from rest_framework_swagger.views import get_swagger_view
+# from rest_framework_swagger.views import get_swagger_view
 from carrot.api import (
     published_message_log_viewset, failed_message_log_viewset, completed_message_log_viewset, scheduled_task_viewset,
-    detail_message_log_viewset
+    detail_message_log_viewset, scheduled_task_detail
 )
-schema_view = get_swagger_view('Carrot API')
+# schema_view = get_swagger_view('Carrot API')
 
 decorators = settings.CARROT.get('monitor_authentication', [])
 
@@ -33,11 +33,12 @@ urlpatterns = [
     url(r'^scheduled/(?P<pk>[0-9]+)/$', _(UpdateScheduledTaskView), name='edit-scheduled-task'),
     url(r'^scheduled/(?P<pk>[0-9]+)/delete/$', _(DeleteScheduledTaskView), name='delete-scheduled-task'),
     url(r'scheduled/create/$', _(CreateScheduledTaskView), name='create-scheduled-task'),
-    url(r'^api/docs/$', schema_view),
+    # url(r'^api/docs/$', schema_view),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/message-logs/published/$', published_message_log_viewset),
     url(r'^api/message-logs/failed/$', failed_message_log_viewset),
     url(r'^api/message-logs/completed/$', completed_message_log_viewset),
     url(r'^api/message-logs/(?P<pk>[0-9]+)/$', detail_message_log_viewset),
     url(r'^api/scheduled-tasks/$', scheduled_task_viewset),
+    url(r'^api/scheduled-tasks/(?P<pk>[0-9]+)/$', scheduled_task_detail),
 ]
