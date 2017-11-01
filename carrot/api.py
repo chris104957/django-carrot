@@ -100,9 +100,6 @@ detail_message_log_viewset = MessageLogDetailViewset.as_view({'get': 'retrieve',
 
 class ScheduledTaskSerializer(serializers.ModelSerializer):
     def validate_task(self, value):
-        if not value:
-            raise serializers.ValidationError('This field is required')
-
         modules = settings.CARROT.get('task_modules', None)
         if modules:
             task_choices = []

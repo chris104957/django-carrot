@@ -20,7 +20,7 @@ def _f(v):
 
 urlpatterns = [
     url(r'^$', _(MessageList), name='carrot-monitor'),
-    url(r'^api/message-logs/published/$', _f(published_message_log_viewset)),
+    url(r'^api/message-logs/published/$', _f(published_message_log_viewset), name='published-messagelog'),
     url(r'^api/message-logs/failed/$', _f(failed_message_log_viewset)),
     url(r'^api/message-logs/completed/$', _f(completed_message_log_viewset)),
     url(r'^api/message-logs/(?P<pk>[0-9]+)/$', _f(detail_message_log_viewset)),

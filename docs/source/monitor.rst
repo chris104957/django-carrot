@@ -11,7 +11,7 @@ objects, known as the **Carrot monitor**. These views offer the following functi
     - Displays the list of published tasks yet to be executed
     - Displays a list of tasks that failed to execute
     - Displays a list of the most recently completed tasks
-    - Displays a list of scheduled tasks
+    - Allows users to view, edit and create scheduled tasks
 
 For each task, the monitor displays:
     - Basic information about the task, e.g. the virtualhost and queue it has been published to, the priority, and
@@ -85,6 +85,11 @@ project's settings module:
 Adding the above line to your Carrot config will mean that all users must be authenticated in order to access the
 monitor, by applying the :func:`django.contrib.auth.decorators.login_required` decorator to all of Carrot monitor's
 views.
+
+.. note::
+    *new in v0.2*: Carrot monitor now uses a reactive front end built in VueJS that uses a rest API to retrieve task
+    information from your Django project's database. The authentication decorators defined above will also be used to
+    control access to this API
 
 
 

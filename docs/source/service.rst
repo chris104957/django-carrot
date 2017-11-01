@@ -4,7 +4,8 @@ The Carrot service
 ------------------
 
 This module implements a command line interface for starting and stopping the carrot service. It can be executed from
-your Django project's main folder with this command
+your Django project's main folder with this command.
+
 
 .. code-block:: bash
 
@@ -41,6 +42,23 @@ The following options are available:
                             a service. Should only be used when running Carrot's
                             tests
 
+As of v0.2, Carrot now comes with it's own daemon which can start, stop, restart and check the status of the Carrot
+service. The daemon can be used as follows:
+
+.. code-block:: bash
+
+    python manage.py carrot_daemon start
+    python manage.py carrot_daemon stop
+    python manage.py carrot_daemon restart
+    python manage.py carrot_daemon status
+
+The daemon has the following options in addition to those described above (which get passed directly to the service):
+- **mode**: must be one of *start*, *stop*, **restart or *status*
+- **pidfile**: defaults to `/var/run/carrot.pid`. The path to the pid file
+
 
 .. automodule:: carrot.management.commands.carrot
+   :members:
+
+.. automodule:: carrot.management.commands.carrot_daemon
    :members:
