@@ -9,7 +9,6 @@ Vue.component('task-detail', {
         cropped: function(data) {
             console.log(this.app.$options.filters.cropped);
             return this.app.$options.filters.cropped(data);
-
         },
         croppedKwargs: function(data) {
             return this.app.$options.filters.croppedKwargs(data);

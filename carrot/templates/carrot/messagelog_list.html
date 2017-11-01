@@ -4,7 +4,7 @@
     <div v-on:click='hideOverlay' v-if="highlightMode" id="overlay"></div>
     <div v-if="selectedObject" class="task-view">
         <task-detail v-bind:task="selectedObject" v-bind:log-level="logLevel"></task-detail>
-        <div v-if="selectedObject.status == 'COMPLETED'">
+        <div v-if="selectedObject.log">
             <h3 >Log</h3>
             <p>Log level:
                 <select v-model="logLevel">

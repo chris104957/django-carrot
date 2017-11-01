@@ -8,11 +8,9 @@ from carrot.models import MessageLog, ScheduledTask
 
 
 class MessageLogSerializer(serializers.ModelSerializer):
-    url = fields.CharField(source='get_url')
-
     class Meta:
         model = MessageLog
-        fields = 'url', 'status', 'exchange', 'queue', 'routing_key', 'uuid', 'priority', 'task', 'task_args', \
+        fields = 'status', 'exchange', 'queue', 'routing_key', 'uuid', 'priority', 'task', 'task_args', \
                  'content', 'exception', 'traceback', 'output', 'publish_time', 'failure_time', 'completion_time', \
                  'log', 'pk', 'virtual_host'
 
@@ -152,7 +150,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduledTask
         fields = (
-            'url', 'task', 'interval_display', 'active', 'pk', 'queue', 'exchange', 'routing_key', 'interval_type',
+            'task', 'interval_display', 'active', 'pk', 'queue', 'exchange', 'routing_key', 'interval_type',
             'interval_count', 'content', 'task_args',
         )
         extra_kwargs = {
