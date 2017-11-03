@@ -14,7 +14,7 @@ import signal
 
 class Command(BaseCommand):
     """
-
+    The main process for creating and running :class:`carrot.consumer.ConsumerSet` objects and starting thes scheduler
     """
     run = True
     help = 'Starts the carrot service.'
@@ -51,8 +51,6 @@ class Command(BaseCommand):
                             help='Do not start scheduled tasks (only runs consumer sets)')
         parser.set_defaults(run_scheduler=True)
         parser.set_defaults(testmode=False)
-        parser.add_argument('--consumer-class', type=str, help='The consumer class to use',
-                            default='carrot.objects.Consumer')
         parser.add_argument('--loglevel', type=str, default='DEBUG', help='The logging level. Must be one of DEBUG, '
                                                                           'INFO, WARNING, ERROR, CRITICAL')
         parser.add_argument('--testmode', dest='testmode', action='store_true', default=False,

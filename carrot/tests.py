@@ -261,7 +261,7 @@ class CarrotTestCase(TestCase):
     def test_models(self, *args):
         from django.utils.safestring import SafeText
         msg = publish_message(test_task, 0, None)
-        self.assertTrue(isinstance(msg.virtual_host, VirtualHost))
+        self.assertTrue(isinstance(msg.virtual_host, str))
         self.assertTrue(isinstance(msg.keywords, dict))
 
         task = create_scheduled_task(test_task, {'seconds': 5})

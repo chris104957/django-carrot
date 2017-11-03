@@ -60,7 +60,7 @@ class MessageLog(models.Model):
     @property
     def virtual_host(self):
         from carrot.utilities import get_host_from_name
-        return get_host_from_name(self.queue)
+        return str(get_host_from_name(self.queue))
 
     @property
     def keywords(self):

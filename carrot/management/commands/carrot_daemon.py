@@ -16,6 +16,9 @@ class MissingPid(Exception):
 
 
 class Command(BaseCommand):
+    """
+    The daemon process for controlling the :class:`carrot.management.commands.carrot` service
+    """
     pid_file = None
     options = None
 
@@ -105,6 +108,9 @@ class Command(BaseCommand):
             f.write(str(pid) + '\n')
 
     def start(self, **options):
+        """
+        Starts the carrot service as a subprocess and records the pid
+        """
         if self.pid:
             raise PidExists('Process already running!')
 

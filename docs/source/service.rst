@@ -3,47 +3,13 @@
 The Carrot service
 ------------------
 
-This module implements a command line interface for starting and stopping the carrot service. It can be executed from
-your Django project's main folder with this command.
+Carrot implements two *manage.py* commands in your django app - **carrot** and **carrot_daemon**
 
+The **carrot** command is the base service which starts consuming messages from your defined RabbitMQ brokers, and
+publishing any active scheduled tasks at the required intervals
 
-.. code-block:: bash
-
-    python manage.py carrot
-
-
-The following options are available:
-
-.. code-block:: bash
-
-    optional arguments:
-        -h, --help            show this help message and exit
-        --version             show program's version number and exit
-        -v {0,1,2,3}, --verbosity {0,1,2,3}
-                            Verbosity level; 0=minimal output, 1=normal output,
-                            2=verbose output, 3=very verbose output
-        --settings SETTINGS   The Python path to a settings module, e.g.
-                            "myproject.settings.main". If this isn't provided, the
-                            DJANGO_SETTINGS_MODULE environment variable will be
-                            used.
-        --pythonpath PYTHONPATH
-                            A directory to add to the Python path, e.g.
-                            "/home/djangoprojects/myproject".
-        --traceback           Raise on CommandError exceptions
-        --no-color            Don't colorize the command output.
-        -l LOGFILE, --logfile LOGFILE
-                            The path to the log file
-        --no-scheduler        Do not start scheduled tasks (only runs consumer sets)
-        --consumer-class CONSUMER_CLASS
-                            The consumer class to use
-        --loglevel LOGLEVEL   The logging level. Must be one of DEBUG, INFO,
-                            WARNING, ERROR, CRITICAL
-        --testmode            Run in test mode. Prevents the command from running as
-                            a service. Should only be used when running Carrot's
-                            tests
-
-As of v0.2, Carrot now comes with it's own daemon which can start, stop, restart and check the status of the Carrot
-service. The daemon can be used as follows:
+**carrot_daemon** is a daemon which can be used the invoke the **carrot** service as a detached process, and allows
+users to stop/restart the service safely, and to check the status. **carrot_daemon** can be invoked as follows:
 
 .. code-block:: bash
 
@@ -52,13 +18,70 @@ service. The daemon can be used as follows:
     python manage.py carrot_daemon restart
     python manage.py carrot_daemon status
 
-The daemon has the following options in addition to those described above (which get passed directly to the service):
-- **mode**: must be one of *start*, *stop*, **restart or *status*
-- **pidfile**: defaults to `/var/run/carrot.pid`. The path to the pid file
+Further options
+---------------
+
+The following additional arguments are also available:
+
+- **logfile**: path to the log file. Defaults to /var/log/carrot.log
+- **pidfile**: path to the pid file. Defaults to /var/run/carrot.pid
+- **no-scheduler**: run the carrot service without the scheduler (only consumes tasks)
+- **testmode**: Used for running the carrot tests. Not applicable for most users
+- **loglevel**: The level of logging to use. Defaults to **DEBUG** and shouldn't be changed under most circumstances
+
+More examples
+-------------
+
+Custom log/pid file paths
+*************************
+
+On some systems you may encounter OS errors while trying to run the service with the default log/pid file locations.
+This can be fixed by specifying your own values for these paths:
+
+.. code-block:: bash
+
+    python manage.py carrot_daemon start --logfile carrot.log --pidfile carrot.pid
+
+.. note::
+    If you use a custom pid, you must also provide this same argument when attempting to stop, restart or check the
+    status of the carrot service
+
+Running without the scheduler
+*****************************
+
+Use the following to disabled **ScheduledTasks**
+
+.. code-block:: bash
+
+    python manage.py carrot_daemon --no-scheduler
+
+
+Debugging
+---------
+
+Using the *carrot_daemon* will run in detached mode with no sys.out visible. If you are having issues getting the
+service working properly, or want to check your broker configuration, you can use the *carrot* command instead, as
+follows:
+
+.. code-block:: bash
+
+    python manage.py carrot
+
+You will be able to read the system output using this command, which should help you to resolve any issues
+
+.. note::
+    The *carrot* command does not accept the **pidfile** or **mode** (e.g. start, stop, restart, status) arguments. No
+    pid file gets created in this mode, and the process is the equivalent of *carrot_daemon start*. To stop the process,
+    simply use CTRL+C
+
+
+Classes and methods
+-------------------
+
+.. automodule:: carrot.management.commands.carrot_daemon
+   :members:
 
 
 .. automodule:: carrot.management.commands.carrot
    :members:
 
-.. automodule:: carrot.management.commands.carrot_daemon
-   :members:

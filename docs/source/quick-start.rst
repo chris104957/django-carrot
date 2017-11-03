@@ -15,6 +15,7 @@ Features
 - Task prioritization
 - Task-level monitoring via the Carrot monitor
 - Multithreaded queue consumers
+- **new in v0.2** built in django-admin daemon
 
 
 Installation and configuration
@@ -38,7 +39,7 @@ you can refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.h
 Configuring your Django project
 *******************************
 
-#. Add carrot to your Django project's settings module:
+1. Add carrot to your Django project's settings module:
 
 .. code-block:: python
 
@@ -48,14 +49,14 @@ Configuring your Django project
         ...
     ]
 
-#. Create the carrot migrations and apply them to your project's database:
+2. Create the carrot migrations and apply them to your project's database:
 
 .. code-block:: bash
 
     python manage.py makemigrations carrot
     python manage.py migrate carrot
 
-#. Set your default broker in your Django project's settings
+3. Set your default broker in your Django project's settings
 
 .. code-block:: python
 
@@ -74,7 +75,16 @@ Once you have configured carrot, you can start the service using the following d
 
 .. code-block:: bash
 
-    python manage.py carrot
+    python manage.py carrot_daemon start
+
+The daemon can be stopped/restarted as follows:
+
+.. code-block:: bash
+
+    python manage.py carrot_daemon stop
+    python manage.py carrot_daemon restart
+
+For the full set of options, refer to :ref:`admin-command`
 
 
 Publishing tasks
@@ -93,7 +103,7 @@ provided helper function:
     publish_message(my_task, hello=True)
 
 
-The above will publish the **my_task** function to the default carrot queue. Once consumed, it will be
+The above will publish the :code:`my_task` function to the default carrot queue. Once consumed, it will be
 called with the keyword argument *hello=True*
 
 Task logging
@@ -147,20 +157,6 @@ seconds, use the following code:
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 The above will publish the **my_task** function to the queue every 5 seconds
-
-
-Daemonizing the service
------------------------
-
-As of V0.2, Carrot comes with its own daemon. To run the carrot service in the background, simply use `carrot_daemon`
-instead of `carrot`, as follows:
-
-.. code-block:: bash
-
-    python manage.py carrot_daemon start
-    python manage.py carrot_daemon stop
-    python manage.py carrot_daemon restart
-    python manage.py carrot_daemon status
 
 
 The Carrot monitor
