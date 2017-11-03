@@ -36,7 +36,7 @@ class MessageLog(models.Model):
         ('COMPLETED', 'Completed'),
     ) #:
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PUBLISHED')
+    status = models.CharField(max_length=11, choices=STATUS_CHOICES, default='PUBLISHED')
     exchange = models.CharField(max_length=200, blank=True, null=True) #: the exchange
     queue = models.CharField(max_length=200, blank=True, null=True)
     routing_key = models.CharField(max_length=200, blank=True, null=True)
