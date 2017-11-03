@@ -6,10 +6,22 @@
     <meta charset="UTF-8">
     <title>Carrot Monitor</title>
     <link rel="stylesheet" type="text/css" href="{% static 'carrot/default.css' %}?{% now "U" %}"/>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
 </head>
 <body>
-    <a class="title" href="{% url 'carrot-monitor' %}"><h1>Carrot monitor</h1></a>
-    {% block content %}
-    {% endblock %}
+
+    <div id="app">
+        <a class="title" href="{% url 'carrot-monitor' %}"><h1>Carrot monitor</h1></a>
+        <div class="clear"></div>
+        {% block content %}
+        {% endblock %}
+    </div>
+    <script type="text/javascript">
+        {% vue %}
+    </script>
+
 </body>
 </html>

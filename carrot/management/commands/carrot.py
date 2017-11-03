@@ -7,35 +7,39 @@ from carrot.scheduler import ScheduledTaskManager
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from carrot import DEFAULT_BROKER
-import signal
-import os
 import sys
 import logging
+import signal
 
 
 class Command(BaseCommand):
     """
-
+    The main process for creating and running :class:`carrot.consumer.ConsumerSet` objects and starting thes scheduler
     """
+    run = True
     help = 'Starts the carrot service.'
     scheduler = None
     active_consumer_sets = []
 
-    def terminate(self, *args):
-        self.stdout.write(self.style.WARNING('Shutdown requested'))
+    def __init__(self, stdout=None, stderr=None, nocolor=False):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        super(Command, self).__init__(stdout, stderr, nocolor)
 
+    def exit_gracefully(self, signum, frame):
+        self.stdout.write(self.style.WARNING('Shutdown requested'))
+        self.run = False
+
+    def terminate(self, *args):
         if self.scheduler:
             self.scheduler.stop()
-
             self.stdout.write(self.style.SUCCESS('Successfully closed scheduler'))
 
         self.stdout.write('Terminating running consumer sets (%i)...' % len(self.active_consumer_sets))
         count = 0
         for consumer_set in self.active_consumer_sets:
-            print('Terminating consumer set %s' % consumer_set)
             count += 1
             consumer_set.stop_consuming()
-            print('Consumer set %s terminated' % consumer_set)
 
         self.stdout.write(self.style.SUCCESS('Successfully closed %i consumer sets' % count))
         sys.exit()
@@ -47,8 +51,6 @@ class Command(BaseCommand):
                             help='Do not start scheduled tasks (only runs consumer sets)')
         parser.set_defaults(run_scheduler=True)
         parser.set_defaults(testmode=False)
-        parser.add_argument('--consumer-class', type=str, help='The consumer class to use',
-                            default='carrot.objects.Consumer')
         parser.add_argument('--loglevel', type=str, default='DEBUG', help='The logging level. Must be one of DEBUG, '
                                                                           'INFO, WARNING, ERROR, CRITICAL')
         parser.add_argument('--testmode', dest='testmode', action='store_true', default=False,
@@ -79,7 +81,7 @@ class Command(BaseCommand):
         :param options: provided by **argparse** (see above for the full list of available options)
 
         """
-        signal.signal(signal.SIGINT, self.terminate)
+        signal.signal(signal.SIGTERM, self.terminate)
 
         run_scheduler = options['run_scheduler']
 
@@ -114,15 +116,10 @@ class Command(BaseCommand):
             file_handler = logging.FileHandler(options['logfile'])
             file_handler.setLevel(loglevel)
 
-            streaming_handler = logging.StreamHandler(sys.stdout)
-            streaming_handler.setLevel(loglevel)
-
             formatter = logging.Formatter(LOGGING_FORMAT)
-            streaming_handler.setFormatter(formatter)
             file_handler.setFormatter(formatter)
 
             logger.addHandler(file_handler)
-            logger.addHandler(streaming_handler)
 
             # consumers
             for queue in queues:
@@ -154,6 +151,8 @@ class Command(BaseCommand):
 
             while True:
                 time.sleep(1)
+                if not self.run:
+                    self.terminate()
 
                 if self.scheduler or options['testmode']:
                     new_qs = ScheduledTask.objects.filter(active=True)
@@ -177,5 +176,6 @@ class Command(BaseCommand):
         except Exception as err:
             self.stderr.write(self.style.ERROR(err))
 
-        except (SystemExit, KeyboardInterrupt):
+        except (KeyboardInterrupt, SystemExit):
             self.terminate()
+

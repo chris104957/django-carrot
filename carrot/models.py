@@ -30,13 +30,13 @@ class MessageLog(models.Model):
 
     """
     STATUS_CHOICES = (
-        ('UNPUBLISHED', 'Not yet published'),
         ('PUBLISHED', 'Published'),
+        ('IN_PROGRESS', 'In progress'),
         ('FAILED', 'Failed'),
         ('COMPLETED', 'Completed'),
     ) #:
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UNPUBLISHED')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PUBLISHED')
     exchange = models.CharField(max_length=200, blank=True, null=True) #: the exchange
     queue = models.CharField(max_length=200, blank=True, null=True)
     routing_key = models.CharField(max_length=200, blank=True, null=True)
@@ -60,7 +60,7 @@ class MessageLog(models.Model):
     @property
     def virtual_host(self):
         from carrot.utilities import get_host_from_name
-        return get_host_from_name(self.queue)
+        return str(get_host_from_name(self.queue))
 
     @property
     def keywords(self):
@@ -71,52 +71,6 @@ class MessageLog(models.Model):
 
     def __str__(self):
         return self.task
-
-    def get_url(self):
-        """
-        Creates a url that points to :class:`carrot.views.MessageView`
-        """
-        return reverse('task-info', args=[self.pk, 'INFO'])
-
-    @property
-    def href(self):
-        """
-        Renders self.get_url() as a HTML href
-        """
-        return format_html('<a {}>{}</a>', flatatt({'href': self.get_url()}), self.task)
-
-    def display_time(self, time):
-        """
-        Helper function to format time for display
-        """
-        if time:
-            return time.strftime('%Y-%m-%d %I:%M %p')
-
-    @property
-    def display_publish_time(self):
-        return self.display_time(self.publish_time)
-
-    @property
-    def display_completion_time(self):
-        return self.display_time(self.completion_time)
-
-    @property
-    def display_failure_time(self):
-        return self.display_time(self.failure_time)
-
-    @property
-    def retry_url(self):
-        """
-        Returns the URL required for requeueing the task
-        """
-        return reverse('requeue-task', args=[self.pk])
-
-    @property
-    def delete_url(self):
-        """
-        Returns the URL required for requeueing the task
-        """
-        return reverse('delete-task', args=[self.pk])
 
     @property
     def positionals(self):
@@ -132,13 +86,15 @@ class MessageLog(models.Model):
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
         from carrot.utilities import publish_message
-        publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue, exchange=self.exchange,
-                        routing_key=self.routing_key, **self.keywords)
+        msg = publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue,
+                              exchange=self.exchange, routing_key=self.routing_key, **self.keywords)
 
         self.delete()
 
+        return msg
+
     class Meta:
-        ordering = '-priority', 'pk',
+        ordering = '-failure_time', '-completion_time', 'status', '-priority', '-publish_time',
 
 
 class ScheduledTask(models.Model):
@@ -204,14 +160,5 @@ class ScheduledTask(models.Model):
 
     def __str__(self):
         return self.task
-
-    @property
-    def href(self):
-        return format_html('<a {}>{}</a>', flatatt({'href': reverse('edit-scheduled-task', args=[self.pk])}), self.task)
-
-    @property
-    def delete_href(self):
-        return format_html('<a {}>{}</a>', flatatt({'href': reverse('delete-scheduled-task', args=[self.pk])}),
-                           self.task)
 
 

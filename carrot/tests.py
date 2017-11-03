@@ -1,30 +1,28 @@
 import mock
 import time
 import logging
-import json
 
 from django.test import TestCase
 from django.core.management import call_command
-from django.core.urlresolvers import reverse
 from django.db.utils import OperationalError
 from django.db.models import QuerySet
+from django.test import RequestFactory
+from django.contrib.auth.models import User
 
 from carrot.models import ScheduledTask, MessageLog
 from carrot.consumer import ConsumerSet, Consumer
 from carrot.objects import VirtualHost, Message, DefaultMessageSerializer
 from carrot.scheduler import ScheduledTaskManager, ScheduledTaskThread
 from carrot.utilities import (
-    get_host_from_name, publish_message, create_consumer_set, create_scheduled_task, JsonConverter, decorate_class_view,
-    decorate_function_view
+    get_host_from_name, publish_message, create_scheduled_task, decorate_class_view
 )
-from carrot.views import (
-    MessageList, requeue, TaskForm,
+from carrot.api import (
+    failed_message_log_viewset, scheduled_task_viewset, detail_message_log_viewset, scheduled_task_detail,
 )
-from carrot.templatetags.filters import (
-    task_queue, strapline_with_url, outputblock, failed_task_queue, completed_task_queue,
-    scheduled_task_queue, get_attr, table_strapline, table_strapline_completed, table_strapline_failed,
-    formatted_traceback, jsonblock
-)
+from rest_framework.test import APIRequestFactory
+
+from carrot.views import MessageList
+
 from carrot import DEFAULT_BROKER
 
 
@@ -193,21 +191,23 @@ class CarrotTestCase(TestCase):
     def test_consumer_set(self, *args):
         with mock.patch('pika.BlockingConnection', mocked_connection()):
             with mock.patch('carrot.models.MessageLog.objects.get', mocked_object):
-                c = ConsumerSet(VirtualHost(), 'null', logfile='null.log',)
+                logger = logging.getLogger('carrot')
+                c = ConsumerSet(VirtualHost(), 'null', logger=logger)
                 c.start_consuming()
                 time.sleep(0.01)
-                with self.assertRaises(SystemExit):
-                    c.stop_consuming()
+                c.stop_consuming()
 
     @mock.patch('time.sleep')
+    @mock.patch('pika.BlockingConnection.sleep')
     def test_consumer(self, *args):
         consume_one()
 
         with mock.patch('carrot.models.MessageLog.objects.get'):
             consume_one(True, task='dict_task')
-            print('logging task start')
             consume_one(True)
-            print('logging task end')
+            with mock.patch('carrot.consumer.ListHandler.parse_output', side_effect=Exception()):
+                consume_one(True)
+
             consume_one(False)
             consume_one(True, task='invalid_task')
             consume_one(True, fail_properties=True)
@@ -216,6 +216,10 @@ class CarrotTestCase(TestCase):
                 consume_one(task='dict_task')
 
         with mock.patch('carrot.models.MessageLog.objects.get', mocked_object):
+            consume_one(True, task='test_task')
+
+        from django.core.exceptions import ObjectDoesNotExist
+        with mock.patch('carrot.models.MessageLog.objects.get', side_effect=ObjectDoesNotExist()):
             consume_one(True, task='test_task')
 
     @mock.patch('pika.BlockingConnection')
@@ -230,9 +234,6 @@ class CarrotTestCase(TestCase):
             with self.assertRaises(Exception):
                 get_host_from_name('blah')
 
-            c = create_consumer_set('test', logfile='null.log')
-            self.assertTrue(isinstance(c, ConsumerSet))
-
         publish_message('carrot.tests.test_task')
         publish_message(test_task)
         with self.assertRaises(ImportError):
@@ -246,21 +247,13 @@ class CarrotTestCase(TestCase):
         with self.assertRaises(AttributeError):
             create_scheduled_task(test_task, {'seconds': 1, 'hours': 1}, 'test')
 
-        JsonConverter().convert(json.dumps({'blah': True}), first_row='blah')
-        JsonConverter().convert('', first_row='blah')
-
         decorate_class_view(MessageList, None)
-        decorate_function_view(requeue, None)
 
         cls_view = decorate_class_view(MessageList, ['django.contrib.auth.decorators.login_required'])
-        func_view = decorate_function_view(requeue, ['django.contrib.auth.decorators.login_required'])
 
-        from django.test import RequestFactory
-        from django.contrib.auth.models import User
         r = RequestFactory().get(cls_view())
         r.user = mock.MagicMock(spec=User)
 
-        func_view(r, pk=1)
         with self.assertRaises(AttributeError):
             print(cls_view().dispatch(r))
 
@@ -268,16 +261,11 @@ class CarrotTestCase(TestCase):
     def test_models(self, *args):
         from django.utils.safestring import SafeText
         msg = publish_message(test_task, 0, None)
-        self.assertTrue(isinstance(msg.virtual_host, VirtualHost))
+        self.assertTrue(isinstance(msg.virtual_host, str))
         self.assertTrue(isinstance(msg.keywords, dict))
-        self.assertTrue(isinstance(msg.href, SafeText))
-        self.client.get(msg.get_url())
-        self.client.get(msg.retry_url)
-        self.client.get(msg.delete_url)
 
         task = create_scheduled_task(test_task, {'seconds': 5})
 
-        self.client.get(task.get_absolute_url())
         self.assertEqual(task.interval_display, 'Every 5 seconds')
 
         self.assertEqual(task.multiplier, 1)
@@ -292,8 +280,6 @@ class CarrotTestCase(TestCase):
         self.assertEqual(task.positional_arguments, ('blah','blah2'))
 
         self.assertTrue(isinstance(task.publish(), MessageLog))
-        self.assertTrue(isinstance(task.href, SafeText))
-        self.assertTrue(isinstance(task.delete_href, SafeText))
 
     def test_objects(self):
         self.assertEqual('amqp://guest:guest@localhost:5672//', str(VirtualHost(url='amqp://localhost:5672')))
@@ -328,78 +314,46 @@ class CarrotTestCase(TestCase):
                 thread.active = False
                 thread.join()
 
-    def test_views(self):
-        log = publish_message('carrot.tests.test_task')
-        log.status = 'FAILED'
-        log.save()
-        self.assertEqual(self.client.get(reverse('requeue-all')).status_code, 302)
-        log.status = 'FAILED'
-        log.save()
-        self.assertEqual(self.client.get(reverse('delete-all')).status_code, 302)
+    @mock.patch('carrot.utilities.create_message')
+    def test_api(self, *args):
+        MessageLog.objects.create(status='FAILED', task_args='()', task='mymodule.task')
 
-        valid_data = {
-            'content': '{"blah": "yes"}',
-            'task': 'carrot.tests.test_task',
-            'queue': 'default',
-            'interval_type': 'seconds',
-            'interval_count': 1,
-            'task_args': '"blah"',
+        factory = APIRequestFactory()
 
+        request = factory.put('/carrot/api/message-logs/')
+        failed_message_log_viewset(request)
+
+        msg = MessageLog.objects.create(status='FAILED', task_args='()', task='mymodule.task')
+        request = factory.put('/carrot/api/message-logs/%s/' % msg.pk)
+        detail_message_log_viewset(request, pk=msg.pk)
+
+        request = factory.delete('/carrot/api/message-logs/%s/' % msg.pk)
+        detail_message_log_viewset(request, pk=msg.pk)
+
+        request = factory.delete('/carrot/api/message-logs/')
+        failed_message_log_viewset(request)
+
+        data = {
+            'queue': 'blah',
+            'task_args': '()',
+            'content': '{}',
+            'task': 'carrot.tests.test_task'
         }
-        form = TaskForm(data=valid_data)
-
-        self.assertTrue(form.is_valid(), form.errors)
-
         invalid_data = {
-            'queue': 'default',
-            'content': '{"2]34[]er[2][e][234][][{}{}"}',
-        }
-        form = TaskForm(data=invalid_data)
-        self.assertFalse((form.is_valid()))
-
-        invalid_data = {}
-
-        with self.settings(CARROT=ALT_CARROT):
-            form = TaskForm(data=invalid_data)
-            self.assertFalse((form.is_valid()))
-
-        invalid_data = {
-            'queue': 'default',
+            'queue': '',
             'task_args': 'blah',
+            'content': '}{',
+            'task': None,
         }
-
         with self.settings(CARROT=ALT_CARROT):
-            form = TaskForm(data=invalid_data)
-            self.assertFalse((form.is_valid()))
+            request = factory.post('/carrot/api/scheduled-tasks/', data)
+            scheduled_task_viewset(request)
 
-    def test_filters(self):
-        task_queue([])
-        strapline_with_url([])
-        outputblock(json.dumps({'blah': True}))
-        outputblock('fjdioju438u{}{£}!"£}"£}!{£}!"£!}{£!}')
-        outputblock({})
+            request = factory.patch('/carrot/api/scheduled-tasks/', data)
+            scheduled_task_detail(request, pk=msg.pk)
 
-        jsonblock(MessageLog(task_args="['blah', None]", content=json.dumps({'blah':True})))
-        jsonblock(MessageLog(task_args='()', content=json.dumps({'blah': True})))
-        failed_task_queue(MessageLog.objects.none())
-        completed_task_queue(MessageLog.objects.none())
-        scheduled_task_queue(MessageLog.objects.none())
-        get_attr(VirtualHost(), 'name')
-
-        table_strapline(mocked_model(MessageLog, 0))
-        table_strapline(mocked_model(MessageLog, 10))
-        table_strapline(mocked_model(MessageLog, 40))
-
-        table_strapline_completed(mocked_model(MessageLog, 0))
-        table_strapline_completed(mocked_model(MessageLog, 10))
-        table_strapline_completed(mocked_model(MessageLog, 40))
-
-        table_strapline_failed(mocked_model(MessageLog, 0))
-        table_strapline_failed(mocked_model(MessageLog, 10))
-        table_strapline_failed(mocked_model(MessageLog, 40))
-
-        formatted_traceback('consumer date time WARNING:: message')
-        formatted_traceback('blah')
+            request = factory.post('/carrot/api/scheduled-tasks/', invalid_data)
+            scheduled_task_viewset(request)
 
 
 

@@ -134,27 +134,6 @@ def publish_message(task, *task_args, priority=0, queue=None, exchange='', routi
     return msg.publish()
 
 
-def create_consumer_set(queue_name, concurrency=1, name='consumer', logfile='/var/log/carrot.log',
-                        consumer_class='carrot.consumer.Consumer', loglevel='DEBUG'):
-    """
-    Helper function for creating :class:`carrot.consumer.ConsumerSet` objects.
-
-    :param str queue_name: the name of the queue to consume from
-    :param int concurrency: the number of consumers to create
-    :param str name: the name to be given to individual :class:`carrot.consumer.Consumer` objects
-    :param str logfile: path to the log file
-    :param str consumer_class: the consumer class
-    :param str loglevel: the logging level (DEBUG, INFO, WARNING, ERROR or CRITICAL)
-
-    :rtype: :class:`carrot.consumer.ConsumerSet`
-
-    """
-    host = get_host_from_name(queue_name)
-    c = ConsumerSet(host=host, queue=queue_name, concurrency=concurrency, name=name, logfile=logfile,
-                    consumer_class=consumer_class, loglevel=loglevel)
-    return c
-
-
 def create_scheduled_task(task, interval, queue=None, **kwargs):
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
@@ -187,31 +166,6 @@ def create_scheduled_task(task, interval, queue=None, **kwargs):
         content=json.dumps(kwargs or '{}'),
     )
     return t
-
-
-class JsonConverter(Json2Html):
-    """
-    Helper function that converts a JSON object into a HTML table. Used by :class:`carrot.views.MessageView`
-    """
-    def convert(self, json="", table_attributes='border="1"', first_row=None, clubbing=True, encode=False, escape=True):
-        if first_row:
-            table_attributes = '%s> %s' % (table_attributes, first_row)
-
-        return super(JsonConverter, self).convert(json, table_attributes, clubbing, encode, escape)
-
-    def convert_object(self, json_input):
-        if not json_input:
-            return ""
-        converted_output = self.table_init_markup + "<tr>"
-        converted_output += "</tr><tr>".join([
-            "<td>%s</td><td>%s</td>" %(
-                self.convert_json_node(k),
-                self.convert_json_node(v)
-            )
-            for k, v in json_input.items()
-        ])
-        converted_output += '</tr></table>'
-        return converted_output
 
 
 def get_mixin(decorator):

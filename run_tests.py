@@ -60,7 +60,7 @@ def runner(options):
 
     from django.test.runner import DiscoverRunner
 
-    test_runner = DiscoverRunner(verbosity=0)
+    test_runner = DiscoverRunner(verbosity=0,)
 
     failures = test_runner.run_tests(['carrot'])
     if failures:

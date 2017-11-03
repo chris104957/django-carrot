@@ -1,0 +1,78 @@
+<div>
+    <h2>[[ task.task ]]</h2>
+    <h3>Basic information</h3>
+    <table class="task-queue">
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Virtual Host</td>
+            <td>[[ task.virtual_host ]]</td>
+        </tr>
+        <tr>
+            <td>Queue</td>
+            <td v-if="task.queue">[[ task.queue ]]</td>
+            <td v-else>default</td>
+        </tr>
+
+        <tr v-if="task.routing_key">
+            <td>Routing key</td>
+            <td>[[ task.routing_key ]]</td>
+        </tr>
+        <tr v-if="task.exchange">
+            <td>Exchange</td>
+            <td>[[ task.exchange ]]</td>
+        </tr>
+        <tr>
+            <td>Status</td>
+            <td>[[ task.status ]]</td>
+        </tr>
+        <tr>
+            <td>Priority</td>
+            <td v-if="task.priority">[[ task.priority ]]</td>
+            <td v-else>0</td>
+        </tr>
+        <tr v-if="task.publish_time">
+            <td>Publish time</td>
+            <td>[[ task.publish_time | formatDate ]]</td>
+        </tr>
+        <tr v-if="task.completion_time">
+            <td>Completion time</td>
+            <td>[[ task.completion_time | formatDate ]]</td>
+        </tr>
+        <tr v-if="task.failure_time">
+            <td>Failure time</td>
+            <td>[[ task.failure_time | formatDate ]]</td>
+        </tr>
+    </table>
+    <div v-if="task.task_args != \'()\'|| task.content">
+        <h3>Task inputs</h3>
+        <table class="task-queue">
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+            <tr v-if="task.task_args != \'()\'">
+                <td>Positional arguments</td>
+                <td>[[ task.task_args | cropped ]]</td>
+            </tr>
+            <tr v-if="task.content">
+                <td>Keyword arguments</td>
+                <td>[[ task.content | croppedKwargs ]]</td>
+            </tr>
+        </table>
+    </div>
+    <div v-if="task.status == \'FAILED\'">
+        <h3 >Failure information</h3>
+        <ul class="traceback yellow">
+            <li class="tb ERROR" v-bind:class="getIndent(line)" v-for="line in splitTraceback(task.traceback)">
+                [[ line ]]
+            </li>
+        </ul>
+    </div>
+
+
+
+
+</div>

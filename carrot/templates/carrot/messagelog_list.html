@@ -1,24 +1,128 @@
 {% extends "carrot/base_site.html" %}
 
 {% block content %}
-    {% el "h2" "Queued tasks" %}
-    {% ot "div" class="container" %}
-        {% task_queue object_list %}
-        {{ object_list|table_strapline }}
-    {% ct "div" %}
-    {% el "h2" "Failed tasks" %}
-    {% ot "div" class="container" %}
-        {% failed_task_queue failed_tasks %}
-        {{ failed_tasks|table_strapline_failed }}
-    {% ct "div" %}
-    {% el "h2" "Completed tasks" %}
-    {% ot "div" class="container" %}
-        {% completed_task_queue completed_tasks %}
-        {{ completed_tasks|table_strapline_completed }}
-    {% ct "div" %}
-    {% el "h2" "Scheduled tasks" %}
-    {% ot "div" class="container" %}
-        {% scheduled_task_queue scheduled_tasks %}
-        {% strapline_with_url "" %}
-    {% ct "div" %}
+    <div v-on:click='hideOverlay' v-if="highlightMode" id="overlay"></div>
+    <div v-if="selectedObject" class="task-view">
+        <task-detail v-bind:task="selectedObject" v-bind:log-level="logLevel"></task-detail>
+        <div v-if="selectedObject.log">
+            <h3 >Log</h3>
+            <p>Log level:
+                <select v-model="logLevel">
+                    <option v-for="level in logLevels">[[ level ]]</option>
+                </select>
+            </p>
+            <ul class="traceback green">
+                <li class="tb" v-for="row in log" v-bind:class="row.level">
+                    [[ row.date ]] [[ row.time ]]:[[ row.message ]]
+                </li>
+            </ul>
+        </div>
+        <p class="buttonlist" v-if="selectedObject.status == 'FAILED'">
+            <button v-on:click="requeueOne(selectedObject.pk)">Requeue this task</button>
+            <button v-on:click="deleteOne(selectedObject.pk)" class="delete">Delete this task</button>
+        </p>
+    </div>
+    <div v-if="selectedScheduledObject" class="task-view">
+        <form v-on:change="hideSaveMsg">
+            <scheduled-task v-bind:task="selectedScheduledObject" v-bind:errors="formErrors"></scheduled-task>
+        </form>
+        <p class="buttonlist">
+            <button v-on:click="save(selectedScheduledObject)">Save</button>
+            <button v-if="selectedScheduledObject.pk" v-on:click="deleteScheduledTask" class="delete">
+                Delete this scheduled task
+            </button>
+            <transition name="fade">
+                <span id="save-msg" v-if="showSave" class="success">Changes saved!</span>
+            </transition>
+            <transition name="fade">
+                <span id="save-msg" v-if="isNotEmpty(formErrors)" class="failure">
+                    Failed to save the task. Please check the above errors
+                </span>
+            </transition>
+        </p>
+    </div>
+    <h2>Queued tasks</h2>
+    <div class="container">
+        <table class="task-queue">
+            <tr>
+                <th>Priority</th>
+                <th>Task</th>
+                <th>Arguments</th>
+                <th>Keyword arguments</th>
+            </tr>
+            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in publishedObjects">
+                <td>[[ task.priority ]]</td>
+                <td>[[ task.task ]]</td>
+                <td>[[ task.task_args | cropped ]]</td>
+                <td>[[ task.content | croppedKwargs ]]</td>
+            </tr>
+        </table>
+        <paginator v-bind:type="'published'"></paginator>
+    </div>
+
+    <h2>Failed tasks</h2>
+    <div class="container">
+        <table class="task-queue failed">
+            <tr>
+                <th>Failure time</th>
+                <th>Task</th>
+                <th>Task arguments</th>
+                <th>Keyword arguments</th>
+                <th>Exception</th>
+            </tr>
+            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in failedObjects">
+                <td>[[ task.failure_time | formatDate ]]</td>
+                <td>[[ task.task ]]</td>
+                <td>[[ task.task_args | cropped ]]</td>
+                <td>[[ task.content | croppedKwargs ]]</td>
+                <td>[[ task.exception ]]</td>
+            </tr>
+        </table>
+        <paginator v-bind:type="'failed'"></paginator>
+        <p class="buttonlist">
+            <button v-on:click="requeueAll">Requeue all failed tasks</button>
+            <button v-on:click="deleteAll" class="delete">Delete all failed tasks</button>
+        </p>
+    </div>
+    <h2>Completed tasks</h2>
+    <div class="container">
+        <table class="task-queue completed">
+            <tr>
+                <th>Completion time</th>
+                <th>Task</th>
+                <th>Task arguments</th>
+                <th>Keyword arguments</th>
+            </tr>
+            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in completedObjects">
+                <td>[[ task.completion_time | formatDate ]]</td>
+                <td>[[ task.task ]]</td>
+                <td>[[ task.task_args | cropped ]]</td>
+                <td>[[ task.content | croppedKwargs ]]</td>
+            </tr>
+        </table>
+        <paginator v-bind:type="'completed'"></paginator>
+    </div>
+    <h2>Scheduled tasks</h2>
+    <div class="container">
+        <table class="task-queue">
+            <tr>
+                <th>Task</th>
+                <th>Interval</th>
+                <th>Active</th>
+            </tr>
+            <tr v-bind:id="'task_' + task.pk" v-for="task in scheduledObjects" v-on:click="highlightScheduled">
+                <td>[[ task.task ]]</td>
+                <td>[[ task.interval_display ]]</td>
+                <td>
+                    <icon type="check" v-if="task.active"></icon>
+                    <icon type="close" v-else></icon>
+                </td>
+            </tr>
+        </table>
+        <paginator v-bind:type="'scheduled'"></paginator>
+        <p class="buttonlist">
+            <button v-on:click="openCreateTaskForm">Create new scheduled task</button>
+        </p>
+    </div>
+
 {% endblock %}

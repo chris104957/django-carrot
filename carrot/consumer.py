@@ -77,7 +77,6 @@ class LoggingTask(object):
 
         self.logger.addHandler(self.stream_handler)
 
-        self._run = False
         self._keep_alive = None
         self.connection = connection
 
@@ -93,13 +92,14 @@ class LoggingTask(object):
         self.keep_alive()
         output = self.task(*self.args, **self.kwargs)
         self.stop_keep_live()
-        self._run = True
         return output
 
     def get_logs(self):
-        if self._run:
+        try:
             self.logger.removeHandler(self.stream_handler)
             return self.stream_handler.parse_output()
+        except:
+            return
 
 
 class Consumer(threading.Thread):
@@ -215,6 +215,8 @@ class Consumer(threading.Thread):
         if self.signal:
             try:
                 log = self.get_message_log(properties, body)
+                log.status = 'IN_PROGRESS'
+                log.save()
                 self.channel.basic_ack(method_frame.delivery_tag)
             except ObjectDoesNotExist:
                 self.logger.error('Unable to find a MessageLog matching the uuid %s. Ignoring this task' %
@@ -245,16 +247,16 @@ class Consumer(threading.Thread):
                           'Unable to process the message due to an error collecting the task arguments: %s' % err)
                 return
 
-            try:
-                start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
-                                                                 timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
-                                                                 func.__module__, func.__name__)
-                self.logger.info(start_msg)
-                self.task_log = [
-                    start_msg
-                ]
-                task = LoggingTask(func, self.logger, self.name, self.connection, *args, **kwargs)
+            start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
+                                                             timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
+                                                             func.__module__, func.__name__)
+            self.logger.info(start_msg)
+            self.task_log = [
+                start_msg
+            ]
+            task = LoggingTask(func, self.logger, self.name, self.connection, *args, **kwargs)
 
+            try:
                 output = task.run()
                 self.task_log.append(task.get_logs())
                 self.logger.info(task.get_logs())
@@ -264,7 +266,6 @@ class Consumer(threading.Thread):
                                                                                                "%Y-%m-%d %H:%M:%S,%f")[
                                                                                            :-3],
                                                                                            log.task, output)
-                print(success)
                 self.logger.info(success)
                 self.task_log.append(success)
 
@@ -294,7 +295,8 @@ class Consumer(threading.Thread):
                         self.connection.sleep(10)
 
             except Exception as err:
-                self.fail(log, 'An unknown error occurred: %s' % err)
+                self.task_log.append(task.get_logs())
+                self.fail(log, str(err))
 
     def fail(self, log, err):
         """
@@ -307,6 +309,10 @@ class Consumer(threading.Thread):
 
         """
         self.logger.error('Task %s failed due to the following exception: %s' % (log.task, err))
+
+        if self.task_log:
+            log.log = '\n'.join(self.task_log)
+
         log.status = 'FAILED'
         log.failure_time = timezone.now()
         log.exception = err
@@ -366,10 +372,20 @@ class ConsumerSet(object):
         self.threads = []
 
     def stop_consuming(self):
+        """
+        Stops all running threads. Loops through the threads twice - firstly, to set the signal to **False** on all
+        threads, secondly to wait for them all to finish
+
+        If a single loop was used here, the latter threads could still consume new tasks while the parent process waited
+        for the earlier threads to finish. The second loop allows for quicker consumer stoppage and stops all consumers
+        from consuming new tasks from the moment the signal is received
+        """
         print('%i thread(s) to close' % len(self.threads))
         for t in self.threads:
-            print('Closing thread %s' % t)
             t.signal = False
+
+        for t in self.threads:
+            print('Closing thread %s' % t)
             t.join()
             print('Closed thread %s' % t)
 

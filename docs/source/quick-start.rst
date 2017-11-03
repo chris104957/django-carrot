@@ -15,6 +15,7 @@ Features
 - Task prioritization
 - Task-level monitoring via the Carrot monitor
 - Multithreaded queue consumers
+- **new in v0.2** built in django-admin daemon
 
 
 Installation and configuration
@@ -38,7 +39,7 @@ you can refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.h
 Configuring your Django project
 *******************************
 
-#. Add carrot to your Django project's settings module:
+1. Add carrot to your Django project's settings module:
 
 .. code-block:: python
 
@@ -48,14 +49,14 @@ Configuring your Django project
         ...
     ]
 
-#. Create the carrot migrations and apply them to your project's database:
+2. Create the carrot migrations and apply them to your project's database:
 
 .. code-block:: bash
 
     python manage.py makemigrations carrot
     python manage.py migrate carrot
 
-#. Set your default broker in your Django project's settings
+3. Set your default broker in your Django project's settings
 
 .. code-block:: python
 
@@ -74,7 +75,16 @@ Once you have configured carrot, you can start the service using the following d
 
 .. code-block:: bash
 
-    python manage.py carrot
+    python manage.py carrot_daemon start
+
+The daemon can be stopped/restarted as follows:
+
+.. code-block:: bash
+
+    python manage.py carrot_daemon stop
+    python manage.py carrot_daemon restart
+
+For the full set of options, refer to :ref:`admin-command`
 
 
 Publishing tasks
@@ -93,8 +103,45 @@ provided helper function:
     publish_message(my_task, hello=True)
 
 
-The above will publish the **my_task** function to the default carrot queue. Once consumed, it will be
+The above will publish the :code:`my_task` function to the default carrot queue. Once consumed, it will be
 called with the keyword argument *hello=True*
+
+Task logging
+************
+
+In order to view the task output in :ref:`carrot-monitor`, you will need to use Carrot's logger object. This is done
+as follows:
+
+.. code-block:: python
+
+    from carrot.utilities import publish_message
+    import logging
+
+    logger = logging.getLogger('carrot')
+
+    def my_task(**kwargs):
+        logger.debug('hello world')
+        logger.info('hello world')
+        logger.warning('hello world')
+        logger.error('hello world')
+        logger.critical('hello world')
+
+    publish_message(my_task, hello=True)
+
+This will be rendered as follows in the carrot monitor output for this task:
+
+.. figure:: /images/0.2/task-logging.png
+    :width: 600px
+    :align: center
+    :height: 100px
+    :figclass: align-center
+
+    using the carrot logger
+
+.. note::
+    By default, Carrot Monitor only shows log entries with a level of *info* or higher. The entry logged with
+    `logger.debug` only becomes visible if you change the **Log level** drop down
+
 
 Scheduling tasks
 ****************
@@ -110,29 +157,6 @@ seconds, use the following code:
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 The above will publish the **my_task** function to the queue every 5 seconds
-
-
-Daemonizing the service
------------------------
-
-The django-admin command is a blocking command. To run it in the background, you will need to daemonize it. A sample
-script for this has been provided for convenience - to run it, copy the below code to **/etc/init.d/carrot**
-
-.. literalinclude:: ../../carrot/service.sh
-    :linenos:
-    :language: bash
-
-Once copied, make it executable:
-
-.. code-block:: bash
-
-    sudo chmod +x /etc/init.d/carrot
-
-It can then be run as follows
-
-.. code-block:: bash
-
-    sudo /etc/init.d/carrot start|stop|restart
 
 
 The Carrot monitor
@@ -168,11 +192,12 @@ You will also need to register Carrot's template filters in your Django project'
         }
     ]
 
+For more information, refer to :ref:`carrot-monitor`
 
 Contribute
 ----------
 
-Please refer to `Contributing to Carrot <https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>`
+Please refer to `Contributing to Carrot <https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>`_
 
 Support
 -------
