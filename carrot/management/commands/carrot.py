@@ -116,10 +116,15 @@ class Command(BaseCommand):
             file_handler = logging.FileHandler(options['logfile'])
             file_handler.setLevel(loglevel)
 
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(loglevel)
+
             formatter = logging.Formatter(LOGGING_FORMAT)
             file_handler.setFormatter(formatter)
+            stream_handler.setFormatter(formatter)
 
             logger.addHandler(file_handler)
+            logger.addHandler(stream_handler)
 
             # consumers
             for queue in queues:
@@ -138,7 +143,9 @@ class Command(BaseCommand):
                     vhost = VirtualHost(url=queue['host'])
 
                 c = ConsumerSet(host=vhost, **kwargs)
+                print('starting consumer set')
                 c.start_consuming()
+                print('consumer set started')
                 self.active_consumer_sets.append(c)
                 self.stdout.write(self.style.SUCCESS('Successfully started %i consumers for queue %s'
                                                      % (c.concurrency, queue['name'])))
@@ -177,5 +184,6 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(err))
 
         except (KeyboardInterrupt, SystemExit):
-            self.terminate()
+            # self.terminate()
+            pass
 
