@@ -31,8 +31,10 @@ class Consumer(threading.Thread):
     serializer = DefaultMessageSerializer()
     reconnect_timeout = 5
     task_log = []
+    queue_arguments = {}
+    exchange_arguments = {}
 
-    def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None):
+    def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
         """
         :param host: the host the queue to consume from is attached to
         :type host: :class:`carrot.objects.VirtualHost`
@@ -42,8 +44,12 @@ class Consumer(threading.Thread):
 
         """
         super(Consumer, self).__init__()
+
         if queue_arguments is None:
-            queue_arguments = {'x-max-priority': 255}
+            queue_arguments = {}
+
+        if not exchange_arguments:
+            exchange_arguments = {}
 
         self.name = name
         self.logger = logger
@@ -57,6 +63,7 @@ class Consumer(threading.Thread):
         self._url = str(host)
 
         self.queue_arguments = queue_arguments
+        self.exchange_arguments = exchange_arguments
         self.durable = durable
 
     def fail(self, log, err):
@@ -154,9 +161,12 @@ class Consumer(threading.Thread):
 
         All arguments sent to this callback come from Pika but are not required by Carrot
         """
+
         self.channel = None
         if self.shutdown_requested:
+            self.logger.warning('Connection closed')
             self.connection.ioloop.stop()
+            self.logger.warning('Connection IO loop stopped')
         else:
             self.logger.warning('Connection closed unexpectedly. Trying again in %i seconds' % self.reconnect_timeout)
             self.connection.add_timeout(self.reconnect_timeout, self.reconnect)
@@ -182,15 +192,18 @@ class Consumer(threading.Thread):
         self.logger.info('Channel opened')
         self.channel = channel
         self.channel.add_on_close_callback(self.on_channel_closed)
-        self.channel.exchange_declare(self.on_exchange_declare, self.exchange)
+        self.channel.exchange_declare(self.on_exchange_declare, self.exchange, **self.exchange_arguments)
 
-    def on_channel_closed(self, *args):
+    def on_channel_closed(self, channel, reply_code, reply_text):
         """
         Called when the channel is closed. Raises a warning and closes the connection
 
         Parameters are provided by Pika but not required by Carrot
         """
-        self.logger.warning('Channel %s was closed' % self.channel)
+        if not self.shutdown_requested:
+            self.logger.warning('Consumer %s not running: %s' % (self.name, reply_text))
+        else:
+            self.logger.warning('Channel closed by client. Closing the connection')
         self.connection.close()
 
     def on_exchange_declare(self, *args):
@@ -201,7 +214,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Exchange declared')
         self.channel.queue_declare(self.on_queue_declare, self.queue, durable=self.durable,
-                                   arguments=self.queue_arguments)
+                                   arguments=self.queue_arguments,)
 
     def on_queue_declare(self, *args):
         """
@@ -340,21 +353,19 @@ class Consumer(threading.Thread):
         except Exception as err:
             self.task_log.append(task.get_logs())
             self.fail(log, str(err))
-        
 
     def stop_consuming(self):
         """
         Stops the consumer and cancels the channel
         """
         if self.channel:
+            self.shutdown_requested = True
             self.logger.warning('Shutdown received. Cancelling the channel')
             self.channel.basic_cancel(self.on_cancel, self._consumer_tag)
 
-        sys.exit()
-
     def on_cancel(self, *args):
         """
-        Invoked when the channel is cancelled.
+        Invoked when the channel cancel is completed.
 
         Parameters provided by Pika but not required by Carrot
 
@@ -372,13 +383,15 @@ class Consumer(threading.Thread):
     def stop(self):
         """
         Cleanly exit the Consumer
-
         """
         self.logger.info('Stopping')
         self.shutdown_requested = True
-        self.stop_consuming()
-        self.connection.ioloop.start()
-        self.logger.info('Stopped')
+        if self.channel:
+            self.stop_consuming()
+            self.connection.ioloop.start()
+            self.logger.info('Consumer closed')
+        else:
+            self.logger.warning('Not running!')
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
@@ -455,6 +468,7 @@ class ConsumerSet(object):
     """
     durable = True
     queue_arguments = {'x-max-priority': 255}
+    exchange_arguments = {}
 
     @staticmethod
     def get_consumer_class(consumer_class):
@@ -475,11 +489,17 @@ class ConsumerSet(object):
         self.consumer_class = self.get_consumer_class(consumer_class)
         self.threads = []
 
-        queue_settings = [q for q in settings.CARROT.get('queues', []) if q.get('name', queue)]
+        queue_settings = [q for q in settings.CARROT.get('queues', []) if q.get('name', None) == self.queue]
         if queue_settings:
             q_settings = queue_settings[0]
-            self.durable = q_settings.get('durable', True)
-            self.queue_arguments = q_settings.get('queue_arguments', True)
+            if q_settings.get('durable', None):
+                self.durable = q_settings['durable']
+
+            if q_settings.get('queue_arguments', None):
+                self.queue_arguments = q_settings['queue_arguments']
+
+            if q_settings.get('exchange_arguments', None):
+                self.exchange_arguments = q_settings['exchange_arguments']
 
     def stop_consuming(self):
         """
@@ -507,7 +527,8 @@ class ConsumerSet(object):
         """
         for i in range(0, self.concurrency):
             consumer = Consumer(host=self.host, queue=self.queue, logger=self.logger, name='%s-%i' % (self.name, i + 1),
-                                durable=self.durable, queue_arguments=self.queue_arguments)
+                                durable=self.durable, queue_arguments=self.queue_arguments,
+                                exchange_arguments=self.exchange_arguments)
             self.threads.append(consumer)
             consumer.start()
 
