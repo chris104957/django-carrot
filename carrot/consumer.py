@@ -308,7 +308,7 @@ class Consumer(threading.Thread):
         self.task_log = [
             start_msg
         ]
-        task = LoggingTask(func, self.logger, self.name, self.connection, *args, **kwargs)
+        task = LoggingTask(func, self.logger, self.name, *args, **kwargs)
 
         try:
             output = task.run()
@@ -426,6 +426,7 @@ class LoggingTask(object):
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
     def __init__(self, task, logger, thread_name, *args, **kwargs):
+        print(args, kwargs)
         self.task = task
         self.args = args
         self.kwargs = kwargs
