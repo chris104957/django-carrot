@@ -66,7 +66,7 @@ class Consumer(threading.Thread):
         self.exchange_arguments = exchange_arguments
         self.durable = durable
 
-    def fail(self, log, err):
+    def fail(self, log, err, delivery_tag):
         """
         This function is called if there is any kind of error with the `.consume()` function
 
@@ -76,6 +76,7 @@ class Consumer(threading.Thread):
         The exception message is logged, and the MessageLog is updated with the result
 
         """
+        # self.channel.basic_nack(delivery_tag, requeue=False)
         self.logger.error('Task %s failed due to the following exception: %s' % (log.task, err))
 
         if self.task_log:
@@ -114,8 +115,9 @@ class Consumer(threading.Thread):
         :param body: the message body. This is not used by default, but is included so that the function can be
                      extended in custom consumers.
 
-        :rtype: class:`carrot.models.MessageLog`
+        :rtype: class:`carrot.models.MessageLog` or None
 
+        In order to avoid different consumers picking up the same message, MessageLogs are only
         .. note::
             This method does not use self.get_task_type as the intention is to get the MessageLog object before the
             **consume** method tries to do anything else. This means that if any later part of the process fails,
@@ -128,7 +130,10 @@ class Consumer(threading.Thread):
             `dead letter exchange <http://www.rabbitmq.com/dlx.html>`_ to preserve your message content
 
         """
-        return MessageLog.objects.get(uuid=properties.message_id)
+        log = MessageLog.objects.get(uuid=properties.message_id)
+
+        if log.status == 'PUBLISHED':
+            return log
 
     def connect(self):
         """
@@ -214,7 +219,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Exchange declared')
         self.channel.queue_declare(self.on_queue_declare, self.queue, durable=self.durable,
-                                   arguments=self.queue_arguments,)
+                                   arguments=self.queue_arguments)
 
     def on_queue_declare(self, *args):
         """
@@ -239,7 +244,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Starting consumer %s' % self.name)
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
-        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue)
+        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue,no_ack=True)
 
     def on_consumer_cancelled(self, method_frame):
         """
@@ -264,14 +269,17 @@ class Consumer(threading.Thread):
         :param properties: the message properties
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
-
         """
 
         try:
             log = self.get_message_log(properties, body)
-            log.status = 'IN_PROGRESS'
-            log.save()
-            # self.channel.basic_ack(method_frame.delivery_tag)
+            if log:
+                # self.channel.basic_ack(method_frame.delivery_tag)
+                log.status = 'IN_PROGRESS'
+                log.save()
+            else:
+                return
+
         except ObjectDoesNotExist:
             self.logger.error('Unable to find a MessageLog matching the uuid %s. Ignoring this task' %
                               properties.message_id)
@@ -282,7 +290,7 @@ class Consumer(threading.Thread):
             task_type = self.get_task_type(properties.headers, body)
         except KeyError as err:
             self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s'
-                      % err)
+                      % err, method_frame.delivery_tag)
             return
 
         self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
@@ -290,7 +298,7 @@ class Consumer(threading.Thread):
         try:
             func = self.serializer.get_task(properties, body)
         except (ValueError, ModuleNotFoundError, AttributeError) as err:
-            self.fail(log, err)
+            self.fail(log, err, method_frame.delivery_tag)
             return
 
         try:
@@ -298,7 +306,8 @@ class Consumer(threading.Thread):
 
         except Exception as err:
             self.fail(log,
-                      'Unable to process the message due to an error collecting the task arguments: %s' % err)
+                      'Unable to process the message due to an error collecting the task arguments: %s' % err,
+                      method_frame.delivery_tag)
             return
 
         start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
@@ -312,6 +321,8 @@ class Consumer(threading.Thread):
 
         try:
             output = task.run()
+
+
             self.task_log.append(task.get_logs())
             self.logger.info(task.get_logs())
 
@@ -339,7 +350,6 @@ class Consumer(threading.Thread):
 
                 try:
                     log.save()
-                    self.channel.basic_ack(method_frame.delivery_tag)
 
                     break
                 except OperationalError:
@@ -352,7 +362,7 @@ class Consumer(threading.Thread):
 
         except Exception as err:
             self.task_log.append(task.get_logs())
-            self.fail(log, str(err))
+            self.fail(log, str(err), method_frame.delivery_tag)
 
     def stop_consuming(self):
         """
