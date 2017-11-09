@@ -143,9 +143,7 @@ class Command(BaseCommand):
                     vhost = VirtualHost(url=queue['host'])
 
                 c = ConsumerSet(host=vhost, **kwargs)
-                print('starting consumer set')
                 c.start_consuming()
-                print('consumer set started')
                 self.active_consumer_sets.append(c)
                 self.stdout.write(self.style.SUCCESS('Successfully started %i consumers for queue %s'
                                                      % (c.concurrency, queue['name'])))
