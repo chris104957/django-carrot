@@ -244,7 +244,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Starting consumer %s' % self.name)
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
-        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue,no_ack=True)
+        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue, no_ack=True)
 
     def on_consumer_cancelled(self, method_frame):
         """
@@ -521,7 +521,6 @@ class ConsumerSet(object):
         for the earlier threads to finish. The second loop allows for quicker consumer stoppage and stops all consumers
         from consuming new tasks from the moment the signal is received
         """
-        # print('%i thread(s) to close' % len(self.threads))
         for t in self.threads:
             t.stop()
 
@@ -537,15 +536,11 @@ class ConsumerSet(object):
         A :class:`.Consumer` is attached to each thread and is started
         """
         for i in range(0, self.concurrency):
-            consumer = Consumer(host=self.host, queue=self.queue, logger=self.logger, name='%s-%i' % (self.name, i + 1),
-                                durable=self.durable, queue_arguments=self.queue_arguments,
-                                exchange_arguments=self.exchange_arguments)
+            consumer = self.consumer_class(host=self.host, queue=self.queue, logger=self.logger,
+                                           name='%s-%i' % (self.name, i + 1),
+                                           durable=self.durable, queue_arguments=self.queue_arguments,
+                                           exchange_arguments=self.exchange_arguments)
             self.threads.append(consumer)
             consumer.start()
-
-            # thread_id = str(uuid.uuid4())
-            # thread = self.consumer_class(thread_id, '%s-%i' % (self.name, i + 1), self.host, self.queue, self.logger)
-            # self.threads.append(thread)
-            # thread.start()
 
 
