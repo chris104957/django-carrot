@@ -1,7 +1,10 @@
 from django.db import models
-from django.core.urlresolvers import reverse
-from django.utils.html import format_html, mark_safe
-from django.forms.utils import flatatt
+
+try:
+    from django.core.urlresolvers import reverse
+except ModuleNotFoundError:
+    from django.urls import reverse
+
 import json
 import os
 import sys
