@@ -158,7 +158,7 @@ def mock_task(*args, **kwargs):
 def consume_one(signal, *args, **kwargs):
     @mock.patch('pika.BlockingConnection', mocked_connection(**kwargs))
     def wrap(*args):
-        consumer = Consumer(1, 'test', VirtualHost(), 'null', logger, run_once=True)
+        consumer = Consumer(1, 'test', VirtualHost(), 'null', logger)
         consumer.signal = signal
         consumer.start()
         consumer.join()
@@ -176,11 +176,9 @@ class CarrotTestCase(TestCase):
         with self.settings(CARROT=ALT_CARROT):
             with mock.patch('time.sleep'):
                 with mock.patch('carrot.models.ScheduledTask.objects', mocked_model(ScheduledTask, count=300)):
-                    with self.assertRaises(SystemExit):
-                        call_command('carrot', **kwargs)
+                    call_command('carrot', **kwargs)
                 with mock.patch('carrot.models.ScheduledTask.objects', mocked_model(ScheduledTask, count=-1)):
-                    with self.assertRaises(SystemExit):
-                        call_command('carrot', **kwargs)
+                    call_command('carrot', **kwargs)
 
         with mock.patch('carrot.scheduler.ScheduledTaskManager.start',
                         side_effect=Exception('Generic Exception from test_commands')):
