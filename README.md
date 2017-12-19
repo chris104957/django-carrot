@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/django-carrot/badge/?version=latest)](http://django-carrot.readthedocs.io/en/latest/?badge=latest)
+
+
 Getting started with Carrot
 ===========================
 
@@ -15,8 +18,8 @@ Features
 - Task prioritization
 - Task-level monitoring via the Carrot monitor
 - Multithreaded queue consumers
-- **new in v0.2** built in django-admin daemon
-
+- Built in django-admin daemon
+- **new in v0.3** supports Django 2.0
 
 Installation
 ------------
