@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/django-carrot/badge/?version=latest)](http://django-carrot.readthedocs.io/en/latest/?badge=latest)
-
+[![Documentation Status](https://travis-ci.org/chris104957/django-carrot.svg?branch=master)](https://travis-ci.org/chris104957/django-carrot.svg?branch=master)
 
 Getting started with Carrot
 ===========================
