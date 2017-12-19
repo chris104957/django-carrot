@@ -2,6 +2,6 @@ language: python
 python:
   - "3.6"
 install:
-  - python setup.py sdist
+  - pip install -r requirements.txt
 script:
   - python run_tests.py
