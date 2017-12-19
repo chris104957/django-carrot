@@ -5,7 +5,7 @@ install:
   - pip install -r requirements.txt
   - python3 setup.py sdist
 script:
-  - coverage run run_tests.py
+  - coverage run --source=django-carrot run_tests.py
   - coveralls
 env:
   - DJANGO_VERSION=1.10.8
