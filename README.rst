@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/django-carrot/badge/?version=latest)](http://django-carrot.readthedocs.io/en/latest/?badge=latest)
+
+
 Getting started with Carrot
 ===========================
 
