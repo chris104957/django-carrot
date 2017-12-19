@@ -3,5 +3,11 @@ python:
   - "3.6"
 install:
   - pip install -r requirements.txt
+  - python3 setup.py sdist
 script:
-  - python run_tests.py
+  - coverage run run_tests.py
+  - coveralls
+env:
+  - DJANGO_VERSION=1.10.8
+  - DJANGO_VERSION=1.11.5
+  - DJANGO_VERSION=2.0
