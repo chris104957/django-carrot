@@ -1,4 +1,6 @@
-[![Documentation Status](https://readthedocs.org/projects/django-carrot/badge/?version=latest)](http://django-carrot.readthedocs.io/en/latest/?badge=latest)
+.. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
+    :target: https://coveralls.io/github/chris104957/django-carrot?branch=master
+
 
 
 Getting started with Carrot
