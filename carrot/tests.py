@@ -1,9 +1,9 @@
 import mock
 import logging
-
+from carrot.mocks import MessageLog, MessageSerializer, Connection, Properties
 from django.test import TestCase
 from carrot.consumer import Consumer
-from carrot.objects import VirtualHost, DefaultMessageSerializer
+from carrot.objects import VirtualHost
 from carrot.utilities import (
     create_message
 )
@@ -42,102 +42,11 @@ def failing_task(*args, **kwargs):
     raise Exception('test')
 
 
-def mock_messagelog(*args, **kwargs):
-    class MockMessageLog(object):
-        def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-            from django.db.utils import OperationalError
-            raise OperationalError('test')
-
-    return MockMessageLog
-
-class Properties(object):
-    message_id = 1234
-    delivery_tag = 1
-    headers = {}
-
-
-class FailingSerializer(DefaultMessageSerializer):
-    failing_method = 'serialize_arguments'
-
-    def serialize_arguments(self, body):
-        if self.failing_method == 'serialize_arguments':
-            raise AttributeError('test error message')
-        super(FailingSerializer, self).serialize_arguments(body)
-
-    def get_task(self, properties, body):
-        if self.failing_method == 'get_task':
-            raise AttributeError('test error message')
-        super(FailingSerializer, self).get_task(properties, body)
+logger = logging.getLogger('carrot')
 
 
 def mock_connection(*args, **kwargs):
-    class MockLoop(object):
-        def stop(self):
-            pass
-
-        def start(self):
-            pass
-
-    class MockChannel(object):
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def add_on_close_callback(self):
-            return
-
-        @staticmethod
-        def close(*args, **kwargs):
-            return
-
-        def exchange_declare(self, callback, exchange=None, **kwargs):
-            return
-
-        def basic_publish(self, **kwargs):
-            return
-
-        def queue_declare(self, *args, **kwargs):
-            return
-
-        def queue_bind(self, *args, **kwargs):
-            return
-
-        def add_on_cancel_callback(self, *args, **kwargs):
-            return
-
-        def basic_consume(self, *args, **kwargs):
-            return
-
-        def basic_nack(self, *args, **kwargs):
-            return
-
-        def basic_ack(self, *args, **kwargs):
-            return
-
-    class MockConnection(object):
-        def __init__(self, *args, **kwargs):
-            self.channel = MockChannel
-            self.ioloop = MockLoop()
-
-        def connect(self):
-            return self
-
-        def add_on_close_callback(self, callback):
-            return
-        
-        @property
-        def on_channel_open(self):
-            return
-
-        def add_timeout(self, reconnect_timeout, timeout):
-            return
-
-        def close(self):
-            return
-
-    return MockConnection
-
-
-logger = logging.getLogger('carrot')
+    return Connection
 
 
 class CarrotTestCase(TestCase):
@@ -187,7 +96,7 @@ class CarrotTestCase(TestCase):
         log.delete()
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
 
-        with mock.patch('carrot.models.MessageLog', new_callable=mock_messagelog) as null:
+        with mock.patch('carrot.models.MessageLog', new_callable=MessageLog) as null:
             consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
@@ -203,7 +112,7 @@ class CarrotTestCase(TestCase):
         log.delete()
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
 
-        consumer.serializer = FailingSerializer()
+        consumer.serializer = MessageSerializer()
         consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
