@@ -2,8 +2,11 @@ language: python
 python:
   - "3.6"
 install:
+  - python setup.py install
+before_script:
   - pip install -r requirements.txt
-  - python3 setup.py sdist
+  - git clone https://github.com/chris104957/django-carrot.git
+  - cd django-carrot
 script:
   - coverage run run_tests.py
 after_success:
