@@ -1,6 +1,7 @@
 import mock
 import logging
-from carrot.mocks import MessageLog, MessageSerializer, Connection, Properties
+from carrot.mocks import MockModel, MessageSerializer, Connection, Properties
+from carrot.mocks import MessageLog as MockMessageLog
 from django.test import TestCase
 from carrot.consumer import Consumer
 from carrot.objects import VirtualHost
@@ -49,6 +50,10 @@ def mock_connection(*args, **kwargs):
     return Connection
 
 
+def mock_message_log(*args, **kwargs):
+    return MockModel
+
+
 class CarrotTestCase(TestCase):
     @mock.patch('pika.SelectConnection', new_callable=mock_connection)
     @mock.patch('pika.BlockingConnection', new_callable=mock_connection)
@@ -94,13 +99,19 @@ class CarrotTestCase(TestCase):
         consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
-        log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
 
-        with mock.patch('carrot.models.MessageLog', new_callable=MessageLog) as null:
-            consumer.on_message(consumer.channel, p, p, b'{}')
+        with mock.patch('carrot.models.MessageLog', new_callable=mock_message_log) as message_log:
+            message_log.set_instance_class = MockMessageLog
+
+            log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED',
+                                            task_args='()')
+
+            from django.db import OperationalError
+            with self.assertRaises(OperationalError):
+                consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
-        p.headers = {'type':'carrot.tests.dict_task'}
+        p.headers = {'type': 'carrot.tests.dict_task'}
         log = MessageLog.objects.create(task='carrot.tests.dict_task', uuid=1234, status='PUBLISHED', task_args='()')
         consumer.on_message(consumer.channel, p, p, b'{}')
 

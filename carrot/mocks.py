@@ -1,10 +1,57 @@
 from carrot.objects import DefaultMessageSerializer
 
 
-class MessageLog(object):
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        from django.db.utils import OperationalError
+class MockInstance(object):
+    def __init__(self, manager, **kwargs):
+        self.objects = manager
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+    def save(self, **kwargs):
+        return self.objects.save(**kwargs)
+
+    def get(self, **kwargs):
+        return self.objects.get(**kwargs)
+
+    def filter(self, **kwargs):
+        return self.objects.filter(**kwargs)
+
+
+class MessageLog(MockInstance):
+    def save(self, **kwargs):
+        from django.db import OperationalError
         raise OperationalError('test')
+
+
+class MockManager(object):
+    def __init__(self):
+        self.instance_class = MockInstance(self)
+
+    def filter(self, **kwargs):
+        print('filtering')
+        return [self.instance_class]
+
+    def create(self, **kwargs):
+        print('creating')
+        return self.instance_class
+
+    def get(self, **kwargs):
+        print('getting')
+        return self.instance_class
+
+    def save(self, **kwargs):
+        print('saving')
+        return self.instance_class
+
+
+class MockModel(object):
+    objects = MockManager()
+
+    def set_instance_class(self, instance):
+        self.objects.instance_class = instance
+
+    def __init__(self, **kwargs):
+        pass
 
 
 class MessageSerializer(DefaultMessageSerializer):
