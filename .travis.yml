@@ -9,6 +9,7 @@ before_script:
   - cd django-carrot
 script:
   - coverage run run_tests.py
+  - pwd
   - coveralls
 env:
   - DJANGO_VERSION=1.10.8
