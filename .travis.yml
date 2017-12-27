@@ -10,7 +10,7 @@ install:
 script:
   - coverage run run_tests.py
 after_success:
-  - coveralls
+  - coveralls -u https://coveralls.io/github/chris104957/django-carrot
 env:
   - DJANGO_VERSION=1.10.8
   - DJANGO_VERSION=1.11.5
