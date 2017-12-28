@@ -2,7 +2,6 @@ language: python
 python:
   - "3.6"
   - "3.5"
-  - "3.4"
 before_install:
   - git clone https://github.com/chris104957/django-carrot.git
   - cd django-carrot
