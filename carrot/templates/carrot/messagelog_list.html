@@ -41,88 +41,101 @@
             </transition>
         </p>
     </div>
-    <h2>Queued tasks</h2>
-    <div class="container">
-        <table class="task-queue">
-            <tr>
-                <th>Priority</th>
-                <th>Task</th>
-                <th>Arguments</th>
-                <th>Keyword arguments</th>
-            </tr>
-            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in publishedObjects">
-                <td>[[ task.priority ]]</td>
-                <td>[[ task.task ]]</td>
-                <td>[[ task.task_args | cropped ]]</td>
-                <td>[[ task.content | croppedKwargs ]]</td>
-            </tr>
-        </table>
-        <paginator v-bind:type="'published'"></paginator>
+    <ul class="breadcrumbs">
+        <li @click="updateType('queued')">Queued</li>
+        <li @click="updateType('failed')" >Failed</li>
+        <li @click="updateType('completed')" >Completed</li>
+        <li @click="updateType('scheduled')" >Scheduled</li>
+    </ul>
+    <div v-if="selectedType=='queued'">
+        <h2>Queued tasks</h2>
+        <div class="container">
+            <table class="task-queue">
+                <tr>
+                    <th>Priority</th>
+                    <th>Task</th>
+                    <th>Arguments</th>
+                    <th>Keyword arguments</th>
+                </tr>
+                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in publishedObjects">
+                    <td>[[ task.priority ]]</td>
+                    <td>[[ task.task ]]</td>
+                    <td>[[ task.task_args | cropped ]]</td>
+                    <td>[[ task.content | croppedKwargs ]]</td>
+                </tr>
+            </table>
+            <paginator v-bind:type="'published'"></paginator>
+        </div>
     </div>
 
+    <div v-if="selectedType=='failed'">
     <h2>Failed tasks</h2>
-    <div class="container">
-        <table class="task-queue failed">
-            <tr>
-                <th>Failure time</th>
-                <th>Task</th>
-                <th>Task arguments</th>
-                <th>Keyword arguments</th>
-                <th>Exception</th>
-            </tr>
-            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in failedObjects">
-                <td>[[ task.failure_time | formatDate ]]</td>
-                <td>[[ task.task ]]</td>
-                <td>[[ task.task_args | cropped ]]</td>
-                <td>[[ task.content | croppedKwargs ]]</td>
-                <td>[[ task.exception ]]</td>
-            </tr>
-        </table>
-        <paginator v-bind:type="'failed'"></paginator>
-        <p class="buttonlist">
-            <button v-on:click="requeueAll">Requeue all failed tasks</button>
-            <button v-on:click="deleteAll" class="delete">Delete all failed tasks</button>
-        </p>
+        <div class="container">
+            <table class="task-queue failed">
+                <tr>
+                    <th>Failure time</th>
+                    <th>Task</th>
+                    <th>Task arguments</th>
+                    <th>Keyword arguments</th>
+                    <th>Exception</th>
+                </tr>
+                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in failedObjects">
+                    <td>[[ task.failure_time | formatDate ]]</td>
+                    <td>[[ task.task ]]</td>
+                    <td>[[ task.task_args | cropped ]]</td>
+                    <td>[[ task.content | croppedKwargs ]]</td>
+                    <td>[[ task.exception ]]</td>
+                </tr>
+            </table>
+            <paginator v-bind:type="'failed'"></paginator>
+            <p class="buttonlist">
+                <button v-on:click="requeueAll">Requeue all failed tasks</button>
+                <button v-on:click="deleteAll" class="delete">Delete all failed tasks</button>
+            </p>
+        </div>
     </div>
+    <div v-if="selectedType=='completed'">
     <h2>Completed tasks</h2>
-    <div class="container">
-        <table class="task-queue completed">
-            <tr>
-                <th>Completion time</th>
-                <th>Task</th>
-                <th>Task arguments</th>
-                <th>Keyword arguments</th>
-            </tr>
-            <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in completedObjects">
-                <td>[[ task.completion_time | formatDate ]]</td>
-                <td>[[ task.task ]]</td>
-                <td>[[ task.task_args | cropped ]]</td>
-                <td>[[ task.content | croppedKwargs ]]</td>
-            </tr>
-        </table>
-        <paginator v-bind:type="'completed'"></paginator>
+        <div class="container">
+            <table class="task-queue completed">
+                <tr>
+                    <th>Completion time</th>
+                    <th>Task</th>
+                    <th>Task arguments</th>
+                    <th>Keyword arguments</th>
+                </tr>
+                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in completedObjects">
+                    <td>[[ task.completion_time | formatDate ]]</td>
+                    <td>[[ task.task ]]</td>
+                    <td>[[ task.task_args | cropped ]]</td>
+                    <td>[[ task.content | croppedKwargs ]]</td>
+                </tr>
+            </table>
+            <paginator v-bind:type="'completed'"></paginator>
+        </div>
     </div>
-    <h2>Scheduled tasks</h2>
-    <div class="container">
-        <table class="task-queue">
-            <tr>
-                <th>Task</th>
-                <th>Interval</th>
-                <th>Active</th>
-            </tr>
-            <tr v-bind:id="'task_' + task.pk" v-for="task in scheduledObjects" v-on:click="highlightScheduled">
-                <td>[[ task.task ]]</td>
-                <td>[[ task.interval_display ]]</td>
-                <td>
-                    <icon type="check" v-if="task.active"></icon>
-                    <icon type="close" v-else></icon>
-                </td>
-            </tr>
-        </table>
-        <paginator v-bind:type="'scheduled'"></paginator>
-        <p class="buttonlist">
-            <button v-on:click="openCreateTaskForm">Create new scheduled task</button>
-        </p>
+    <div v-if="selectedType=='scheduled'">
+        <h2>Scheduled tasks</h2>
+        <div class="container">
+            <table class="task-queue">
+                <tr>
+                    <th>Task</th>
+                    <th>Interval</th>
+                    <th>Active</th>
+                </tr>
+                <tr v-bind:id="'task_' + task.pk" v-for="task in scheduledObjects" v-on:click="highlightScheduled">
+                    <td>[[ task.task ]]</td>
+                    <td>[[ task.interval_display ]]</td>
+                    <td>
+                        <icon type="check" v-if="task.active"></icon>
+                        <icon type="close" v-else></icon>
+                    </td>
+                </tr>
+            </table>
+            <paginator v-bind:type="'scheduled'"></paginator>
+            <p class="buttonlist">
+                <button v-on:click="openCreateTaskForm">Create new scheduled task</button>
+            </p>
+        </div>
     </div>
-
 {% endblock %}

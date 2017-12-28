@@ -16,7 +16,7 @@ class MessageLogSerializer(serializers.ModelSerializer):
 
 
 class SmallPagination(pagination.PageNumberPagination):
-    page_size = 10
+    page_size = 50
 
 
 class MessageLogViewset(viewsets.ModelViewSet):
@@ -59,6 +59,7 @@ class FailedMessageLogViewSet(MessageLogViewset):
             task.requeue()
 
         return self.list(request, *args, **kwargs)
+
 
 failed_message_log_viewset = FailedMessageLogViewSet.as_view({'get': 'list', 'delete': 'destroy', 'put': 'retry'})
 

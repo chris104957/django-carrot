@@ -12,11 +12,6 @@ h1 {
 
 a.title {
     text-decoration:none !important;
-    position: fixed;
-    top: 0;
-    height: 59x;
-    left: 0;
-    right: 0;
 }
 
 h2 {
@@ -200,7 +195,7 @@ button.page:hover {
     position: fixed;
     overflow: hidden;
     width:100%;
-    top: 59px;
+    top: 0px;
     height:100%;
     z-index: 1;
     background: #000000;
@@ -216,18 +211,15 @@ body {
     bottom: 0;
 }
 
-.clear {
-    height: 60px;
-}
 
 .task-view {
 	background-color: white !important;
 	position: absolute;
 	padding: 20px 0 0 65px;
-	height: 200%;
 	width: auto;
 	min-width: 800px;
-    min-height: 1200px;
+    min-height: 90%;
+    overflow-y: scroll;
     top: 20px;
     right: 300px;
     left: 300px;
@@ -471,3 +463,18 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
+.breadcrumbs {
+    width: 100%;
+    list-style-type: none;
+    display: inline-block;
+    background: rgb(100,100,100);
+    margin: 0;
+}
+
+.breadcrumbs li {
+    color: white;
+    float: left;
+    padding: 5px;
+    cursor: pointer;
+
+}

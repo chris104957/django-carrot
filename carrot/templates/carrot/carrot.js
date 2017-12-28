@@ -81,6 +81,7 @@ var app = new Vue({
     delimiters: ['[[', ']]'],
 
     data: {
+        selectedType: 'queued',
         highlightMode: false,
         selectedObjectId: null,
         selectedObject: null,
@@ -216,14 +217,17 @@ var app = new Vue({
                 this.log = output;
             }
         },
+        updateType(value) {
+            this.selectedType = value
+        },
         // methods for calling the REST API
         getPublishedMessageLogs: function () {
             var self = this;
             return axios.get('/carrot/api/message-logs/published/?page=' + self.publishedPage)
             .then(function (response) {
                 var count = response.data.count;
-                var pages = parseInt(count/10);
-                if (pages != count/10) {
+                var pages = parseInt(count/50);
+                if (pages != count/50) {
                     pages = pages + 1;
                 };
                 self.publishedPreviousPage = response.data.previous;
@@ -240,8 +244,8 @@ var app = new Vue({
             return axios.get('/carrot/api/message-logs/failed/?page=' + self.failedPage)
             .then(function (response) {
                 var count = response.data.count;
-                var pages = parseInt(count/10);
-                if (pages != count/10) {
+                var pages = parseInt(count/50);
+                if (pages != count/50) {
                     pages = pages + 1;
                 };
 
@@ -259,8 +263,8 @@ var app = new Vue({
             return axios.get('/carrot/api/message-logs/completed/?page=' + self.completedPage)
             .then(function (response) {
                 var count = response.data.count;
-                var pages = parseInt(count/10);
-                if (pages != count/10) {
+                var pages = parseInt(count/50);
+                if (pages != count/50) {
                     pages = pages + 1;
                 };
 
@@ -278,8 +282,8 @@ var app = new Vue({
             return axios.get('/carrot/api/scheduled-tasks/?page=' + self.scheduledPage)
             .then(function (response) {
                 var count = response.data.count;
-                var pages = parseInt(count/10);
-                if (pages != count/10) {
+                var pages = parseInt(count/50);
+                if (pages != count/50) {
                     pages = pages + 1;
                 };
 
