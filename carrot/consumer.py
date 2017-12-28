@@ -300,7 +300,7 @@ class Consumer(threading.Thread):
 
         try:
             func = self.serializer.get_task(properties, body)
-        except (ValueError, ModuleNotFoundError, AttributeError) as err:
+        except (ValueError, ImportError, AttributeError) as err:
             self.fail(log, err)
             return
 
