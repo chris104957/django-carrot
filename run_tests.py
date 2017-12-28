@@ -17,7 +17,6 @@ def runner(options):
         'secure': options.secure,
     }
     _vhost = VirtualHost(**vhost)
-
     settings.configure(
         DEBUG=True,
         DATABASES={

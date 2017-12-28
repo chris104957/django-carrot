@@ -40,7 +40,7 @@ def get_host_from_name(name):
             except TypeError:
                 return VirtualHost(url=conf)
 
-        queues = settings.CARROT['queues']
+        queues = settings.CARROT.get('queues', [])
         queue_host = list(filter(lambda queue: queue['name'] == name, queues))[0]['host']
         try:
             vhost = VirtualHost(**queue_host)

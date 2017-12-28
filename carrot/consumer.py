@@ -34,6 +34,7 @@ class Consumer(threading.Thread):
     queue_arguments = {}
     exchange_arguments = {}
     active_message_log = None
+    remaining_save_attempts = 10
 
     def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
         """
@@ -342,23 +343,22 @@ class Consumer(threading.Thread):
                 log.output = output
 
             log.log = '\n'.join(self.task_log)
-            save_attempts = 0
 
-            while True:
-                save_attempts += 1
+            while self.remaining_save_attempts > 0:
+                self.remaining_save_attempts -= 1
 
                 try:
                     log.save()
                     self.active_message_log = None
 
-                    break
+                    return
                 except OperationalError:
-                    if save_attempts > 10:
-                        raise OperationalError('Unable to access the database. This is probably because the number '
-                                               'of carrot threads is too high. Either reduce the amount of '
-                                               'scheduled tasks consumers, or increase the max number of '
-                                               'connections supported by your database')
                     self.connection.sleep(10)
+
+            raise OperationalError('Unable to access the database. This is probably because the number '
+                                   'of carrot threads is too high. Either reduce the amount of '
+                                   'scheduled tasks consumers, or increase the max number of '
+                                   'connections supported by your database')
 
         except Exception as err:
             self.task_log.append(task.get_logs())
@@ -436,7 +436,6 @@ class LoggingTask(object):
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
     def __init__(self, task, logger, thread_name, *args, **kwargs):
-        print(args, kwargs)
         self.task = task
         self.args = args
         self.kwargs = kwargs

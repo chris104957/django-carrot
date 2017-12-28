@@ -95,6 +95,7 @@ class MessageLogDetailViewset(MessageLogViewset):
         self.kwargs = {'pk': new_object.pk}
         return self.retrieve(request, *args, **kwargs)
 
+
 detail_message_log_viewset = MessageLogDetailViewset.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'retry'})
 
 
@@ -113,7 +114,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
                         task_choices.append(f)
                 except (ImportError, AttributeError):
                     pass
-
+            print(task_choices, value)
             if task_choices and not value in task_choices:
                 raise serializers.ValidationError('This is not a valid selection')
 
