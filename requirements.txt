@@ -1,4 +1,4 @@
-django>=1.11
+django>=1.9
 json2html==1.2.1
 pika>=0.10.0
 djangorestframework>=3.6
