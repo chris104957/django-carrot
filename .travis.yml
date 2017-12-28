@@ -7,8 +7,8 @@ before_install:
   - pip install -r requirements.txt
 
 install:
-  - python3 setup.py sdist
-  - sudo pip3 install --upgrade dist/*.gz
+  - python setup.py sdist
+  - pip install --upgrade dist/*.gz
 script:
   - coverage run run_tests.py
 after_success:
