@@ -2,6 +2,7 @@
 [![Documentation Status](https://travis-ci.org/chris104957/django-carrot.svg?branch=master)](https://travis-ci.org/chris104957/django-carrot.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master)](https://coveralls.io/github/chris104957/django-carrot?branch=master)
 [![PyPI version](https://badge.fury.io/py/django-carrot.svg)](https://badge.fury.io/py/django-carrot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Getting started with Carrot
 ===========================
