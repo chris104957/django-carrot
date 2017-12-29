@@ -21,7 +21,7 @@ Features
 - Task-level monitoring via the Carrot monitor
 - Multithreaded queue consumers
 - Built in django-admin daemon
-- **new in v0.3** Supports Django 2.0
+- Supports Django 2.0
 
 
 Installation
