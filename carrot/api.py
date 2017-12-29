@@ -23,6 +23,22 @@ class MessageLogViewset(viewsets.ModelViewSet):
     serializer_class = MessageLogSerializer
     pagination_class = SmallPagination
 
+    def get_queryset(self):
+        search_terms = self.request.query_params.getlist('search', None)
+        qs = self.queryset
+        if search_terms:
+            include_pks = []
+            for log in qs:
+                for search_term in search_terms:
+                    if (search_term.lower() in log.task.lower()) or (search_term.lower() in log.content.lower()) or \
+                            (search_term.lower() in log.task_args.lower()):
+                        include_pks.append(log.pk)
+                        break
+
+            qs = self.queryset.filter(pk__in=include_pks)
+
+        return qs
+
 
 class PublishedMessageLogViewSet(MessageLogViewset):
     """

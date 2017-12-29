@@ -478,3 +478,9 @@ input[type=number]::-webkit-outer-spin-button {
     cursor: pointer;
 
 }
+
+.searchbar {
+    margin-bottom: 5px;
+    width: 90%;
+    padding: 5px;
+}

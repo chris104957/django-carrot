@@ -28,6 +28,22 @@ Vue.component('task-detail', {
 })
 
 
+Vue.component('search-bar', {
+    delimiters: ['[[', ']]'],
+    props: ['queryset'],
+    template: '{{ search_bar_template }}',
+    data() {
+        return {
+            searchTerm: null,
+        }
+    },
+    watch: {
+        searchTerm: _.debounce(function() {
+            this.$emit('callback', this.searchTerm)
+        }, 500),
+    }
+})
+
 Vue.component('scheduled-task', {
     delimiters: ['[[', ']]'],
     props: ['task', 'errors'],
@@ -127,6 +143,10 @@ var app = new Vue({
         scheduledPageCount: 0,
         scheduledPreviousPage: null,
         scheduledNextPage: null,
+
+        completedSearchTerm: null,
+        failedSearchTerm: null,
+        publishedSearchTerm: null,
     },
     created: function () {
         this.getPublishedMessageLogs()
@@ -220,10 +240,28 @@ var app = new Vue({
         updateType(value) {
             this.selectedType = value
         },
+        filterCompleted(searchTerm) {
+            this.completedSearchTerm = searchTerm
+            this.getCompletedMessageLogs()
+        },
+        filterPublished(searchTerm) {
+            this.publishedSearchTerm = searchTerm
+            this.getPublishedMessageLogs()
+        },
+        filterFailed(searchTerm) {
+            this.failedSearchTerm = searchTerm
+            this.getFailedMessageLogs()
+        },
         // methods for calling the REST API
         getPublishedMessageLogs: function () {
             var self = this;
-            return axios.get('/carrot/api/message-logs/published/?page=' + self.publishedPage)
+            if (this.publishedSearchTerm) {
+                var url = '/carrot/api/message-logs/published/?page=' + self.publishedPage + '&search=' + this.publishedSearchTerm
+            } else {
+                var url = '/carrot/api/message-logs/published/?page=' + self.publishedPage
+            }
+
+            return axios.get(url)
             .then(function (response) {
                 var count = response.data.count;
                 var pages = parseInt(count/50);
@@ -241,7 +279,13 @@ var app = new Vue({
         },
         getFailedMessageLogs: function () {
             var self = this;
-            return axios.get('/carrot/api/message-logs/failed/?page=' + self.failedPage)
+            if (this.failedSearchTerm) {
+                var url = '/carrot/api/message-logs/failed/?page=' + self.failedPage + '&search=' + this.failedSearchTerm
+            } else {
+                var url = '/carrot/api/message-logs/failed/?page=' + self.failedPage
+            }
+
+            return axios.get(url)
             .then(function (response) {
                 var count = response.data.count;
                 var pages = parseInt(count/50);
@@ -260,7 +304,14 @@ var app = new Vue({
         },
         getCompletedMessageLogs: function () {
             var self = this;
-            return axios.get('/carrot/api/message-logs/completed/?page=' + self.completedPage)
+            if (this.completedSearchTerm) {
+                var url = '/carrot/api/message-logs/completed/?page=' + self.completedPage + '&search=' + this.completedSearchTerm
+            } else {
+                var url = '/carrot/api/message-logs/completed/?page=' + self.completedPage
+            }
+            console.log(url)
+
+            return axios.get(url)
             .then(function (response) {
                 var count = response.data.count;
                 var pages = parseInt(count/50);

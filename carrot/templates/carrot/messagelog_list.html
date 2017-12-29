@@ -50,6 +50,7 @@
     <div v-if="selectedType=='queued'">
         <h2>Queued tasks</h2>
         <div class="container">
+            <search-bar :queryset="publishedObjects" @callback="filterPublished"></search-bar>
             <table class="task-queue">
                 <tr>
                     <th>Priority</th>
@@ -71,6 +72,7 @@
     <div v-if="selectedType=='failed'">
     <h2>Failed tasks</h2>
         <div class="container">
+            <search-bar :queryset="failedObjects" @callback="filterFailed"></search-bar>
             <table class="task-queue failed">
                 <tr>
                     <th>Failure time</th>
@@ -97,6 +99,7 @@
     <div v-if="selectedType=='completed'">
     <h2>Completed tasks</h2>
         <div class="container">
+            <search-bar :queryset="completedObjects" @callback="filterCompleted"></search-bar>
             <table class="task-queue completed">
                 <tr>
                     <th>Completion time</th>

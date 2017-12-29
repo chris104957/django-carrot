@@ -7,6 +7,7 @@ from carrot.api import (
     detail_message_log_viewset, scheduled_task_detail
 )
 
+
 decorators = settings.CARROT.get('monitor_authentication', [])
 
 

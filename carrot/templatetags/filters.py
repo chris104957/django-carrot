@@ -24,6 +24,7 @@ def vue():
     field_errors_content = get_content('field-errors')
     scheduled_content = get_content('scheduled_task_detail')
     paginator_content = get_content('paginator')
+    search_bar_content = get_content('search_bar')
 
     modules = settings.CARROT.get('task_modules', [])
     task_choices = []
@@ -46,5 +47,6 @@ def vue():
         'interval_options': mark_safe(interval_choices),
         'field_errors': field_errors_content,
         'paginator_template': paginator_content,
+        'search_bar_template': search_bar_content,
     }
 
