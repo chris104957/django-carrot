@@ -176,22 +176,6 @@ To implement it, simply add the carrot url config to your Django project's main 
         url(r'^carrot/', include('carrot.urls')),
     ]
 
-You will also need to register Carrot's template filters in your Django project's settings:
-
-
-.. code-block:: python
-
-    TEMPLATES = [
-        ...
-        'OPTIONS': {
-            ...
-            'builtins': [
-                ...
-                'carrot.templatetags.filters'
-            ]
-        }
-    ]
-
 For more information, refer to :ref:`carrot-monitor`
 
 Contribute

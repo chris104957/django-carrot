@@ -38,23 +38,6 @@ To enable to carrot monitor, simply add the URLs to your project's main urls.py 
         ...
     ]
 
-You will also need to register Carrot's template filters in your Django project's settings:
-
-.. code-block:: python
-
-    TEMPLATES = [
-        ...
-        'OPTIONS': {
-            ...
-            'builtins': [
-                ...
-                'carrot.templatetags.filters'
-            ]
-        }
-    ]
-
-
-
 You will now be able to see the monitor at the path you have specified, eg: http://localhost:8000/carrot/
 
 In order to create scheduled tasks using Carrot monitor, you should also specify your task modules in your Django
@@ -87,9 +70,12 @@ monitor, by applying the :func:`django.contrib.auth.decorators.login_required` d
 views.
 
 .. note::
+    *new in v.04*: Carrot monitor now allows you to search for a task based on its function name, task arguments and
+    keyword arguments
     *new in v0.2*: Carrot monitor now uses a reactive front end built in VueJS that uses a rest API to retrieve task
     information from your Django project's database. The authentication decorators defined above will also be used to
     control access to this API
+
 
 
 
