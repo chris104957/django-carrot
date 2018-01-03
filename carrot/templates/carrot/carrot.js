@@ -4,7 +4,7 @@ Vue.component('task-detail', {
     filters: {
         formatDate: function(rawDate) {
             // filter for converting a raw string to something more human-readable
-            return moment(String(rawDate)).format('DD/MM/YYYY hh:mm')
+            return moment(rawDate,'YYYY-MM-DD[T]hh:mm:SS').format('LLL')
         },
         cropped: function(data) {
             console.log(this.app.$options.filters.cropped);
@@ -168,7 +168,7 @@ var app = new Vue({
     filters: {
         formatDate: function(rawDate) {
             // filter for converting a raw string to something more human-readable
-            return moment(String(rawDate)).format('DD/MM/YYYY hh:mm')
+            return moment(rawDate,'YYYY-MM-DD[T]hh:mm:SS').format('LLL')
         },
         cropped: function(task_args) {
             // crop the list of task arguments to a reasonable length
@@ -378,7 +378,7 @@ var app = new Vue({
         getTask: function(taskId) {
             // returns the data for a single task object by calling the REST API
             var self = this;
-            return axios.get('/carrot/api/message-logs/' + taskId)
+            return axios.get('/carrot/api/message-logs/' + self.selectedObjectId)
             .then(function (response) {
                 self.selectedObject = response.data;
             })
@@ -422,6 +422,7 @@ var app = new Vue({
             )
             .then(function (response) {
                 console.log(response)
+
                 self.getFailedMessageLogs()
                 self.getPublishedMessageLogs()
             })
@@ -490,8 +491,8 @@ var app = new Vue({
             console.log(task);
             var self = this;
             this.formErrors = {};
-            if (task.id) {
-                return axios.patch('/carrot/api/scheduled-tasks/' + task.id + '/', task, {
+            if (task.pk) {
+                return axios.patch('/carrot/api/scheduled-tasks/' + task.pk + '/', task, {
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
                     }
@@ -591,7 +592,7 @@ app.$watch('scheduledPage', function (newVal, oldVal) {
 // watcher that calls app.getTask() whenever there is a change to the selected object pk, and that pk is not null
 app.$watch('selectedObjectId', function (newVal, oldVal) {
     if (newVal) {
-        app.getTask(newVal);
+        app.getTask();
     }
 })
 
