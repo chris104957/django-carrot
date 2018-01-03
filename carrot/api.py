@@ -25,7 +25,7 @@ class MessageLogViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         search_terms = self.request.query_params.getlist('search', None)
-        qs = self.queryset
+        qs = self.queryset.all()
         if search_terms:
             include_pks = []
             for log in qs:
