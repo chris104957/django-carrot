@@ -171,6 +171,11 @@ class CarrotTestCase(TestCase):
         r = f.delete('/api/message-logs/failed')
 
         failed_message_log_viewset(r)
+        self.assertEqual(MessageLog.objects.filter(status='FAILED').count(), 0)
+        r = f.get('/api/message-logs/failed')
+        response = failed_message_log_viewset(r)
+        self.assertEqual(response.data.get('count'), 0)
+
         MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='FAILED', task_args='()')
         r = f.put('/api/message-logs/failed')
         failed_message_log_viewset(r)
@@ -206,6 +211,7 @@ class CarrotTestCase(TestCase):
             r = f.patch('/api/scheduled-tasks/%s' % response.data.get('pk'), data)
 
             scheduled_task_detail(r, pk=response.data.get('pk'))
+
 
     def test_utilities(self):
         with self.assertRaises(Exception):

@@ -107,7 +107,7 @@
                     <th>Task arguments</th>
                     <th>Keyword arguments</th>
                 </tr>
-                <tr v-bind:id="'task_' + task.id" v-on:click="highlight" v-for="task in completedObjects">
+                <tr v-if="task.id" v-bind:id="'task_' + task.id" v-on:click="highlight" v-for="task in completedObjects">
                     <td>[[ task.completion_time | formatDate ]]</td>
                     <td>[[ task.task ]]</td>
                     <td>[[ task.task_args | cropped ]]</td>

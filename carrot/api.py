@@ -45,7 +45,7 @@ class PublishedMessageLogViewSet(MessageLogViewset):
     Returns a list of Published `MessageLog` objects
     """
 
-    queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], pk__isnull=False)
+    queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], id__isnull=False)
 
 
 published_message_log_viewset = PublishedMessageLogViewSet.as_view({'get': 'list'})
@@ -56,7 +56,7 @@ class FailedMessageLogViewSet(MessageLogViewset):
     Returns a list of failed `MessageLog` objects
     """
 
-    queryset = MessageLog.objects.filter(status='FAILED', pk__isnull=False)
+    queryset = MessageLog.objects.filter(status='FAILED', id__isnull=False)
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -84,7 +84,7 @@ class CompletedMessageLogViewSet(MessageLogViewset):
     """
     Returns a list of Completed `MessageLog` objects
     """
-    queryset = MessageLog.objects.filter(status='COMPLETED', pk__isnull=False)
+    queryset = MessageLog.objects.filter(status='COMPLETED', id__isnull=False)
 
 
 completed_message_log_viewset = CompletedMessageLogViewSet.as_view({'get': 'list'})
