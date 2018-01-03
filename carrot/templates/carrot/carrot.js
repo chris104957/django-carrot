@@ -378,7 +378,7 @@ var app = new Vue({
         getTask: function(taskId) {
             // returns the data for a single task object by calling the REST API
             var self = this;
-            return axios.get('/carrot/api/message-logs/' + self.selectedObjectId)
+            return axios.get('/carrot/api/message-logs/' + taskId)
             .then(function (response) {
                 self.selectedObject = response.data;
             })
@@ -412,6 +412,7 @@ var app = new Vue({
             // calls the API that requeues ALL failed MessageLogs. On getting a success callback, getFailedMessageLogs
             // and getPublishedMessageLogs are called
             var self = this;
+            self.failedObjects = []
             return axios.put('/carrot/api/message-logs/failed/', {},
                 {
                     headers: {
@@ -420,6 +421,7 @@ var app = new Vue({
                 }
             )
             .then(function (response) {
+                console.log(response)
                 self.getFailedMessageLogs()
                 self.getPublishedMessageLogs()
             })
@@ -488,8 +490,8 @@ var app = new Vue({
             console.log(task);
             var self = this;
             this.formErrors = {};
-            if (task.pk) {
-                return axios.patch('/carrot/api/scheduled-tasks/' + task.pk + '/', task, {
+            if (task.id) {
+                return axios.patch('/carrot/api/scheduled-tasks/' + task.id + '/', task, {
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
                     }
@@ -589,7 +591,7 @@ app.$watch('scheduledPage', function (newVal, oldVal) {
 // watcher that calls app.getTask() whenever there is a change to the selected object pk, and that pk is not null
 app.$watch('selectedObjectId', function (newVal, oldVal) {
     if (newVal) {
-        app.getTask();
+        app.getTask(newVal);
     }
 })
 

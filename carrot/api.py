@@ -12,7 +12,7 @@ class MessageLogSerializer(serializers.ModelSerializer):
         model = MessageLog
         fields = 'status', 'exchange', 'queue', 'routing_key', 'uuid', 'priority', 'task', 'task_args', \
                  'content', 'exception', 'traceback', 'output', 'publish_time', 'failure_time', 'completion_time', \
-                 'log', 'pk', 'virtual_host'
+                 'log', 'id', 'virtual_host'
 
 
 class SmallPagination(pagination.PageNumberPagination):
@@ -45,7 +45,7 @@ class PublishedMessageLogViewSet(MessageLogViewset):
     Returns a list of Published `MessageLog` objects
     """
 
-    queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'])
+    queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], pk__isnull=False)
 
 
 published_message_log_viewset = PublishedMessageLogViewSet.as_view({'get': 'list'})
@@ -56,7 +56,7 @@ class FailedMessageLogViewSet(MessageLogViewset):
     Returns a list of failed `MessageLog` objects
     """
 
-    queryset = MessageLog.objects.filter(status='FAILED')
+    queryset = MessageLog.objects.filter(status='FAILED', pk__isnull=False)
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -84,7 +84,7 @@ class CompletedMessageLogViewSet(MessageLogViewset):
     """
     Returns a list of Completed `MessageLog` objects
     """
-    queryset = MessageLog.objects.filter(status='COMPLETED')
+    queryset = MessageLog.objects.filter(status='COMPLETED', pk__isnull=False)
 
 
 completed_message_log_viewset = CompletedMessageLogViewSet.as_view({'get': 'list'})

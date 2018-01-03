@@ -81,7 +81,7 @@ class MessageLog(models.Model):
         if self.task_args == '()':
             return ()
         else:
-            return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',')]
+            return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',') if arg != '']
 
     # noinspection PyTypeChecker
     def requeue(self):
@@ -92,7 +92,8 @@ class MessageLog(models.Model):
         msg = publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue,
                               exchange=self.exchange, routing_key=self.routing_key, **self.keywords)
 
-        self.delete()
+        if self.id:
+            self.delete()
 
         return msg
 

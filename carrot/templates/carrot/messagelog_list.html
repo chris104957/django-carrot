@@ -18,8 +18,8 @@
             </ul>
         </div>
         <p class="buttonlist" v-if="selectedObject.status == 'FAILED'">
-            <button v-on:click="requeueOne(selectedObject.pk)">Requeue this task</button>
-            <button v-on:click="deleteOne(selectedObject.pk)" class="delete">Delete this task</button>
+            <button v-on:click="requeueOne(selectedObject.id)">Requeue this task</button>
+            <button v-on:click="deleteOne(selectedObject.id)" class="delete">Delete this task</button>
         </p>
     </div>
     <div v-if="selectedScheduledObject" class="task-view">
@@ -28,7 +28,7 @@
         </form>
         <p class="buttonlist">
             <button v-on:click="save(selectedScheduledObject)">Save</button>
-            <button v-if="selectedScheduledObject.pk" v-on:click="deleteScheduledTask" class="delete">
+            <button v-if="selectedScheduledObject.id" v-on:click="deleteScheduledTask" class="delete">
                 Delete this scheduled task
             </button>
             <transition name="fade">
@@ -58,7 +58,7 @@
                     <th>Arguments</th>
                     <th>Keyword arguments</th>
                 </tr>
-                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in publishedObjects">
+                <tr v-bind:id="'task_' + task.id" v-on:click="highlight" v-for="task in publishedObjects">
                     <td>[[ task.priority ]]</td>
                     <td>[[ task.task ]]</td>
                     <td>[[ task.task_args | cropped ]]</td>
@@ -81,7 +81,7 @@
                     <th>Keyword arguments</th>
                     <th>Exception</th>
                 </tr>
-                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in failedObjects">
+                <tr v-bind:id="'task_' + task.id" v-on:click="highlight" v-for="task in failedObjects">
                     <td>[[ task.failure_time | formatDate ]]</td>
                     <td>[[ task.task ]]</td>
                     <td>[[ task.task_args | cropped ]]</td>
@@ -107,7 +107,7 @@
                     <th>Task arguments</th>
                     <th>Keyword arguments</th>
                 </tr>
-                <tr v-bind:id="'task_' + task.pk" v-on:click="highlight" v-for="task in completedObjects">
+                <tr v-bind:id="'task_' + task.id" v-on:click="highlight" v-for="task in completedObjects">
                     <td>[[ task.completion_time | formatDate ]]</td>
                     <td>[[ task.task ]]</td>
                     <td>[[ task.task_args | cropped ]]</td>
@@ -126,7 +126,7 @@
                     <th>Interval</th>
                     <th>Active</th>
                 </tr>
-                <tr v-bind:id="'task_' + task.pk" v-for="task in scheduledObjects" v-on:click="highlightScheduled">
+                <tr v-bind:id="'task_' + task.id" v-for="task in scheduledObjects" v-on:click="highlightScheduled">
                     <td>[[ task.task ]]</td>
                     <td>[[ task.interval_display ]]</td>
                     <td>
