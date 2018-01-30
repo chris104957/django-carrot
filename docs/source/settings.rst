@@ -1,16 +1,10 @@
 .. _carrot-settings:
 
-Carrot configuration
-====================
+django-carrot configuration
+===========================
 
-Carrot is configured via your Django project's settings modules. This page lists all available configuration options for
-carrot
-
-
-The Carrot settings dictionary
-------------------------------
-
-All Carrot configuration is done by adding a **CARROT** dictionary to your Django project's settings module
+django-carrot is configured via your Django project's settings modules. All possible configuration options are listed in
+this page. All configuration options are inserted as follows:
 
 .. code-block:: python
 
@@ -19,13 +13,17 @@ All Carrot configuration is done by adding a **CARROT** dictionary to your Djang
     }
 
 
-All of the configuration options described below should go inside this dictionary
 
-The default broker
+
+``default_broker``
 ------------------
 
-Carrot needs to be able to connect to at least one RabbitMQ broker in order to work. The default broker should be
-defined as follows:
+:default value: ``amqp://guest:guest@localhost:5672/``
+:type: ``str`` or ``dict``
+
+
+Carrot needs to be able to connect to at least one RabbitMQ broker in order to work. The default broker can either be
+provided as a string:
 
 .. code-block:: python
 
@@ -33,7 +31,7 @@ defined as follows:
         'default_broker': 'amqp://myusername:mypassword@192.168.0.1:5672/my-virtual-host'
    }
 
-Alternatively, you can supply the default broker credentials in the following format:
+or alternatively, in the following format:
 
 .. code-block:: python
 
@@ -48,17 +46,17 @@ Alternatively, you can supply the default broker credentials in the following fo
         }
     }
 
-.. note::
-    If you do not supply the **default_broker** to your carrot settings, it will default to the following assumed
-    default rabbit config, `amqp://guest:guest@localhost:5672/`
 
-Queue configuration
--------------------
+``queues``
+----------
 
-As long as you have configured a broker, the Carrot service will automatically create a queue for you at runtime.
+:default value: ``[]``
+:type: ``list``
 
-However, you may wish to define your own queues in order to access additional functionality such as:
-- Sending tasks to different queues (e.g. high/low priority)
+django-carrot will automatically create a queue called `default`. However, you may wish to define your own queues in
+order to access additional functionality such as:
+
+- Sending tasks to different queues
 - Increasing the number of consumers attached to each queue
 
 To define your own queues, add a list of *queues* to your carrot configuration:
@@ -80,7 +78,7 @@ To define your own queues, add a list of *queues* to your carrot configuration:
         ]
    }
 
-Each *queue* supports the following configuration options:
+Each queue supports the following configuration options:
 
 :name:
     the queue name, as a string
@@ -100,19 +98,22 @@ Each *queue* supports the following configuration options:
             }
 
 :concurrency:
-    the number of consumers to be attached to the queue, as an integer. Defaults to *1*
+    the number of consumers to be attached to the queue, as an integer. Defaults to ``1``
 
 :consumable:
-    Whether or not the service should consume messages in this queue, as a Boolean. Defaults to *True*
+    Whether or not the service should consume messages in this queue, as a Boolean. Defaults to ``True``
 
-Task modules
-------------
+``task_modules``
+----------------
+
+:default value: ``[]``
+:type: ``list``
+
 
 This is a helper setting used by :ref:`carrot-monitor-configuration` to allow you to select functions to be scheduled
 from a drop down list, rather than having to type in the import path manually.
 
 .. figure:: /images/no-task-modules.png
-    :width: 600px
     :align: center
     :height: 100px
     :figclass: align-center
@@ -120,7 +121,6 @@ from a drop down list, rather than having to type in the import path manually.
     without task modules
 
 .. figure:: /images/with-task-modules.png
-    :width: 600px
     :align: center
     :height: 100px
     :figclass: align-center
@@ -143,8 +143,10 @@ The *task_modules* option is used to enable this functionality. It can be added 
     intended to be used as scheduled tasks, as all functions listed in these modules will appear in the drop down list
     in Carrot monitor
 
-Monitor Authentication
-----------------------
+``monitor_authentication``
+--------------------------
+:default: ``[]``
+:type: ``list``
 
 By default, all views provided by :ref:`carrot-monitor-configuration` are public. If you want to limit access to these
 views to certain users of your Django app, you can list the decorators to apply to these views. This is done with the

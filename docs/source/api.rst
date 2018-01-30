@@ -1,8 +1,8 @@
-Carrot object reference
------------------------
+django-carrot API
+-----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    service
    utilities

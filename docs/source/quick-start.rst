@@ -1,5 +1,6 @@
-Getting started with Carrot
-===========================
+Getting started with django-carrot
+==================================
+
 
 Introduction
 ------------
@@ -57,13 +58,7 @@ Configuring your Django project
     python manage.py makemigrations carrot
     python manage.py migrate carrot
 
-3. Set your default broker in your Django project's settings
-
-.. code-block:: python
-
-    CARROT = {
-        'default_broker': 'amqp://guest:guest@localhost:5672
-    }
+For more configuration options, refer to :ref:`carrot-settings`
 
 
 Using Carrot
@@ -110,7 +105,7 @@ called with the keyword argument *hello=True*
 Task logging
 ************
 
-In order to view the task output in :ref:`carrot-monitor`, you will need to use Carrot's logger object. This is done
+In order to view the task output in :ref:`monitor`, you will need to use Carrot's logger object. This is done
 as follows:
 
 .. code-block:: python
@@ -177,7 +172,7 @@ To implement it, simply add the carrot url config to your Django project's main 
         url(r'^carrot/', include('carrot.urls')),
     ]
 
-For more information, refer to :ref:`carrot-monitor`
+For more information, refer to :ref:`monitor`
 
 Contribute
 ----------

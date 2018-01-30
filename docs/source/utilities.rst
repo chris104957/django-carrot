@@ -1,5 +1,5 @@
-Carrot utilities
-================
+django-carrot utilities
+=======================
 
 .. automodule:: carrot.utilities
    :members:

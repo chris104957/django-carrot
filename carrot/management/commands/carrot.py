@@ -61,18 +61,18 @@ class Command(BaseCommand):
         """
         The actual handler process. Performs the following actions:
 
-            1. Initiates and starts a new :class:`carrot.objects.ScheduledTaskManager`, which schedules all *active*
-               :class:`carrot.objects.ScheduledTask` instances to run at the given intervals. This only happens if the
-               **--no-scheduler** argument has not been provided - otherwise, the service only creates consumer objects
+        - Initiates and starts a new :class:`carrot.objects.ScheduledTaskManager`, which schedules all *active*
+        :class:`carrot.objects.ScheduledTask` instances to run at the given intervals. This only happens if the
+        **--no-scheduler** argument has not been provided - otherwise, the service only creates consumer objects
 
-            2. Loops through the queues registered in your Django project's settings module, and starts a
-               new :class:`carrot.objects.ConsumerSet` for them. Each ConsumerSet will contain **n**
-               :class:`carrot.objects.Consumer` objects, where **n** is the concurrency setting for the given queue (as
-               defined in the Django settings)
+        - Loops through the queues registered in your Django project's settings module, and starts a
+        new :class:`carrot.objects.ConsumerSet` for them. Each ConsumerSet will contain **n**
+        :class:`carrot.objects.Consumer` objects, where **n** is the concurrency setting for the given queue (as
+        defined in the Django settings)
 
-            3. Enters into an infinite loop which monitors your database for changes to your database - if any changes
-               to the :class:`carrot.objects.ScheduledTask` queryset are detected, carrot updates the scheduler
-               accordingly
+        - Enters into an infinite loop which monitors your database for changes to your database - if any changes
+        to the :class:`carrot.objects.ScheduledTask` queryset are detected, carrot updates the scheduler
+        accordingly
 
         On receiving a **KeyboardInterrupt**, **SystemExit** or SIGTERM, the service first turns off each of the
         schedulers in turn (so no new tasks can be published to RabbitMQ), before turning off the Consumers in turn.
