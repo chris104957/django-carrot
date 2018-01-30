@@ -22,7 +22,7 @@ deploy:
   on:
     tags: true
     python: 3.6
-    condition: $DJANGO_VERSION=2.0
+    condition: $DJANGO_VERSION = "2.0"
 env:
   - DJANGO_VERSION=1.9
   - DJANGO_VERSION=1.10
