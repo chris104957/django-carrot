@@ -4,7 +4,7 @@ from carrot.utilities import decorate_class_view, decorate_function_view
 from django.conf import settings
 from carrot.api import (
     published_message_log_viewset, failed_message_log_viewset, completed_message_log_viewset, scheduled_task_viewset,
-    detail_message_log_viewset, scheduled_task_detail
+    detail_message_log_viewset, scheduled_task_detail, run_scheduled_task
 )
 
 
@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'^api/message-logs/(?P<pk>[0-9]+)/$', _f(detail_message_log_viewset)),
     url(r'^api/scheduled-tasks/$', _f(scheduled_task_viewset)),
     url(r'^api/scheduled-tasks/(?P<pk>[0-9]+)/$', _f(scheduled_task_detail)),
+    url(r'^api/scheduled-tasks/(?P<pk>[0-9]+)/run/$', _f(run_scheduled_task)),
 ]

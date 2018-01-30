@@ -28,6 +28,7 @@
         </form>
         <p class="buttonlist">
             <button v-on:click="save(selectedScheduledObject)">Save</button>
+            <button v-if="selectedScheduledObject.id" v-on:click="runScheduledTask">Run now</button>
             <button v-if="selectedScheduledObject.id" v-on:click="deleteScheduledTask" class="delete">
                 Delete this scheduled task
             </button>
