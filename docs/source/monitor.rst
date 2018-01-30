@@ -76,7 +76,61 @@ views.
     information from your Django project's database. The authentication decorators defined above will also be used to
     control access to this API
 
+Usage
+-----
+
+Once configured, the monitor can be access from the path ``/carrot``, e.g. ``http://localhost:8000/carrot``
+
+The monitor has 4 tabbed views:
+
+Queued tasks
+************
+
+This view shows all tasks that are currently in the queue and will be processed by the consumer. To see more details about a particular task, click on the relevant row in the list. You will be able to see more details about the task, including where/when it is/was published
+
+Failed tasks
+************
+
+This view shows all tasks that have failed during processing, along with the full log up to the failure, and a full traceback of the issue. Failed tasks can either be requeued or deleted from the queue, either in bulk or individually
+
+Completed tasks
+***************
+
+Once tasks have been completed, they will appear in this section. At this point, the full log becomes available. You can use the drop down in the monitor to customize the level of visible logging.
+
+Scheduled tasks
+***************
+
+You can manage scheduled tasks in this view. 
+
+Use the **Create new scheduled task** button to schedule tasks to run at a given interval. The *task*, *queue*, *interval type* and *interval count* fields are mandatory. You can use the *active* slider to temporary prevent a scheduled task from running.
+
+The *positional arguments* field must contain a valid list of python arguments. Here are some valid examples of input for this field:
+
+.. code-block:: python
+
+    True, 1, 'test', {'foo': 'bar'}
 
 
+The *keyword arguments* field must contain valid json serializable content. For example:
+
+.. code-block:: javascript
+
+    {
+        "parameter_1": true,
+        "parateter_2": null,
+        "parameter_3": ["list", "of", "things"],
+        "parameter_4": {
+            "more": "things"
+        }
+    }
+
+.. warning::
+    The *keyword arguments* input must be JSON, not a Python dict
+
+.. note::
+    - All task lists are refreshed every 5 seconds, or when certain actions are performed, e.g. on task deletion/requeue
+    - Task logs are not available until a task completes or fails. This is because the task log only gets written to your Django project's database at the end of the process
+    - *New in 0.5.1*: Scheduled tasks can now be run on demand by selecting the required task and clicking the **Run now** button
 
 
