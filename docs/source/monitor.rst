@@ -118,7 +118,7 @@ The *keyword arguments* field must contain valid json serializable content. For 
 
     {
         "parameter_1": true,
-        "parateter_2": null,
+        "parameter_2": null,
         "parameter_3": ["list", "of", "things"],
         "parameter_4": {
             "more": "things"
