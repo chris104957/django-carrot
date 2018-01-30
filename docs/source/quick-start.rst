@@ -1,5 +1,5 @@
-Getting started with django-carrot
-==================================
+Getting started
+===============
 
 
 Introduction
