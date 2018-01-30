@@ -518,6 +518,25 @@ var app = new Vue({
                 })
             }
         },
+        runScheduledTask: function() {
+            var self = this;
+            if (self.selectedScheduledObject) {
+                return axios.get('/carrot/api/scheduled-tasks/' + self.selectedScheduledObjectId + '/run/', {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(function (response) {
+                    self.selectedScheduledObjectId = null;
+                    self.getPublishedMessageLogs()
+                    self.hideOverlay()
+                })
+                .catch(function (error) {
+                    var errors = error.response.data;
+                    console.log(errors);
+                })
+            }
+        },
         deleteScheduledTask: function() {
             var self = this;
             if (self.selectedScheduledObject) {

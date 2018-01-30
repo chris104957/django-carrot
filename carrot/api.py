@@ -165,7 +165,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduledTask
         fields = (
-            'task', 'interval_display', 'active', 'pk', 'queue', 'exchange', 'routing_key', 'interval_type',
+            'task', 'interval_display', 'active', 'id', 'queue', 'exchange', 'routing_key', 'interval_type',
             'interval_count', 'content', 'task_args',
         )
         extra_kwargs = {
@@ -198,6 +198,11 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
         """
         return super(ScheduledTaskViewset, self).update(request, *args, **kwargs)
 
+    def run(self, request, *args, **kwargs):
+        _object = self.get_object()
+        _object.publish()
+        return self.retrieve(request, *args, **kwargs)
+
     queryset = ScheduledTask.objects.all()
     serializer_class = ScheduledTaskSerializer
     pagination_class = SmallPagination
@@ -205,6 +210,6 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
 
 scheduled_task_viewset = ScheduledTaskViewset.as_view({'get': 'list', 'post': 'create'})
 scheduled_task_detail = ScheduledTaskViewset.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'})
-
+run_scheduled_task = ScheduledTaskViewset.as_view({'get': 'run'})
 
 
