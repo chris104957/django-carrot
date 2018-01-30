@@ -21,6 +21,8 @@ deploy:
     secure: q61t6M/mmzlNNWz+BE19pwuL0Jd6suRGb9YvfDJqrnfpUrjz2BmJylDuRyYCEAHNy7SOA0i2DbRSIki2xaWzpZpVmQhZsfytPp4L6Zdes2RtXNnbr3cZ9ZYEkNnCkEw1F7GfFERdFfw83m5ap6WRwookrvNNI9rs2kRAbR9iFRuv9vIcPSGqwFU2j5scGwAQNximqrgS7QUigHN3+dsptDb5+CPtfZcvt4SBgvTh0d+TC/FuYiusZKw9i0sYW9rkU+/mmUcqRmJw73QWgvPm+wD6alQH1FRdLwC7pFrRoAiglLLLytg9AHETtbbwSElEr/YbPr7BnavRYWHHZxCQZ/UoPJsuLZ73vptyo3odWg+AIrr6WlMd0aMyXKiRXhOPXvcJkvY2i/9Qn9B02K+9o366V5xxZJTirnlYv3WUGpaeHbQrobqPmNypf7K7E6e3vmsQFuvFBT8Rui84fcAkK4CLuavo3B+9nHgOoicHQPs+SikbrsbIohIhBn2OV1ASkRCI2YroHbbivxjlZSQdOV4x+HFE+Ok2wU8zwI/q94zP5jhS0y8BaJCxfR30yv5xoST85LZ2cXC59Wn+pE0lfiFEoIBp2x9Kiet3UWNIF1mnSFExI3uYSxDbQ30fQmIKNIkec6jRqFIYfcA0dVJNaI6dtN5rm32427Fx6/KG7I0=
   on:
     tags: true
+    python: 3.6
+    condition: $DJANGO_VERSION=2.0
 env:
   - DJANGO_VERSION=1.9
   - DJANGO_VERSION=1.10
