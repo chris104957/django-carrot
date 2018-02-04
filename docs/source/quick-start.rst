@@ -1,10 +1,6 @@
 Getting started
 ===============
 
-
-Introduction
-------------
-
 Carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
 on quick and easy configuration and task tracking
 
@@ -174,15 +170,10 @@ To implement it, simply add the carrot url config to your Django project's main 
 
 For more information, refer to :ref:`monitor`
 
-Contribute
-----------
-
-Please refer to `Contributing to Carrot <https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>`_
-
 Support
 -------
 
-If you are having issues, please contact christopherdavies553@gmail.com
+If you are having issues, please `Log an issue <https://github.com/chris104957/django-carrot/issues/new>`_ and add the **help wanted** label
 
 License
 -------
