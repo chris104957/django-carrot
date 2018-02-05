@@ -42,7 +42,7 @@ django-admin.py startproject carrottest
     ]
 ```
 
-2. Create the carrot migrations and apply them to your project's database:
+3. Create the carrot migrations and apply them to your project's database:
 
 ```
     python manage.py makemigrations carrot
