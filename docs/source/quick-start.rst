@@ -7,8 +7,8 @@ Getting started
 Installation and configuration
 ------------------------------
 
-Install Carrot
-**************
+Install django-carrot
+*********************
 
 Install with *pip*
 
@@ -19,8 +19,12 @@ Install with *pip*
 Setting up RabbitMQ
 *******************
 
-Carrot requires a connection to a RabbitMQ broker to work. If you do not already have a RabbitMQ server to connect to,
-you can refer to the `RabbitMQ download page <http://www.rabbitmq.com/download.html>`_
+Install and start RabbitMQ:
+
+.. code-block:: bash
+
+    brew install rabbitmq
+    brew services start rabbitmq
 
 Configuring your Django project
 *******************************
@@ -40,18 +44,18 @@ Configuring your Django project
 .. code-block:: bash
 
     python manage.py makemigrations carrot
-    python manage.py migrate carrot
+    python manage.py migrate
 
-For more configuration options, refer to :ref:`carrot-settings`
+For see all configuration options, refer to :ref:`carrot-settings`
 
 
-Using Carrot
-------------
+Using django-carrot
+-------------------
 
 Starting the service
 ********************
 
-Once you have configured carrot, you can start the service using the following django-admin command:
+Once you have configured django-carrot, you can start the service using the following django-admin command:
 
 .. code-block:: bash
 

@@ -13,15 +13,26 @@ on quick and easy configuration and task tracking
 Installation
 ------------
 
+First, install and start RabbitMQ:
 ```
-    pip install django-carrot
+brew install rabbitmq
+brew services start rabbitmq
+```
+
+Then, install django-carrot
+```
+pip install django-carrot
 ```
 
 
 Configuration
 -------------
+1. Create a django project, if you don't already have one:
+```
+django-admin.py startproject carrottest
+```
 
-1. Add carrot to your Django project's settings module:
+2. Add carrot to your Django project's settings module:
 
 ```
     INSTALLED_APPS = [
@@ -31,19 +42,11 @@ Configuration
     ]
 ```
 
-2. Create the carrot migrations and apply them to your project's database:
+3. Create the carrot migrations and apply them to your project's database:
 
 ```
     python manage.py makemigrations carrot
-    python manage.py migrate carrot
-```
-
-3. Set your default broker in your Django project's settings
-
-```
-    CARROT = {
-        'default_broker': 'amqp://guest:guest@localhost:5672
-    }
+    python manage.py migrate
 ```
 
 Usage
