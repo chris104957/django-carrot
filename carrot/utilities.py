@@ -34,11 +34,17 @@ def get_host_from_name(name):
 
     try:
         if not name:
-            conf = settings.CARROT.get('default_broker', DEFAULT_BROKER)
             try:
-                return VirtualHost(**conf)
-            except TypeError:
-                return VirtualHost(url=conf)
+                conf = settings.CARROT.get('default_broker', {})
+            except AttributeError:
+                conf = {}
+
+            if not conf:
+                conf = {'url': DEFAULT_BROKER}
+            elif isinstance(conf, str):
+                conf = {'url': conf}
+
+            return VirtualHost(**conf)
 
         queues = settings.CARROT.get('queues', [])
         queue_host = list(filter(lambda queue: queue['name'] == name, queues))[0]['host']

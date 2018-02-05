@@ -501,7 +501,11 @@ class ConsumerSet(object):
         self.consumer_class = self.get_consumer_class(consumer_class)
         self.threads = []
 
-        queue_settings = [q for q in settings.CARROT.get('queues', []) if q.get('name', None) == self.queue]
+        try:
+            queue_settings = [q for q in settings.CARROT.get('queues', []) if q.get('name', None) == self.queue]
+        except AttributeError:
+            queue_settings = {}
+
         if queue_settings:
             q_settings = queue_settings[0]
             if q_settings.get('durable', None):

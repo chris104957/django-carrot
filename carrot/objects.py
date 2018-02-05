@@ -19,7 +19,7 @@ class VirtualHost(object):
     :param bool secure: Whether or not to use SSL. Defaults to False
 
     """
-    def __init__(self, url=None, host='localhost', name='/', port=5672, username='guest', password='guest',
+    def __init__(self, url=None, host='localhost', name='%2f', port=5672, username='guest', password='guest',
                  secure=False):
 
         self.secure = secure
@@ -69,7 +69,11 @@ class VirtualHost(object):
         :return: a pika.BlockingConnection object
         """
         credentials = pika.PlainCredentials(username=self.username, password=self.password)
-        params = pika.ConnectionParameters(host=self.host, port=self.port, virtual_host=self.name,
+        if self.name == '%2f':
+            vhost = '/'
+        else:
+            vhost = self.name
+        params = pika.ConnectionParameters(host=self.host, port=self.port, virtual_host=vhost,
                                            credentials=credentials, connection_attempts=10, ssl=self.secure,
                                            heartbeat=1200)
         return pika.BlockingConnection(parameters=params)
