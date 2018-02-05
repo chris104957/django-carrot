@@ -13,7 +13,7 @@ on quick and easy configuration and task tracking
 Installation
 ------------
 
-First, install RabbitMQ and start:
+First, install and start RabbitMQ:
 ```
 brew install rabbitmq
 brew services start rabbitmq
@@ -21,7 +21,7 @@ brew services start rabbitmq
 
 Then, install django-carrot
 ```
-    pip install django-carrot
+pip install django-carrot
 ```
 
 
