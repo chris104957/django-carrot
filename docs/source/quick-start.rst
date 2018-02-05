@@ -19,7 +19,10 @@ Install with *pip*
 Setting up RabbitMQ
 *******************
 
+Install and start RabbitMQ:
+
 .. code-block:: bash
+
     brew install rabbitmq
     brew services start rabbitmq
 
