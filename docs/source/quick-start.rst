@@ -115,7 +115,7 @@ This will be rendered as follows in the carrot monitor output for this task:
     :height: 100px
     :figclass: align-center
 
-    using the carrot logger
+    logs in django-carrot monitor
 
 .. note::
     By default, Carrot Monitor only shows log entries with a level of *info* or higher. The entry logged with
