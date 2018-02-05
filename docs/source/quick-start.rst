@@ -1,21 +1,6 @@
 Getting started
 ===============
 
-Carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
-on quick and easy configuration and task tracking
-
-Features
---------
-
-- Minimal configuration required
-- Task scheduling
-- Task prioritization
-- Task-level monitoring via the Carrot monitor
-- Multithreaded queue consumers
-- Built in django-admin daemon
-- Supports Django 2.0
-
-
 Installation and configuration
 ------------------------------
 
