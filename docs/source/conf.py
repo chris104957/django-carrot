@@ -142,7 +142,8 @@ html_theme_options = {
     'navbar_site_name': "Topics",
 
     'navbar_links': [
-        ("Home", "quick-start"),
+        ("Home", "index"),
+        ("Getting started", "quick-start"),
         ("Monitor", "monitor"),
         ("Configuration", "settings"),
         ("API", "api"),

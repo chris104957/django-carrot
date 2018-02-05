@@ -1,3 +1,6 @@
+.. _quick-start:
+
+
 Getting started
 ===============
 
@@ -108,7 +111,6 @@ as follows:
 This will be rendered as follows in the carrot monitor output for this task:
 
 .. figure:: /images/0.2/task-logging.png
-    :width: 600px
     :align: center
     :height: 100px
     :figclass: align-center
