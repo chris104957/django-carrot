@@ -25,8 +25,10 @@ def vue():
     scheduled_content = get_content('scheduled_task_detail')
     paginator_content = get_content('paginator')
     search_bar_content = get_content('search_bar')
-
-    modules = settings.CARROT.get('task_modules', [])
+    try:
+        modules = settings.CARROT.get('task_modules', [])
+    except AttributeError:
+        modules = []
     task_choices = []
     interval_choices = [c[0] for c in ScheduledTask.INTERVAL_CHOICES]
     for module in modules:
