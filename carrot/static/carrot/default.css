@@ -1,5 +1,5 @@
 * {
-    font-family:"Helvetica Neue", Helvetica, Arial;
+    font-family: 'Ubuntu', sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -7,7 +7,7 @@
 h1 {
     padding: 10px 0 10px 10px;
     color: white;
-    background-color: #e68a00;
+    background-color: rgb(255, 137, 7);
 }
 
 a.title {
@@ -483,4 +483,9 @@ input[type=number]::-webkit-outer-spin-button {
     margin-bottom: 5px;
     width: 90%;
     padding: 5px;
+}
+
+.logo {
+    height: 28px;
+    padding-right: 10px;
 }

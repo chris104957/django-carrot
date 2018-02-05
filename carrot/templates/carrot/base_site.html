@@ -11,11 +11,17 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Ubuntu" rel="stylesheet">
 </head>
 <body>
 
     <div id="app">
-        <a class="title" href="{% url 'carrot-monitor' %}"><h1>Carrot monitor</h1></a>
+        <a class="title" href="{% url 'carrot-monitor' %}">
+            <h1>
+                <img src="{% static 'carrot/white-carrot.png' %}" class="logo" height="28px" alt="django-carrot logo">
+                django-carrot monitor
+            </h1>
+        </a>
         {% block content %}
         {% endblock %}
     </div>
