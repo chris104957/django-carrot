@@ -4,8 +4,8 @@
 [![PyPI version](https://badge.fury.io/py/django-carrot.svg)](https://badge.fury.io/py/django-carrot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-django-carrot
-===
+![logo](/docs/source/images/carrot-logo-big.png)
+
 
 django-carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
 on quick and easy configuration and task tracking
@@ -89,3 +89,6 @@ License
 -------
 
 The project is licensed under the Apache license.
+
+
+Icons made by [Trinh Ho](https://www.flaticon.com/authors/trinh-ho)
