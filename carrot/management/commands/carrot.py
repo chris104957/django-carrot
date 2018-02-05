@@ -87,17 +87,12 @@ class Command(BaseCommand):
 
         try:
             queues = [q for q in settings.CARROT['queues'] if q.get('consumable', True)]
-        except (KeyError, AttributeError):
-            from carrot.utilities import get_host_from_name
-            host = get_host_from_name(None)
-            channel = host.blocking_connection.channel()
-            channel.queue_declare(queue='default', durable=True, arguments={'x-max-priority': 255})
 
+        except (AttributeError, KeyError):
             queues = [{
                 'name': 'default',
-                'host': str(host),#settings.CARROT.get('default_broker', DEFAULT_BROKER),
+                'host': DEFAULT_BROKER
             }]
-
 
         if run_scheduler:
             self.scheduler = ScheduledTaskManager()

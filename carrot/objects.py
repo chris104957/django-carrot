@@ -42,6 +42,7 @@ class VirtualHost(object):
                     # host:port/vhost
                     self.username = username
                     self.password = password
+                import pika
 
                 try:
                     url, self.name = url.split('/')
@@ -54,6 +55,9 @@ class VirtualHost(object):
 
             except Exception as err:
                 raise Exception('Unable to parse the RabbitMQ server. Please check your configuration: %s' % err)
+
+            if not self.name:
+                self.name = '%2f'
 
     def __str__(self):
         """
@@ -73,6 +77,7 @@ class VirtualHost(object):
             vhost = '/'
         else:
             vhost = self.name
+
         params = pika.ConnectionParameters(host=self.host, port=self.port, virtual_host=vhost,
                                            credentials=credentials, connection_attempts=10, ssl=self.secure,
                                            heartbeat=1200)
