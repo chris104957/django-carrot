@@ -7,8 +7,10 @@ from carrot.api import (
     detail_message_log_viewset, scheduled_task_detail, run_scheduled_task
 )
 
-
-decorators = settings.CARROT.get('monitor_authentication', [])
+try:
+    decorators = settings.CARROT.get('monitor_authentication', [])
+except AttributeError:
+    decorators = []
 
 
 def _(v, **kwargs):
