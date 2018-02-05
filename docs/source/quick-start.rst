@@ -19,10 +19,9 @@ Install with *pip*
 Setting up RabbitMQ
 *******************
 
-```
-brew install rabbitmq
-brew services start rabbitmq
-```
+.. code-block:: bash
+    brew install rabbitmq
+    brew services start rabbitmq
 
 Configuring your Django project
 *******************************
