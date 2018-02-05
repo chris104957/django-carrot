@@ -378,7 +378,7 @@ var app = new Vue({
         getTask: function(taskId) {
             // returns the data for a single task object by calling the REST API
             var self = this;
-            return axios.get('/carrot/api/message-logs/' + taskId)
+            return axios.get('/carrot/api/message-logs/' + taskId + '/')
             .then(function (response) {
                 self.selectedObject = response.data;
             })
@@ -389,7 +389,7 @@ var app = new Vue({
         getScheduledTask: function() {
             // returns the data for a single task object by calling the REST API
             var self = this;
-            return axios.get('/carrot/api/scheduled-tasks/' + self.selectedScheduledObjectId)
+            return axios.get('/carrot/api/scheduled-tasks/' + self.selectedScheduledObjectId + '/')
             .then(function (response) {
                 self.selectedScheduledObject = response.data;
             })
