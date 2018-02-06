@@ -1,6 +1,24 @@
 .. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
     :target: https://coveralls.io/github/chris104957/django-carrot?branch=master
 
+.. image:: https://readthedocs.org/projects/django-carrot/badge/?version=latest
+    :target: http://django-carrot.readthedocs.io/en/latest/?badge=
+    
+.. image:: https://travis-ci.org/chris104957/django-carrot.svg?branch=master
+    :target: https://travis-ci.org/chris104957/django-carrot.svg?branch=master
+    
+.. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
+    :target: https://coveralls.io/github/chris104957/django-carrot?branch=master)
+    
+.. image:: https://badge.fury.io/py/django-carrot.svg
+    :target: https://badge.fury.io/py/django-carrot
+    
+    
+.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+    :target: https://opensource.org/licenses/Apache-2.0
+
+.. image:: /docs/source/images/carrot-logo-big.png
+
 
 
 Getting started with Carrot
@@ -27,11 +45,19 @@ Features
 Installation
 ------------
 
+Install django-carrot:
+
 .. code-block:: bash
 
     pip install django-carrot
 
+Install and run RabbitMQ
 
+.. code-block:: bash 
+
+    brew install rabbitmq
+    brew services start rabbitmq
+    
 Configuration
 -------------
 
@@ -52,14 +78,6 @@ Configuration
 
     python manage.py makemigrations carrot
     python manage.py migrate carrot
-
-3. Set your default broker in your Django project's settings
-
-.. code-block:: python
-
-    CARROT = {
-        'default_broker': 'amqp://guest:guest@localhost:5672
-    }
 
 
 Usage
@@ -98,11 +116,6 @@ Full documentation
 ------------------
 
 The full documentation is available at `readthedocs.io <http://django-carrot.readthedocs.io/en/latest/index.html>`
-
-Contribute
-----------
-
-Please refer to `Contributing to Carrot <https://github.com/chris104957/django-carrot/blob/master/CONTRIBUTING.md>`
 
 Support
 -------
