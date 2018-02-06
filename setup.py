@@ -23,6 +23,7 @@ setup(
     url='https://django-carrot.readthedocs.org',
     classifiers=[
         'Environment :: Web Environment',
+        'Development Status :: 5 - Production/Stable',
         'Framework :: Django',
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
