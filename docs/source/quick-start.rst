@@ -4,9 +4,6 @@
 Getting started
 ===============
 
-Installation and configuration
-------------------------------
-
 Install django-carrot
 *********************
 
@@ -16,8 +13,8 @@ Install with *pip*
 
     pip install django-carrot
 
-Setting up RabbitMQ
-*******************
+Install RabbitMQ
+****************
 
 Install and start RabbitMQ:
 
@@ -47,10 +44,6 @@ Configuring your Django project
     python manage.py migrate
 
 For see all configuration options, refer to :ref:`carrot-settings`
-
-
-Using django-carrot
--------------------
 
 Starting the service
 ********************
