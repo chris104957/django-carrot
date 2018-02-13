@@ -1,4 +1,11 @@
 
+.. image:: /images/carrot-logo-big.png
+   :align: center
+
+
+The lightweight task queue for Django
+=====================================
+
 .. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
     :target: https://coveralls.io/github/chris104957/django-carrot?branch=master
 
@@ -20,13 +27,6 @@
 .. image:: http://githubbadges.com/star.svg?user=chris104957&repo=django-carrot&style=flat
     :target: https://github.com/chris104957/django-carrot
     
-.. image:: /images/carrot-logo-big.png
-   :align: center
-
-
-The lightweight task queue for Django
-=====================================
-
 django-carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an
 emphasis on quick and easy configuration and task tracking
 
