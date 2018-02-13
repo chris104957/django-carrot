@@ -81,7 +81,7 @@ To schedule tasks to run at a given interval
 Full documentation
 ------------------
 
-The full documentation is available at [readthedocs.io](http://django-carrot.readthedocs.io/)
+The full documentation is available at [readthedocs.io](http://www.django-carrot.com/)
 
 Support
 -------
