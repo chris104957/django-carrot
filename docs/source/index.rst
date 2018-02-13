@@ -1,4 +1,25 @@
 
+.. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
+    :target: https://coveralls.io/github/chris104957/django-carrot?branch=master
+
+.. image:: https://readthedocs.org/projects/django-carrot/badge/?version=latest
+    :target: http://django-carrot.readthedocs.io/en/latest/?badge=
+    
+.. image:: https://travis-ci.org/chris104957/django-carrot.svg?branch=master
+    :target: https://travis-ci.org/chris104957/django-carrot.svg?branch=master
+    
+.. image:: https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master
+    :target: https://coveralls.io/github/chris104957/django-carrot?branch=master)
+    
+.. image:: https://badge.fury.io/py/django-carrot.svg
+    :target: https://badge.fury.io/py/django-carrot
+    
+.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+    :target: https://opensource.org/licenses/Apache-2.0
+
+.. image:: http://githubbadges.com/star.svg?user=chris104957&repo=django-carrot&style=flat
+    :target: https://github.com/chris104957/django-carrot
+    
 .. image:: /images/carrot-logo-big.png
    :align: center
 
