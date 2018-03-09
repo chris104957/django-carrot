@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>django-carrot monitor</title>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
+    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-toolbar fixed app dark tabs color="orange darken-2">
+        <v-spacer></v-spacer>
+        <v-toolbar-title v-text="title"></v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-tabs
+          centered
+          color="orange darken-2"
+          slot="extension"
+          slider-color="yellow"
+          v-model="tabs"
+        >
+          <v-tab
+            v-for="page in pages"
+            :key="page.id"
+            :href="`#tab-${page.id}`"
+          >
+            [{ page.title }]
+          </v-tab>
+        </v-tabs>
+      </v-toolbar>
+      <v-content>
+        <v-container fluid>
+          <v-tabs-items v-model="tabs">
+            <v-tab-item
+              v-for="page in pages"
+              :key="page.id"
+              :id="'tab-' + page.id"
+            >
+              <v-card>
+                <v-toolbar dark class="white--text" dense :color="getColor()">
+                  <v-toolbar-title>[{ page.title }] tasks</v-toolbar-title>
+                </v-toolbar>
+                <v-card-title>
+                  Search
+                  <v-spacer></v-spacer>
+                  <v-text-field
+                    append-icon="search"
+                    label="Search"
+                    single-line
+                    hide-details
+                    v-model="search"
+                  ></v-text-field>
+                </v-card-title>
+
+                <v-data-table
+                    :headers="getHeaders()"
+                    :items="tasks"
+                    :pagination.sync="pagination"
+                    :total-items="totalItems"
+                    :rows-per-page-items="[50]"
+                >
+                  <template slot="items" slot-scope="props">
+                    <td>[{ props.item.priority }]</td>
+                    <td>[{ props.item.task }]</td>
+                    <td>[{ props.item.task_args }]</td>
+                    <td>[{ props.item.content }]</td>
+                  </template>
+
+                </v-data-table>
+              </v-card>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-container>
+      </v-content>
+
+      <v-footer fixed app>
+        <span>&copy; 2017</span>
+      </v-footer>
+    </v-app>
+  </div>
+
+  <script type="text/x-template" id="page">
+
+    <v-layout column align-center>
+      <div>
+        <img src="./v.png" alt="Vuetify.js" class="mb-5" height="100px" />
+      </div>
+      <blockquote v-html="tabs">
+        <footer>
+          <small>
+            <em>&mdash;John Johnson</em>
+          </small>
+        </footer>
+      </blockquote>
+    </v-layout>
+  </script>
+
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/vuex"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    Vue.component('page', {
+      template: '#page',
+      props: ['tabs']
+    })
+
+    const store = new Vuex.Store({
+      state: {
+        tasks: [],
+        totalItems: 0
+      },
+      mutations: {
+        SET_TASKS: function (state, messageLogs) {
+            state.tasks = messageLogs
+        },
+        SET_COUNT: function (state, count) {
+          state.totalItems = count
+        }
+      },
+      actions: {
+        async getTasks ({ commit }, { page, type, search }) {
+            var url = '/carrot/api/message-logs/' + type + '/?page=' + page
+
+            if (search) {
+              var url = url + '&search=' + search
+            }
+            let { data } = await axios.get(url)
+            commit('SET_COUNT', data.count)
+            commit('SET_TASKS', data.results)
+        }
+      },
+
+    })
+
+    new Vue({
+      delimiters: ['[{', '}]'],
+      store,
+      el: '#app',
+      created () {
+        this.$vuetify.theme = {
+          primary: '#fb8c00',
+          secondary: '#90a4ae',
+          error: '#FF5252',
+          info: '#2196F3',
+          success: '#4CAF50',
+          warning: '#FFC107'
+        }
+      },
+      watch: {
+        tabs () {
+          this.pageNumber = 1
+          this.updateTasks()
+        },
+        pagination () {
+          this.pageNumber = this.pagination.page
+        },
+        pageNumber () {
+          this.updateTasks()
+        },
+        search: _.debounce(function() {
+          this.updateTasks()
+        }, 500)
+      },
+      computed: {
+        tasks () {
+          return this.$store.state.tasks
+        },
+        totalItems () {
+          return this.$store.state.totalItems
+        }
+      },
+      methods: {
+        updateTasks () {
+          var type = this.tabs.replace('tab-','')
+          this.$store.dispatch('getTasks', { page: this.pageNumber, type, search: this.search })
+        },
+        getColor () {
+          if (this.tabs === 'tab-published') {
+           return 'orange darken-2'
+          }
+        },
+        getHeaders () {
+          if (this.tabs === 'tab-published') {
+            return [
+              {
+                text: 'Priority',
+                value: 'priority',
+                align: 'left',
+                sortable: false,
+              }, {
+                text: 'Task',
+                value: 'task',
+                align: 'left',
+              }, {
+                text: 'Arguments',
+                value: 'task_args',
+                align: 'left',
+              }, {
+                text: 'Keyword arguments',
+                value: 'content',
+                align: 'left',
+              },
+            ]
+          }
+        }
+
+      },
+      data: {
+        pagination: {},
+        pageNumber: 1,
+        pages: [
+          { id: 'published', title: 'Queued' },
+          { id: 'failed', title: 'Failed' },
+          { id: 'completed', title: 'Completed' },
+          { id: 'scheduled', title: 'Scheduled' }
+        ],
+
+        search: null,
+        clipped: true,
+        page: null,
+        drawer: true,
+        fixed: false,
+        tabs: null,
+        items: [
+          { icon: 'bubble_chart', title: 'Inspire' }
+        ],
+        miniVariant: false,
+        right: true,
+        rightDrawer: false,
+        title: 'django-carrot monitor'
+      }
+    })
+  </script>
+</body>
+</html>

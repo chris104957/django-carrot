@@ -1,0 +1,66 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>django-carrot</title>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
+    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-navigation-drawer permanent light clipped-left>
+                <v-list>
+                    <v-list-tile
+                      :to="page.to"
+                      key="1"
+                      v-for="page in pages"
+                      active-class="accent--text"
+                      exact
+                    >
+                        <v-list-tile-action>
+                            <v-icon v-html="page.icon"></v-icon>
+                        </v-list-tile-action>
+                        <v-list-tile-content>
+                            <v-list-tile-title v-text="page.title" ></v-list-tile-title>
+                        </v-list-tile-content>
+                    </v-list-tile>
+                </v-list>
+            </v-navigation-drawer>
+            <v-toolbar app fixed dark clipped-left class="orange darken-2">
+                <v-avatar>
+                  <img src="/static/carrot/white-carrot.png" alt="">
+                </v-avatar>
+                <v-toolbar-title v-text="title"/>
+            </v-toolbar>
+            <v-container>
+  <router-view></router-view>
+
+            </v-container>
+
+        </v-app>
+    </div>
+
+
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                title: 'django-carrot monitor',
+                pages: [
+                    { icon: 'dashboard', title: 'Dashboard', to: '/' },
+                ]
+            }
+        })
+    </script>
+</body>
+</html>
