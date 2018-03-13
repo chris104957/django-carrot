@@ -94,6 +94,7 @@ class BaseMessageSerializer(object):
     """
     content_type = 'application/json'
     type_header, message_type = (None,) * 2
+    task_get_attempts = 20
 
     def get_task(self, properties, body):
         """
