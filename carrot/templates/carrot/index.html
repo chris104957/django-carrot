@@ -242,6 +242,7 @@
                       <v-spacer></v-spacer>
                       <v-btn text flat class="error" @click="deleteScheduledTask" :disabled="!selectedScheduledTask.id">Delete</v-btn>
                       <v-btn text flat class="primary--text" @click="saveScheduledTask" :disabled="!valid" :loading="loading">Save changes</v-btn>
+                      <v-btn text flat class="primary--text" @click="runScheduledTask" :disabled="!selectedScheduledTask.id">Run now</v-btn>
                   </v-card-actions>
               </v-card>
           </v-dialog>
@@ -415,6 +416,15 @@
                 }
             )
         },
+        runScheduledTask ({ commit }, taskId ) {
+            axios.get('/carrot/api/scheduled-tasks/' + taskId + '/run/',
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+        },
         async createScheduledTask ({ commit }, task) {
             try {
                 await axios.post('/carrot/api/scheduled-tasks/', task,
@@ -540,6 +550,11 @@
         },
         async deleteScheduledTask () {
             await this.$store.dispatch('deleteScheduledTask', this.selectedScheduledTask.id)
+            this.updateTasks()
+            this.displayScheduledTask = false
+        },
+        runScheduledTask () {
+            this.$store.dispatch('runScheduledTask', this.selectedScheduledTask.id)
             this.updateTasks()
             this.displayScheduledTask = false
         },

@@ -109,18 +109,10 @@ Each queue supports the following configuration options:
 :default value: ``[]``
 :type: ``list``
 
+This setting is required while using **django-carrot monitor** and should point at the python module where your tasks
+are kept. It will populate the task selection drop down while creating/editing scheduled tasks:
 
-This is a helper setting used by :ref:`carrot-monitor-configuration` to allow you to select functions to be scheduled
-from a drop down list, rather than having to type in the import path manually.
-
-.. figure:: /images/no-task-modules.png
-    :align: center
-    :height: 100px
-    :figclass: align-center
-
-    without task modules
-
-.. figure:: /images/with-task-modules.png
+.. figure:: /images/1.0/with-task-modules.png
     :align: center
     :height: 100px
     :figclass: align-center
@@ -136,12 +128,6 @@ The *task_modules* option is used to enable this functionality. It can be added 
        'task_modules': ['myapp.mymodule', 'myapp.myothermodule',]
    }
 
-.. note::
-    Any Python function in your Django project, from any module, can be handled asynchronously with Carrot. However, for
-    the purposes of *Scheduled* tasks, you should aim to limit the number of modules containing functions that are to be
-    executed as scheduled tasks. Additionally, you should aim to keep modules which *only* contain functions that are
-    intended to be used as scheduled tasks, as all functions listed in these modules will appear in the drop down list
-    in Carrot monitor
 
 ``monitor_authentication``
 --------------------------

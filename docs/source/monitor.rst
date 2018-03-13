@@ -3,9 +3,9 @@
 django-carrot monitor
 =====================
 
-.. figure:: /images/0.5/carrot-monitor.png
+.. figure:: /images/monitor.png
     :align: center
-    :height: 300px
+    :height: 400px
     :figclass: align-center
 
     django-carrot monitor
@@ -101,7 +101,14 @@ Scheduled tasks
 
 You can manage scheduled tasks in this view.
 
-Use the **Create new scheduled task** button to schedule tasks to run at a given interval. The *task*, *queue*, *interval type* and *interval count* fields are mandatory. You can use the *active* slider to temporary prevent a scheduled task from running.
+Use the **Create new** button to schedule tasks to run at a given interval. The *task*, *queue*, *interval type* and *interval count* fields are mandatory. You can use the *active* slider to temporary prevent a scheduled task from running.
+
+.. figure:: /images/1.0/create-new.png
+    :align: center
+    :height: 400px
+    :figclass: align-center
+
+    creating scheduled tasks
 
 The *positional arguments* field must contain a valid list of python arguments. Here are some valid examples of input for this field:
 
@@ -130,5 +137,6 @@ The *keyword arguments* field must contain valid json serializable content. For 
     - All task lists are refreshed every 5 seconds, or when certain actions are performed, e.g. on task deletion/requeue
     - Task logs are not available until a task completes or fails. This is because the task log only gets written to your Django project's database at the end of the process
     - *New in 0.5.1*: Scheduled tasks can now be run on demand by selecting the required task and clicking the **Run now** button
+    - *New in 1.0.0*: Carrot monitor now uses a modern material theme for its interface
 
 

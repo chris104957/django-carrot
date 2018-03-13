@@ -18,7 +18,7 @@
 </p>
 
 <h1 align="center">
-  <img src="/docs/source/images/Screen Shot 2018-03-13 at 14.38.34.png">
+  <img src="/docs/source/images/monitor.png">
 </h1>
 
 

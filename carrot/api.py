@@ -187,8 +187,10 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
     """
 
     def validate_args(self, request, *args, **kwargs):
+        """
+        Validates that the input is a valid Python tuple that can be used as a function's positional arguments
+        """
         value = request.data.get('args')
-        print(value)
         errors = []
         if value:
             for arg in value.split(','):
@@ -201,6 +203,9 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
         return response.Response({'errors': errors})
 
     def get_task_choices(self, request, *args, **kwargs):
+        """
+        Gets a list of python functions from the task_modules settings in the config
+        """
         modules = settings.CARROT.get('task_modules', None)
         task_choices = []
         if modules:

@@ -107,9 +107,9 @@ as follows:
 
 This will be rendered as follows in the carrot monitor output for this task:
 
-.. figure:: /images/0.2/task-logging.png
+.. figure:: /images/1.0/task-logging.png
     :align: center
-    :height: 100px
+    :height: 300px
     :figclass: align-center
 
     logs in django-carrot monitor
@@ -133,6 +133,8 @@ seconds, use the following code:
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 The above will publish the **my_task** function to the queue every 5 seconds
+
+Tasks can also be scheduled via the :ref:`monitor`
 
 
 The Carrot monitor
