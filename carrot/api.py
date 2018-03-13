@@ -186,6 +186,37 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
     Returns a list of `ScheduledTask` objects
     """
 
+    def validate_args(self, request, *args, **kwargs):
+        value = request.data.get('args')
+        print(value)
+        errors = []
+        if value:
+            for arg in value.split(','):
+                try:
+                    ast.literal_eval(arg.strip())
+                except Exception as err:
+                    print('Error parsing argument %s: %s' % (arg.strip(), err))
+                    errors.append('Error parsing argument %s: %s' % (arg.strip(), err))
+
+        return response.Response({'errors': errors})
+
+    def get_task_choices(self, request, *args, **kwargs):
+        modules = settings.CARROT.get('task_modules', None)
+        task_choices = []
+        if modules:
+            for module in modules:
+                try:
+                    mod = importlib.import_module(module)
+                    functions = [o[0] for o in getmembers(mod) if isfunction(o[1]) and not o[0] == 'task']
+
+                    for function in functions:
+                        f = '%s.%s' % (module, function)
+                        task_choices.append(f)
+                except (ImportError, AttributeError):
+                    pass
+
+        return response.Response(data=task_choices)
+
     def create(self, request, *args, **kwargs):
         """
         Create a new `ScheduledTask` object
@@ -210,6 +241,8 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
 
 scheduled_task_viewset = ScheduledTaskViewset.as_view({'get': 'list', 'post': 'create'})
 scheduled_task_detail = ScheduledTaskViewset.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'})
+task_list = ScheduledTaskViewset.as_view({'get': 'get_task_choices'})
+validate_args = ScheduledTaskViewset.as_view({'post': 'validate_args'})
 run_scheduled_task = ScheduledTaskViewset.as_view({'get': 'run'})
 
 
