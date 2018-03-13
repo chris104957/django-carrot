@@ -14,7 +14,7 @@ import importlib
 from carrot.objects import DefaultMessageSerializer
 from django.db.utils import OperationalError
 import pika
-import sys
+import time
 from django.conf import settings
 
 
@@ -35,6 +35,7 @@ class Consumer(threading.Thread):
     exchange_arguments = {}
     active_message_log = None
     remaining_save_attempts = 10
+    get_message_attempts = 50
 
     def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
         """
@@ -53,6 +54,7 @@ class Consumer(threading.Thread):
         if not exchange_arguments:
             exchange_arguments = {}
 
+        self.failure_callbacks = []
         self.name = name
         self.logger = logger
         self.queue = queue
@@ -68,6 +70,9 @@ class Consumer(threading.Thread):
         self.exchange_arguments = exchange_arguments
         self.durable = durable
 
+    def add_failure_callback(self, cb):
+        self.failure_callbacks.append(cb)
+
     def fail(self, log, err):
         """
         This function is called if there is any kind of error with the `.consume()` function
@@ -80,14 +85,22 @@ class Consumer(threading.Thread):
         """
         self.logger.error('Task %s failed due to the following exception: %s' % (log.task, err))
 
-        if self.task_log:
-            log.log = '\n'.join(self.task_log)
+        for cb in self.failure_callbacks:
+            try:
+                cb(log, err)
+                self.task_log.append('Failure callback %s succeeded' % str(cb))
+            except Exception as err:
+                self.task_log.append('Failure callback %s failed due to an error: %s' % (str(cb), err))
 
-        log.status = 'FAILED'
-        log.failure_time = timezone.now()
-        log.exception = err
-        log.traceback = traceback.format_exc()
-        log.save()
+        if log.pk:
+            if self.task_log:
+                log.log = '\n'.join(self.task_log)
+
+            log.status = 'FAILED'
+            log.failure_time = timezone.now()
+            log.exception = err
+            log.traceback = traceback.format_exc()
+            log.save()
 
     def get_task_type(self, properties, body):
         """
@@ -100,6 +113,14 @@ class Consumer(threading.Thread):
 
         """
         return properties[self.serializer.type_header]
+
+    def __get_message_log(self, properties, body):
+        for i in range(0, self.get_message_attempts):
+            log = self.get_message_log(properties, body)
+
+            if log:
+                return log
+            time.sleep(0.1)
 
     def get_message_log(self, properties, body):
         """
@@ -277,7 +298,7 @@ class Consumer(threading.Thread):
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
         """
-        log = self.get_message_log(properties, body)
+        log = self.__get_message_log(properties, body)
         if log:
             self.active_message_log = log
             self.channel.basic_ack(method_frame.delivery_tag)

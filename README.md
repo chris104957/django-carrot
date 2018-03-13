@@ -3,12 +3,24 @@
 [![Coverage Status](https://coveralls.io/repos/github/chris104957/django-carrot/badge.svg?branch=master)](https://coveralls.io/github/chris104957/django-carrot?branch=master)
 [![PyPI version](https://badge.fury.io/py/django-carrot.svg)](https://badge.fury.io/py/django-carrot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+  <a href="https://paypal.me/christopherdavies553">
+    <img src="https://img.shields.io/badge/$-donate-ff69b4.svg?maxAge=2592000&amp;style=flat">
+  </a>
 
-![logo](/docs/source/images/carrot-logo-big.png)
+
+<h1 align="center">
+  <img src="/docs/source/images/carrot-logo-big.png">
+</h1>
 
 
-django-carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
-on quick and easy configuration and task tracking
+<p align="center">
+<strong>django-carrot</strong> is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis on quick and easy configuration and task tracking
+</p>
+
+<h1 align="center">
+  <img src="/docs/source/images/monitor.png">
+</h1>
+
 
 Installation
 ------------
@@ -81,12 +93,12 @@ To schedule tasks to run at a given interval
 Full documentation
 ------------------
 
-The full documentation is available at [readthedocs.io](http://www.django-carrot.com/)
+The full documentation is available at [the homepage](http://www.django-carrot.com/)
 
 Support
 -------
 
-If you are having any issues, please [log an issue](https://github.com/chris104957/django-carrot/issues/new) and add the **help wanted** label
+If you are having any issues, please [log an issue](https://github.com/chris104957/django-carrot/issues/new)
 
 License
 -------

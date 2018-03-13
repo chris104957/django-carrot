@@ -1,0 +1,74 @@
+release notes
+=============
+
+1.0.0
+-----
+
+Monitor material theme
+**********************
+Added a material theme to the django-carrot monitor:
+
+.. figure:: /images/monitor.png
+    :align: center
+    :height: 400px
+    :figclass: align-center
+
+    material theme django-carrot monitor
+
+
+Failure hooks
+*************
+
+Implemented failure hooks, which run when a task fails. This can be used to re-queue a failed task a certain number
+of times before raising an exception. For example:
+
+
+``my_project/my_app/consumer.py``
+
+.. code-block:: python
+
+    from carrot.utilities import publish_message
+
+    def failure_callback(log, exception):
+        if log.task == 'myapp.tasks.retry_test':
+            logger.critical(log.__dict__)
+            attempt = log.positionals[0] + 1
+            if attempt <= 5:
+                log.delete()
+                publish_message('myapp.tasks.retry_test', attempt)
+
+
+    class CustomConsumer(Consumer):
+        def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
+            super(CustomConsumer, self).__init__(host, queue, logger, name, durable, queue_arguments, exchange_arguments)
+            self.add_failure_callback(failure_callback)
+
+
+``my_project/my_app/tasks.py``
+
+.. code-block:: python
+
+    def retry_test(attempt):
+        logger.info('ATTEMPT NUMBER: %i' % attempt)
+        do_stuff() # this method fails, because it isn't actually defined in this example
+
+``my_project/my_project/settings.py``
+
+.. code-block:: python
+
+    CARROT = {
+        'default_broker': vhost,
+        'queues': [
+            {
+                'name': 'default',
+                'host': vhost,
+                'consumer_class': 'my_project.consumer.CustomConsumer',
+            }
+        ]
+    }
+
+
+Bug fixes
+#########
+
+- `#43: During high server load periods, messages sometimes get consumed before the associated MessageLog is created <https://github.com/chris104957/django-carrot/issues/43>`_
