@@ -450,9 +450,11 @@
         var self = this
         setInterval(
             function () {
-                self.updateTasks()
+                if (self.tabs !== 'tab-scheduled') {
+                    self.updateTasks()
+                }
             },
-        5000)
+        10000)
         this.$store.dispatch('getTaskChoices')
 
         this.$vuetify.theme = {

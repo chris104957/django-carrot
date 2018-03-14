@@ -134,7 +134,7 @@ The *keyword arguments* field must contain valid json serializable content. For 
     The *keyword arguments* input must be JSON, not a Python dict
 
 .. note::
-    - All task lists are refreshed every 5 seconds, or when certain actions are performed, e.g. on task deletion/requeue
+    - All task lists are refreshed every 10 seconds, or when certain actions are performed, e.g. on task deletion/requeue
     - Task logs are not available until a task completes or fails. This is because the task log only gets written to your Django project's database at the end of the process
     - *New in 0.5.1*: Scheduled tasks can now be run on demand by selecting the required task and clicking the **Run now** button
     - *New in 1.0.0*: Carrot monitor now uses a modern material theme for its interface
