@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>django-carrot monitor</title>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
-    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet" type="text/css">
-    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+    <link href="{% static 'script/vuetify.min.css' %}" rel="stylesheet" type="text/css">
+    <!--<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">-->
 </head>
 <body>
   <div id="app">
@@ -16,7 +16,7 @@
       <v-toolbar fixed app dark tabs color="orange darken-2">
         <v-spacer></v-spacer>
         <v-avatar size="34" tile>
-          <img src="/static/carrot/white-carrot.png" alt="">
+            <img src="{% static 'carrot/white-carrot.png' %}">
         </v-avatar>
         <v-toolbar-title v-text="title" class="display-1"></v-toolbar-title>
         <v-spacer></v-spacer>
@@ -320,11 +320,11 @@
     </v-app>
   </div>
 
-  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
-  <script src="https://unpkg.com/vuetify/dist/vuetify.min.js"></script>
-  <script src="https://unpkg.com/vuex"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="{% static 'script/vue.min.js' %}"></script>
+  <script src="{% static 'script/vuetify.min.js' %}"></script>
+  <script src="{% static 'script/vuex.min.js' %}"></script>
+  <script src="{% static 'script/lodash.min.js' %}"></script>
+  <script src="{% static 'script/axios.min.js' %}"></script>
   <script type="text/javascript">
     const store = new Vuex.Store({
       state: {
