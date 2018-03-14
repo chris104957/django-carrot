@@ -535,7 +535,7 @@
                 routing_key: null,
                 interval_count: null,
                 interval_type: null,
-                active: null
+                active: false
             }
         },
         async revalidate (val) {
