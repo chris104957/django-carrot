@@ -24,18 +24,14 @@ class MessageLogViewset(viewsets.ModelViewSet):
     pagination_class = SmallPagination
 
     def get_queryset(self):
-        search_terms = self.request.query_params.getlist('search', None)
+        search_term = self.request.query_params.get('search', None)
         qs = self.queryset.all()
-        if search_terms:
-            include_pks = []
-            for log in qs:
-                for search_term in search_terms:
-                    if (search_term.lower() in log.task.lower()) or (search_term.lower() in log.content.lower()) or \
-                            (search_term.lower() in log.task_args.lower()):
-                        include_pks.append(log.pk)
-                        break
-
-            qs = self.queryset.filter(pk__in=include_pks)
+        if search_term:
+            qs = (
+                qs.filter(task__icontains=search_term) |
+                qs.filter(content__icontains=search_term) |
+                qs.filter(task_args__icontains=search_term)
+            ).distinct()
 
         return qs
 
@@ -113,7 +109,7 @@ class MessageLogDetailViewset(MessageLogViewset):
         return self.retrieve(request, *args, **kwargs)
 
 
-detail_message_log_viewset = MessageLogDetailViewset.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'retry'})
+detail_message_log_viewset = MessageLogDetailViewset.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'retry'})
 
 
 class ScheduledTaskSerializer(serializers.ModelSerializer):
@@ -249,5 +245,3 @@ scheduled_task_detail = ScheduledTaskViewset.as_view({'get': 'retrieve', 'patch'
 task_list = ScheduledTaskViewset.as_view({'get': 'get_task_choices'})
 validate_args = ScheduledTaskViewset.as_view({'post': 'validate_args'})
 run_scheduled_task = ScheduledTaskViewset.as_view({'get': 'run'})
-
-
