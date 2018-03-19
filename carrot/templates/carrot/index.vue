@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>django-carrot monitor</title>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
-    <link href="{% static 'script/vuetify.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet" type="text/css">
     <!--<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">-->
 </head>
 <body>
@@ -102,33 +102,40 @@
                               item-value="value"
                           ></v-select>
 
-                        <v-list two-line>
-                          <template v-if="display(line)" v-for="line in split(selectedMessageLog.log)" >
-                              <v-list-tile :class="getClass(line.logLevel)" dense>
-                                  <v-list-tile-avatar>
-                                      <v-icon>[{ getIcon(line.logLevel) }]</v-icon>
-                                  </v-list-tile-avatar>
-                                  <v-list-tile-content>
-                                      <v-list-tile-sub-title>[{ line.time | displayTime }]</v-list-tile-sub-title>
-                                      <v-list-tile-title>[{ line.message }]</v-list-tile-title>
-                                  </v-list-tile-content>
-                             </v-list-tile>
-                             <v-divider dark></v-divider>
-                          </template>
-                        </v-list>
+                        <v-layout row wrap>
+                            <v-flex xs12 v-if="display(line)" v-for="line in split(selectedMessageLog.log)">
+                                <v-card :class="getClass(line.logLevel)">
+                                    <v-card-title>
+                                        <v-icon>[{ getIcon(line.logLevel) }]</v-icon>
+                                        <span class="subheader">[{ line.time | displayTime }]</span>
+                                        <strong v-if="line.logLevel === 5">[{ line.message }]</strong>
+                                        <span v-else>[{ line.message}]</span>
+                                    </v-card-title>
+                                </v-card>
+                            </v-flex>
+                        </v-layout>
                     </v-container>
                   </div>
                   <div v-if="selectedMessageLog.status === 'FAILED'">
                       <v-subheader>Traceback</v-subheader>
                       <v-divider></v-divider>
-                      <v-container>
-                          <v-list>
-                              <v-list-tile class="error--text red lighten-4" v-if="line" v-for="(line, i) in selectedMessageLog.traceback.split('\n')" :key="i">
-                                  <v-list-tile-content>[{ line }]</v-list-tile-content>
-                              </v-list-tile>
-                          </v-list>
+                      <v-container grid-list-md text-xs-left>
+                          <v-layout row wrap>
+                              <v-flex xs12>
+                                  <v-card class="error--text red lighten-4">
+                                        <v-card-title>
+                                            <v-container>
+                                                <v-layout row wrap>
+                                                     <v-flex :class="getTracebackOffset(line)" v-for="(line, index) in selectedMessageLog.traceback.split('\n')" :key="index">
+                                                       <font face="Monospace">[{ line }]</font>
+                                                     </v-flex>
+                                                </v-layout>
+                                            </v-container>
+                                         </v-card-title>
+                                  </v-card>
+                              </v-flex>
+                          </v-layout>
                       </v-container>
-
                   </div>
                   <v-card-actions v-if="selectedMessageLog.status === 'FAILED'">
                       <v-spacer></v-spacer>
@@ -320,12 +327,12 @@
     </v-app>
   </div>
 
-  <script src="{% static 'script/vue.min.js' %}"></script>
-  <script src="{% static 'script/vuetify.min.js' %}"></script>
-  <script src="{% static 'script/vuex.min.js' %}"></script>
-  <script src="{% static 'script/lodash.min.js' %}"></script>
-  <script src="{% static 'script/axios.min.js' %}"></script>
-  <script type="text/javascript">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+    <script src="https://unpkg.com/vuex"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript">
     const store = new Vuex.Store({
       state: {
         tasks: [],
@@ -526,6 +533,11 @@
         }
       },
       methods: {
+        getTracebackOffset (line) {
+            var offset = line.search(/\S|$/) / 2
+            var width = 12 - offset
+            return 'xs' + width + ' offset-xs' + offset
+        },
         createNew () {
             this.selectedScheduledTask = {
                 id: null,
