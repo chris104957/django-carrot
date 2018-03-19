@@ -327,12 +327,12 @@
     </v-app>
   </div>
 
-    <script src="https://unpkg.com/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
-    <script src="https://unpkg.com/vuex"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script type="text/javascript">
+  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/vuetify/dist/vuetify.min.js"></script>
+  <script src="https://unpkg.com/vuex"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="text/javascript">
     const store = new Vuex.Store({
       state: {
         tasks: [],
