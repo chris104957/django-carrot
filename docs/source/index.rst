@@ -20,7 +20,7 @@ Features
 
 .. figure:: /images/1.0/monitor.png
     :align: center
-    :height: 600px
+    :width: 600px
     :figclass: align-center
 
     logs in django-carrot monitor
