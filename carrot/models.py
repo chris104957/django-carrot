@@ -123,7 +123,7 @@ class ScheduledTask(models.Model):
     task = models.CharField(max_length=200)
     task_args = models.TextField(null=True, blank=True, verbose_name='Positional arguments')
     content = models.TextField(null=True, blank=True, verbose_name='Keyword arguments')
-
+    task_name = models.CharField(max_length=200, unique=True) #: task name with uniqueness
     active = models.BooleanField(default=True)
 
     def get_absolute_url(self):
