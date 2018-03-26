@@ -162,7 +162,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
         model = ScheduledTask
         fields = (
             'task', 'interval_display', 'active', 'id', 'queue', 'exchange', 'routing_key', 'interval_type',
-            'interval_count', 'content', 'task_args',
+            'interval_count', 'content', 'task_args', 'task_name'
         )
         extra_kwargs = {
             'queue': {
