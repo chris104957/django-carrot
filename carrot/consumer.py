@@ -271,7 +271,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Starting consumer %s' % self.name)
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
-        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue, no_ack=True)
+        self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue)
 
     def on_consumer_cancelled(self, method_frame):
         """
@@ -297,7 +297,7 @@ class Consumer(threading.Thread):
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
         """
-
+        self.channel.basic_ack(method_frame.delivery_tag)
         log = self.__get_message_log(properties, body)
         if log:
             self.active_message_log = log

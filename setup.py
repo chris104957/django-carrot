@@ -13,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-carrot',
-    version=__version__,
+    version='1.0.1a3',
     packages=find_packages(),
     include_package_data=True,
     license='Apache Software License',
