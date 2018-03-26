@@ -35,6 +35,7 @@ class Consumer(threading.Thread):
     exchange_arguments = {}
     active_message_log = None
     remaining_save_attempts = 10
+    get_message_attempts = 50
 
     def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
         """
@@ -112,6 +113,14 @@ class Consumer(threading.Thread):
 
         """
         return properties[self.serializer.type_header]
+
+    def __get_message_log(self, properties, body):
+        for i in range(0, self.get_message_attempts):
+            log = self.get_message_log(properties, body)
+
+            if log:
+                return log
+            time.sleep(0.1)
 
     def get_message_log(self, properties, body):
         """
@@ -223,8 +232,7 @@ class Consumer(threading.Thread):
         """
         if not self.shutdown_requested:
             self.logger.warning('Consumer %s not running: %s' % (self.name, reply_text))
-            if self.active_message_log:
-                self.active_message_log.requeue()
+
         else:
             self.logger.warning('Channel closed by client. Closing the connection')
 
@@ -289,7 +297,8 @@ class Consumer(threading.Thread):
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
         """
-        log = self.get_message_log(properties, body)
+
+        log = self.__get_message_log(properties, body)
         if log:
             self.active_message_log = log
             log.status = 'IN_PROGRESS'
