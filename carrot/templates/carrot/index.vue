@@ -769,7 +769,6 @@
                 value: 'task_name',
                 align: 'left',
               }, {
-              {
                 text: 'Task',
                 value: 'task',
                 align: 'left',
