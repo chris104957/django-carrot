@@ -765,6 +765,11 @@
           } else {
             return [
               {
+                text: 'Task Name',
+                value: 'task_name',
+                align: 'left',
+              }, {
+              {
                 text: 'Task',
                 value: 'task',
                 align: 'left',
