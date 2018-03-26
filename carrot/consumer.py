@@ -232,8 +232,7 @@ class Consumer(threading.Thread):
         """
         if not self.shutdown_requested:
             self.logger.warning('Consumer %s not running: %s' % (self.name, reply_text))
-            if self.active_message_log:
-                self.active_message_log.requeue()
+
         else:
             self.logger.warning('Channel closed by client. Closing the connection')
 
@@ -298,7 +297,6 @@ class Consumer(threading.Thread):
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
         """
-        # self.channel.basic_ack(method_frame.delivery_tag)
 
         log = self.__get_message_log(properties, body)
         if log:
