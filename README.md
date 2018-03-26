@@ -18,7 +18,7 @@
 </p>
 
 <h1 align="center">
-  <img src="/docs/source/images/monitor.png">
+  <img src="/docs/source/images/1.0/monitor.png">
 </h1>
 
 
