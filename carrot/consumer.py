@@ -298,16 +298,16 @@ class Consumer(threading.Thread):
         :type properties: pika.Spec.BasicProperties
         :param bytes body: The message body
         """
+        self.channel.basic_ack(method_frame.delivery_tag)
+
         log = self.__get_message_log(properties, body)
         if log:
             self.active_message_log = log
-            self.channel.basic_ack(method_frame.delivery_tag)
             log.status = 'IN_PROGRESS'
             log.save()
         else:
             self.logger.error('Unable to find a MessageLog matching the uuid %s. Ignoring this task' %
                               properties.message_id)
-            self.channel.basic_nack(method_frame.delivery_tag, requeue=False)
             return
 
         try:
