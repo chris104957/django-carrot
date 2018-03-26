@@ -123,7 +123,6 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
                     functions = [o[0] for o in getmembers(mod) if isfunction(o[1]) and not o[0] == 'task']
 
                     for function in functions:
-                        print(function)
                         if function not in ['create_scheduled_task']:
                             f = '%s.%s' % (module, function)
                             task_choices.append(f)
@@ -213,8 +212,9 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
                     functions = [o[0] for o in getmembers(mod) if isfunction(o[1]) and not o[0] == 'task']
 
                     for function in functions:
-                        f = '%s.%s' % (module, function)
-                        task_choices.append(f)
+                        if function not in ['create_scheduled_task']:
+                            f = '%s.%s' % (module, function)
+                            task_choices.append(f)
                 except (ImportError, AttributeError):
                     pass
 
