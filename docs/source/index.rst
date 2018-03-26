@@ -18,9 +18,9 @@ Features
 - Built in daemon
 - Supports Django 2.0
 
-.. figure:: /images/monitor.png
+.. figure:: /images/1.0/monitor.png
     :align: center
-    :height: 600px
+    :width: 600px
     :figclass: align-center
 
     logs in django-carrot monitor
