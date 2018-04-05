@@ -1,5 +1,5 @@
 """
-Copyright 2017 Christopher Davies
+Copyright 2017-2018 Christopher Davies
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,3 +15,5 @@ limitations under the License.
 """
 
 DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/'
+
+__version__ = '1.1.0a0'

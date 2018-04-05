@@ -16,32 +16,11 @@
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
     :target: https://opensource.org/licenses/Apache-2.0
 
-.. image:: http://githubbadges.com/star.svg?user=chris104957&repo=django-carrot&style=flat
-    :target: https://github.com/chris104957/django-carrot
-
 .. image:: /docs/source/images/carrot-logo-big.png
+    :align: center
 
-
-Getting started with Carrot
-===========================
-
-Introduction
-------------
-
-Carrot is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
+**django-carrot** is a lightweight task queue backend for Django projects that uses the RabbitMQ message broker, with an emphasis
 on quick and easy configuration and task tracking
-
-Features
---------
-
-- Minimal configuration required
-- Task scheduling
-- Task prioritization
-- Task-level monitoring via the Carrot monitor
-- Multithreaded queue consumers
-- Built in django-admin daemon
-- Supports Django 2.0
-
 
 Installation
 ------------
@@ -116,12 +95,12 @@ To schedule tasks to run at a given interval
 Full documentation
 ------------------
 
-The full documentation is available at `readthedocs.io <http://django-carrot.readthedocs.io/en/latest/index.html>`
+The full documentation is available at `www.django-carrot.com <http://www.django-carrot.com>`
 
 Support
 -------
 
-If you are having any issues, please contact christopherdavies553@gmail.com
+If you are having any issues, please `log an issue <https://github.com/chris104957/django-carrot/issues/new>`
 
 License
 -------

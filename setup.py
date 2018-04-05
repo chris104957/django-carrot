@@ -1,5 +1,6 @@
 import os
 from setuptools import find_packages, setup
+from carrot import __version__
 
 
 def readme():
@@ -12,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-carrot',
-    version='1.0.1',
+    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     license='Apache Software License',
@@ -20,7 +21,7 @@ setup(
     long_description=readme(),
     author='Christopher Davies',
     author_email='christopherdavies553@gmail.com',
-    url='https://django-carrot.readthedocs.org',
+    url='https://www.django-carrot.com',
     classifiers=[
         'Environment :: Web Environment',
         'Development Status :: 5 - Production/Stable',
