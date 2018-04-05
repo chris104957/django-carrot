@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>django-carrot monitor</title>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
-    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet" type="text/css">
+    <link href="{% static 'carrot/vuetify.min.css' %}" rel="stylesheet" type="text/css">
     <!--<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">-->
 </head>
 <body>
@@ -327,11 +327,11 @@
     </v-app>
   </div>
 
-  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
-  <script src="https://unpkg.com/vuetify/dist/vuetify.min.js"></script>
-  <script src="https://unpkg.com/vuex"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="{% static 'carrot/vue.min.js' %}"></script>
+  <script src="{% static 'carrot/vuetify.min.js' %}"></script>
+  <script src="{% static 'carrot/vuex.min.js' %}"></script>
+  <script src="{% static 'carrot/lodash.min.js' %}"></script>
+  <script src="{% static 'carrot/axios.min.js' %}"></script>
   <script type="text/javascript">
     const store = new Vuex.Store({
       state: {
@@ -351,6 +351,9 @@
         }
       },
       actions: {
+        clearTasks ({ commit }) {
+          commit('SET_TASKS', [])
+        },
         async getTasks ({ commit }, { page, type, search, scheduled }) {
             if (scheduled) {
               var url = '/carrot/api/scheduled-tasks/?page=' + page
@@ -505,9 +508,10 @@
                 this.selectedScheduledTask = null
             }
         },
-        tabs () {
+        async tabs () {
           this.pageNumber = 1
           this.search = null
+          await this.$store.dispatch('clearTasks')
           this.updateTasks()
         },
         pagination () {
