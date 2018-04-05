@@ -3,7 +3,7 @@
 django-carrot monitor
 =====================
 
-.. figure:: /images/monitor.png
+.. figure:: /images/1.0/monitor.png
     :align: center
     :height: 400px
     :figclass: align-center
