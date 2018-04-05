@@ -95,14 +95,16 @@ To schedule tasks to run at a given interval
 Full documentation
 ------------------
 
-The full documentation is available at `www.django-carrot.com <http://www.django-carrot.com>`
+The full documentation is available at `www.django-carrot.com <http://www.django-carrot.com>`_
 
 Support
 -------
 
-If you are having any issues, please `log an issue <https://github.com/chris104957/django-carrot/issues/new>`
+If you are having any issues, please `log an issue <https://github.com/chris104957/django-carrot/issues/new>`_
 
 License
 -------
 
 The project is licensed under the Apache license.
+
+Icons made by Trinh Ho from `www.flaticon.com <www.flaticon.com>`_ is licensed by CC 3.0 BY

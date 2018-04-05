@@ -1,6 +1,17 @@
 release notes
 =============
 
+1.1.0
+-----
+
+Bug fixes
+*********
+
+- `Issue #56: Have Django host VueJS resources instead of CDN <https://github.com/chris104957/django-carrot/issues/56>`_
+- `Issue #66: Switching between monitor views quickly shows tasks in the wrong list <https://github.com/chris104957/django-carrot/issues/66>`_
+- `Issue #67: Simply the version management <https://github.com/chris104957/django-carrot/issues/67>`_
+- `Issue #68: Simplify the readmes <https://github.com/chris104957/django-carrot/issues/68>`_
+
 1.0.0
 -----
 
@@ -8,7 +19,7 @@ Monitor material theme
 **********************
 Added a material theme to the django-carrot monitor:
 
-.. figure:: /images/monitor.png
+.. figure:: /images/1.0/monitor.png
     :align: center
     :height: 400px
     :figclass: align-center
@@ -71,4 +82,4 @@ of times before raising an exception. For example:
 Bug fixes
 #########
 
-- `#43: During high server load periods, messages sometimes get consumed before the associated MessageLog is created <https://github.com/chris104957/django-carrot/issues/43>`_
+- `Issue #43: During high server load periods, messages sometimes get consumed before the associated MessageLog is created <https://github.com/chris104957/django-carrot/issues/43>`_
