@@ -304,6 +304,7 @@
                         <td>[{ props.item.content | cropped }]</td>
                       </tr>
                       <tr v-else @click="selectedScheduledTask = props.item">
+                          <td>[{ props.item.task_name }]</td>
                           <td>[{ props.item.task }]</td>
                           <td>Every [{ props.item.interval_count }] [{ props.item.interval_type }]</td>
                           <td><v-icon v-if="props.item.active">check</v-icon><v-icon v-else>close</v-icon></td>
@@ -546,6 +547,7 @@
             this.selectedScheduledTask = {
                 id: null,
                 task: null,
+                task_name: null,
                 task_args: null,
                 content: null,
                 queue: null,
@@ -767,6 +769,10 @@
           } else {
             return [
               {
+                text: 'Task Name',
+                value: 'task_name',
+                align: 'left',
+              }, {
                 text: 'Task',
                 value: 'task',
                 align: 'left',
