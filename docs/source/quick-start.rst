@@ -36,12 +36,11 @@ Configuring your Django project
         ...
     ]
 
-2. Create the carrot migrations and apply them to your project's database:
+2. Apply django-carrot's migrations them to your project's database:
 
 .. code-block:: bash
 
-    python manage.py makemigrations carrot
-    python manage.py migrate
+    python manage.py migrate carrot
 
 For see all configuration options, refer to :ref:`carrot-settings`
 
