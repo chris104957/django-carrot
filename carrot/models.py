@@ -105,7 +105,6 @@ class ScheduledTask(models.Model):
     """
     A model for scheduling tasks to run at a certain interval
     """
-
     INTERVAL_CHOICES = (
         ('seconds', 'seconds'),
         ('minutes', 'minutes'),
