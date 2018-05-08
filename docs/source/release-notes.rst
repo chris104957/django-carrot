@@ -1,6 +1,14 @@
 release notes
 =============
 
+1.1.1
+-----
+
+Bug fixes
+*********
+- `Issue #72: Migrations end up inside venv? <https://github.com/chris104957/django-carrot/issues/72>`_
+
+
 1.1.0
 -----
 
