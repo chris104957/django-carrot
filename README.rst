@@ -52,11 +52,10 @@ Configuration
     ]
 
 
-2. Create the carrot migrations and apply them to your project's database:
+2. Apply the carrot migrations to your project's database:
 
 .. code-block:: python
 
-    python manage.py makemigrations carrot
     python manage.py migrate carrot
 
 
@@ -91,6 +90,11 @@ To schedule tasks to run at a given interval
 
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
+
+Docker
+------
+
+A sample docker config is available `here <https://github.com/chris104957/django-carrot-docker>`_
 
 Full documentation
 ------------------
