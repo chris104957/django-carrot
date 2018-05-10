@@ -123,8 +123,9 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
                     functions = [o[0] for o in getmembers(mod) if isfunction(o[1]) and not o[0] == 'task']
 
                     for function in functions:
-                        f = '%s.%s' % (module, function)
-                        task_choices.append(f)
+                        if "create_scheduled_task" not in function:
+                            f = '%s.%s' % (module, function)
+                            task_choices.append(f)
                 except (ImportError, AttributeError):
                     pass
             print(task_choices, value)
@@ -162,7 +163,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
         model = ScheduledTask
         fields = (
             'task', 'interval_display', 'active', 'id', 'queue', 'exchange', 'routing_key', 'interval_type',
-            'interval_count', 'content', 'task_args'
+            'interval_count', 'content', 'task_args', 'task_name'
         )
         extra_kwargs = {
             'queue': {
@@ -211,8 +212,9 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
                     functions = [o[0] for o in getmembers(mod) if isfunction(o[1]) and not o[0] == 'task']
 
                     for function in functions:
-                        f = '%s.%s' % (module, function)
-                        task_choices.append(f)
+                        if "create_scheduled_task" not in function:
+                            f = '%s.%s' % (module, function)
+                            task_choices.append(f)
                 except (ImportError, AttributeError):
                     pass
 

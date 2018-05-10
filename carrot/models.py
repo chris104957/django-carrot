@@ -49,6 +49,7 @@ class MessageLog(models.Model):
     task = models.CharField(max_length=200)#: the import path for the task to be executed
     task_args = models.TextField(null=True, blank=True, verbose_name='Task positional arguments')
     content = models.TextField(null=True, blank=True, verbose_name='Task keyword arguments')
+   
 
     exception = models.TextField(null=True, blank=True)
     traceback = models.TextField(null=True, blank=True)
@@ -121,7 +122,7 @@ class ScheduledTask(models.Model):
     task = models.CharField(max_length=200)
     task_args = models.TextField(null=True, blank=True, verbose_name='Positional arguments')
     content = models.TextField(null=True, blank=True, verbose_name='Keyword arguments')
-
+    task_name = models.CharField(max_length=200, unique=True) #: task name with uniqueness
     active = models.BooleanField(default=True)
 
     def get_absolute_url(self):

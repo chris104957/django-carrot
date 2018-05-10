@@ -140,7 +140,7 @@ def publish_message(task, *task_args, priority=0, queue=None, exchange='', routi
     return msg.publish()
 
 
-def create_scheduled_task(task, interval, queue=None, **kwargs):
+def create_scheduled_task(task, interval, task_name, queue=None, **kwargs):
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
 
@@ -169,6 +169,7 @@ def create_scheduled_task(task, interval, queue=None, **kwargs):
         interval_count=count,
         routing_key=queue,
         task=task,
+        task_name=task_name,
         content=json.dumps(kwargs or '{}'),
     )
     return t
