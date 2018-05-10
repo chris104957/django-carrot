@@ -1,6 +1,14 @@
 release notes
 =============
 
+1.1.3
+-----
+- `Issue #75: Add a link to the docker container sample to the docs <https://github.com/chris104957/django-carrot/issues/75>`_
+
+1.1.2
+-----
+- Doc updates
+
 1.1.1
 -----
 

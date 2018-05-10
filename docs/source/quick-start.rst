@@ -155,6 +155,11 @@ To implement it, simply add the carrot url config to your Django project's main 
 
 For more information, refer to :ref:`monitor`
 
+Docker
+------
+
+A sample docker config is available `here <https://github.com/chris104957/django-carrot-docker>`_
+
 Support
 -------
 
