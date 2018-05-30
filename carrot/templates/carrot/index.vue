@@ -539,6 +539,9 @@
       computed: {
         taskNameErrors () {
           var errors = []
+          if (this.selectedScheduledTask & !this.selectedScheduledTask.task_name) {
+            errors.push('This field is required')
+          }
           if (this.selectedScheduledTask && this.selectedScheduledTask.task_name) {
             var existing = this.tasks.filter(t => t.id != this.selectedScheduledTask.id).map(t => t.task_name)
             if (existing.indexOf(this.selectedScheduledTask.task_name) > -1) {
