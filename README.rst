@@ -91,6 +91,9 @@ To schedule tasks to run at a given interval
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 
+.. note::
+    The above commands must be made from within the Django environment
+
 Docker
 ------
 
