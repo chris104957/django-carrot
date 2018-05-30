@@ -133,6 +133,8 @@ class ScheduledTask(models.Model):
 
     active = models.BooleanField(default=True)
 
+    task_name = models.CharField(max_length=200, unique=True)
+
     def get_absolute_url(self):
         return reverse('edit-scheduled-task', args=[self.pk])
 

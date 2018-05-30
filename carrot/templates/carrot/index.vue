@@ -164,6 +164,16 @@
                 <v-form v-model="valid">
                   <v-container grid-list-md>
                       <v-layout row wrap>
+                        <v-flex xs12>
+                              <v-text-field
+                                  v-model="selectedScheduledTask.task_name"
+                                  label="Task name"
+                                  required
+                                  :error-messages="taskNameErrors"
+                              >
+                              </v-text-field>
+                          </v-flex>
+
                           <v-flex xs12>
                               <v-select
                                       v-model="selectedScheduledTask.task"
@@ -248,7 +258,7 @@
                   <v-card-actions>
                       <v-spacer></v-spacer>
                       <v-btn text flat class="error" @click="deleteScheduledTask" :disabled="!selectedScheduledTask.id">Delete</v-btn>
-                      <v-btn text flat class="primary--text" @click="saveScheduledTask" :disabled="!valid" :loading="loading">Save changes</v-btn>
+                      <v-btn text flat class="primary--text" @click="saveScheduledTask" :disabled="!valid || taskNameErrors.length > 0" :loading="loading">Save changes</v-btn>
                       <v-btn text flat class="primary--text" @click="runScheduledTask" :disabled="!selectedScheduledTask.id">Run now</v-btn>
                   </v-card-actions>
               </v-card>
@@ -304,6 +314,7 @@
                         <td>[{ props.item.content | cropped }]</td>
                       </tr>
                       <tr v-else @click="selectedScheduledTask = props.item">
+                          <td>[{ props.item.task_name }]</td>
                           <td>[{ props.item.task }]</td>
                           <td>Every [{ props.item.interval_count }] [{ props.item.interval_type }]</td>
                           <td><v-icon v-if="props.item.active">check</v-icon><v-icon v-else>close</v-icon></td>
@@ -526,6 +537,16 @@
         }, 500)
       },
       computed: {
+        taskNameErrors () {
+          var errors = []
+          if (this.selectedScheduledTask && this.selectedScheduledTask.task_name) {
+            var existing = this.tasks.filter(t => t.id != this.selectedScheduledTask.id).map(t => t.task_name)
+            if (existing.indexOf(this.selectedScheduledTask.task_name) > -1) {
+              errors.push('A task with this name already exists')
+            }
+          }
+          return errors
+        },
         tasks () {
           return this.$store.state.tasks
         },
@@ -545,6 +566,7 @@
         createNew () {
             this.selectedScheduledTask = {
                 id: null,
+                task_name: null,
                 task: null,
                 task_args: null,
                 content: null,
@@ -767,6 +789,10 @@
           } else {
             return [
               {
+                text: 'Task name',
+                value: 'task_name',
+                align: 'left',
+              }, {
                 text: 'Task',
                 value: 'task',
                 align: 'left',
