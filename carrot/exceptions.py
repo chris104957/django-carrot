@@ -1,0 +1,2 @@
+class CarrotConfigException(Exception):
+    pass

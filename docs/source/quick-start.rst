@@ -63,11 +63,16 @@ The daemon can be stopped/restarted as follows:
 For the full set of options, refer to :ref:`admin-command`
 
 
-Publishing tasks
-****************
+Creating and publishing tasks
+*****************************
 
-While the service is running, tasks will be consumed from your RabbitMQ queue. To publish messages to the queue, use
-provided helper function:
+While the service is running, tasks will be consumed from your RabbitMQ queue. To test this, start the django shell:
+
+.. code-block:: bash
+
+    python manage.py shell
+
+And use the provided helper, ``carrot.utilities.publish_message``:
 
 .. code-block:: python
 

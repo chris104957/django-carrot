@@ -8,8 +8,10 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from carrot import DEFAULT_BROKER
 import sys
+import os
 import logging
 import signal
+import psutil
 
 
 class Command(BaseCommand):
@@ -82,6 +84,20 @@ class Command(BaseCommand):
 
         """
         signal.signal(signal.SIGTERM, self.terminate)
+
+        # check if carrot service is already running, and warn the user if so
+        running_pids = []
+        for q in psutil.process_iter():
+            if 'python' in q.name():
+                if len(q.cmdline()) > 1 and 'manage.py' in q.cmdline()[1] and 'carrot' in q.cmdline()[2]:
+                    if not q._pid == os.getpgid(0):
+                        running_pids.append(q._pid)
+
+        if running_pids:
+            self.stdout.write(
+                self.style.WARNING('WARNING: Carrot service is already running with the following PID. Running more '
+                                   'than one instance of carrot may lead to a memory leak:\n%s'
+                                   % '\n'.join([str(pid) for pid in running_pids])))
 
         run_scheduler = options['run_scheduler']
 
