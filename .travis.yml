@@ -3,7 +3,7 @@ python:
   - "3.6"
   - "3.5"
 before_install:
-  - git clone https://github.com/chris104957/django-carrot.git
+  - git clone https://github.com/chris104957/django-carrot.git -b $TRAVIS_BRANCH
   - cd django-carrot
   - pip install -r requirements.txt
   - pip install django==$DJANGO_VERSION
