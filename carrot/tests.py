@@ -15,26 +15,6 @@ from carrot.utilities import (get_host_from_name, validate_task, create_schedule
 
 from carrot.views import MessageList
 
-# from carrot import DEFAULT_BROKER
-
-
-# ALT_CARROT = {
-#     'default_broker': DEFAULT_BROKER,
-#     'queues': [
-#         {
-#             'name': 'test',
-#             'host': DEFAULT_BROKER,
-#             'consumer_class': 'carrot.consumer.Consumer',
-#         },
-#         {
-#             'name': 'default',
-#             'host': DEFAULT_BROKER,
-#             'consumer_class': 'carrot.consumer.Consumer',
-#         }
-#     ],
-#     'task_modules': ['carrot.tests', 'carrot.invalid']
-# }
-
 logger = logging.getLogger('carrot')
 
 
@@ -103,6 +83,7 @@ class CarrotTestCase(TestCase):
         p.headers = {'type':'carrot.tests.test_task'}
         log.delete()
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
+        self.assertEqual(str(log), 'carrot.tests.test_task')
         consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
