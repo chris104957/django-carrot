@@ -3,7 +3,7 @@ python:
   - "3.6"
   - "3.5"
 before_install:
-  - git clone https://github.com/chris104957/django-carrot.git
+  - git clone https://github.com/chris104957/django-carrot.git -b $TRAVIS_BRANCH
   - cd django-carrot
   - pip install -r requirements.txt
   - pip install django==$DJANGO_VERSION
@@ -15,14 +15,25 @@ script:
 after_success:
   - coveralls
 deploy:
-  provider: pypi
-  user: "chris140957"
-  password:
-    secure: q61t6M/mmzlNNWz+BE19pwuL0Jd6suRGb9YvfDJqrnfpUrjz2BmJylDuRyYCEAHNy7SOA0i2DbRSIki2xaWzpZpVmQhZsfytPp4L6Zdes2RtXNnbr3cZ9ZYEkNnCkEw1F7GfFERdFfw83m5ap6WRwookrvNNI9rs2kRAbR9iFRuv9vIcPSGqwFU2j5scGwAQNximqrgS7QUigHN3+dsptDb5+CPtfZcvt4SBgvTh0d+TC/FuYiusZKw9i0sYW9rkU+/mmUcqRmJw73QWgvPm+wD6alQH1FRdLwC7pFrRoAiglLLLytg9AHETtbbwSElEr/YbPr7BnavRYWHHZxCQZ/UoPJsuLZ73vptyo3odWg+AIrr6WlMd0aMyXKiRXhOPXvcJkvY2i/9Qn9B02K+9o366V5xxZJTirnlYv3WUGpaeHbQrobqPmNypf7K7E6e3vmsQFuvFBT8Rui84fcAkK4CLuavo3B+9nHgOoicHQPs+SikbrsbIohIhBn2OV1ASkRCI2YroHbbivxjlZSQdOV4x+HFE+Ok2wU8zwI/q94zP5jhS0y8BaJCxfR30yv5xoST85LZ2cXC59Wn+pE0lfiFEoIBp2x9Kiet3UWNIF1mnSFExI3uYSxDbQ30fQmIKNIkec6jRqFIYfcA0dVJNaI6dtN5rm32427Fx6/KG7I0=
-  on:
-    branch: master
-    python: 3.6
-    condition: $DJANGO_VERSION = "2.0"
+  - provider: pypi
+    user: "chris140957"
+    password:
+      secure: q61t6M/mmzlNNWz+BE19pwuL0Jd6suRGb9YvfDJqrnfpUrjz2BmJylDuRyYCEAHNy7SOA0i2DbRSIki2xaWzpZpVmQhZsfytPp4L6Zdes2RtXNnbr3cZ9ZYEkNnCkEw1F7GfFERdFfw83m5ap6WRwookrvNNI9rs2kRAbR9iFRuv9vIcPSGqwFU2j5scGwAQNximqrgS7QUigHN3+dsptDb5+CPtfZcvt4SBgvTh0d+TC/FuYiusZKw9i0sYW9rkU+/mmUcqRmJw73QWgvPm+wD6alQH1FRdLwC7pFrRoAiglLLLytg9AHETtbbwSElEr/YbPr7BnavRYWHHZxCQZ/UoPJsuLZ73vptyo3odWg+AIrr6WlMd0aMyXKiRXhOPXvcJkvY2i/9Qn9B02K+9o366V5xxZJTirnlYv3WUGpaeHbQrobqPmNypf7K7E6e3vmsQFuvFBT8Rui84fcAkK4CLuavo3B+9nHgOoicHQPs+SikbrsbIohIhBn2OV1ASkRCI2YroHbbivxjlZSQdOV4x+HFE+Ok2wU8zwI/q94zP5jhS0y8BaJCxfR30yv5xoST85LZ2cXC59Wn+pE0lfiFEoIBp2x9Kiet3UWNIF1mnSFExI3uYSxDbQ30fQmIKNIkec6jRqFIYfcA0dVJNaI6dtN5rm32427Fx6/KG7I0=
+    on:
+      branch: master
+      tags: true
+      python: 3.6
+      condition: $DJANGO_VERSION = "2.0"
+  - provider: pypi
+    user: "christopherdavies553@gmail.com"
+    password:
+      secure: pzssJRdORYxsQePV35ZHyDCiBSAir0BWxiWgLP2fsLQHpE17SA7zPpDDOw3s4tGs/vE+NmJFSvrK3eQ47ZFRlmqVWdUzXQpwrvtjW0k05oPuIo9X1AgCnGU/lEldoo/6QbaLpVKjGSrGQc2SnGmBgNrST6q3dJJwkLaV0GaxnGtY3d7fi4noZ8I2TAQceNzm2fhgc3CsWM8vw3lWNrsgcryw+aucUamT5dSLS2nQVBgtg+TvriRYl54Xk4cvz30LAl1s45dCDwyS4clHNgmJwY2a3byjZj8fWWMovYp8i7RiUhFMbq0DfgctVXzJsNPISg4DAAEOAh9dp9i93GiWNmJ7+xXdS82lYWFKzmXCs+r3DD8nkDYkVJgw/yRev0l/BTj8v3RRrtCgDtsanqVhufBZ6aDmA6LYFps0FABSaoM/q4+aak4c6NCOg68GI2n2u0O+uYdPXIFdwmKbqric8ysHSKiSavhXKJUb09V33fVDGitLmwaDvBzne51xGe0V3TTrZU9QYi9LEIU1MSTqFY4M2WfOAlP/9j8FJE4wVO5WjHp2wTGtaqgCp4manOTbPmr6kwSgNQy5HDies2uGQ/14AQe6dejgyEpAtFpu4p2KzrQXUZEP+Mkl4vx7UURPVDCBsb7fuG206ijhaAQB0dr6lUYy+1kR4Yf1J4zN1E0=
+    server: https://api.python-private-package-index.com/63cdQSDO/
+    on:
+      branch: develop
+      python: 3.6
+      condition: $DJANGO_VERSION = "2.0"
+
 env:
   - DJANGO_VERSION=1.9
   - DJANGO_VERSION=1.10

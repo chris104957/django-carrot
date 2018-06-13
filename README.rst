@@ -109,6 +109,11 @@ Support
 
 If you are having any issues, please `log an issue <https://github.com/chris104957/django-carrot/issues/new>`_
 
+Contributing
+------------
+
+Django-carrot uses `PyPRI <https://www.python-private-package-index.com/>`_ to share development builds. If you'd like access to it, please send me your email address at christopherdavies553@gmail.com so I can give you access
+
 License
 -------
 
