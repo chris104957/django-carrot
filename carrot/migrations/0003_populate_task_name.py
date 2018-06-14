@@ -27,7 +27,7 @@ def remove_task_name(apps, schema_editor):
     """
     This doesn't need to be implemented as the task names will be deleted when the field is removed
     """
-    pass
+    return
 
 
 class Migration(migrations.Migration):

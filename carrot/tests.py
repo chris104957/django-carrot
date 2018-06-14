@@ -8,32 +8,12 @@ from carrot.consumer import Consumer, ConsumerSet
 from carrot.objects import VirtualHost
 from carrot.models import MessageLog, ScheduledTask
 from carrot.api import (failed_message_log_viewset, detail_message_log_viewset, scheduled_task_detail,
-                        scheduled_task_viewset)
+                        scheduled_task_viewset, task_list, validate_args, run_scheduled_task)
 
 from carrot.utilities import (get_host_from_name, validate_task, create_scheduled_task, decorate_class_view,
                               decorate_function_view)
 
 from carrot.views import MessageList
-
-# from carrot import DEFAULT_BROKER
-
-
-# ALT_CARROT = {
-#     'default_broker': DEFAULT_BROKER,
-#     'queues': [
-#         {
-#             'name': 'test',
-#             'host': DEFAULT_BROKER,
-#             'consumer_class': 'carrot.consumer.Consumer',
-#         },
-#         {
-#             'name': 'default',
-#             'host': DEFAULT_BROKER,
-#             'consumer_class': 'carrot.consumer.Consumer',
-#         }
-#     ],
-#     'task_modules': ['carrot.tests', 'carrot.invalid']
-# }
 
 logger = logging.getLogger('carrot')
 
@@ -103,6 +83,7 @@ class CarrotTestCase(TestCase):
         p.headers = {'type':'carrot.tests.test_task'}
         log.delete()
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
+        self.assertEqual(str(log), 'carrot.tests.test_task')
         consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
@@ -209,9 +190,23 @@ class CarrotTestCase(TestCase):
             data['interval_count'] = 2
             data['task'] = 'carrot.tests.something_invalid'
             r = f.patch('/api/scheduled-tasks/%s' % response.data.get('pk'), data)
-
             scheduled_task_detail(r, pk=response.data.get('pk'))
 
+            r = f.get('/api/scheduled-tasks/1/run/')
+            run_scheduled_task(r, pk=1)
+
+            r = f.get('/api/scheduled-tasks/task-choices/')
+            task_list(r)
+
+            data = {'args': '()'}
+            r = f.post('/api/scheduled-tasks/validate-args/', data)
+            validate_args(r, data)
+
+            data = {'args': 'some utter bollocks'}
+            r = f.post('/api/scheduled-tasks/validate-args/', data)
+            response = validate_args(r, data)
+            print(response.data)
+            self.assertGreater(len(response.data['errors']), 0)
 
     def test_utilities(self):
         with self.assertRaises(Exception):
@@ -237,6 +232,17 @@ class CarrotTestCase(TestCase):
         validate_task(test_task)
 
         task = create_scheduled_task(test_task, {'days':1})
+
+        self.assertEqual(task.multiplier, 86400)
+        task.interval_type = 'hours'
+        self.assertEqual(task.multiplier, 3600)
+        task.interval_type = 'minutes'
+        self.assertEqual(task.multiplier, 60)
+        task.interval_type = 'seconds'
+        self.assertEqual(task.multiplier, 1)
+
+        with mock.patch('carrot.utilities.publish_message'):
+            task.publish()
 
         self.assertTrue(isinstance(task, ScheduledTask))
 
