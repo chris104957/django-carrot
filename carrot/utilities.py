@@ -141,18 +141,21 @@ def publish_message(task, *task_args, priority=0, queue=None, exchange='', routi
     return msg.publish()
 
 
-def create_scheduled_task(task, interval, queue=None, **kwargs):
+def create_scheduled_task(task, interval, task_name=None, queue=None, **kwargs):
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
 
     :param task: a callable, or a valid path to one as a string
     :type task: str or callable
     :param dict interval: the interval at which to publish the message, as a dict, e.g.: {'seconds': 5}
+    :param task_name: a unique task name. If not provided, defaults to the same value as task
     :param str queue: the name of the queue to publish the message to.
     :param kwargs: the keyword arguments to be passed to the function when it is executed
     :rtype: :class:`carrot.models.ScheduledTask`
-
     """
+
+    if not task_name:
+        task_name = task
 
     task = validate_task(task)
 
@@ -166,6 +169,7 @@ def create_scheduled_task(task, interval, queue=None, **kwargs):
 
     t = ScheduledTask.objects.create(
         queue=queue,
+        task_name=task_name,
         interval_type=type,
         interval_count=count,
         routing_key=queue,
