@@ -1,6 +1,10 @@
 release notes
 =============
 
+1.2.1
+-----
+- `Issue #87: Migration error in migration 0003 <https://github.com/chris104957/django-carrot/issues/87>`_
+
 1.2.0
 -----
 - `Issue #81: Carrot monitor breaks when the queue from a completed message log gets removed from the config <https://github.com/chris104957/django-carrot/issues/81>`_
@@ -49,7 +53,7 @@ Monitor material theme
 **********************
 Added a material theme to the django-carrot monitor:
 
-.. figure:: /images/1.0/monitor.png
+.. figure:: /images/monitor.png
     :align: center
     :height: 400px
     :figclass: align-center
