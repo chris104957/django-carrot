@@ -12,7 +12,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
 setup(
-    name='django-carrot%s' % ('' if os.environ.get('TRAVIS_BRANCH') == 'master' else '-dev'),
+    name='django-carrot%s' % ('' if os.environ.get('TRAVIS_TAG') else '-dev'),
     version=__version__,
     packages=find_packages(),
     include_package_data=True,

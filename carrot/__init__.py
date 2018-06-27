@@ -16,4 +16,10 @@ limitations under the License.
 import os
 DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/'
 
-__version__ = '1.1.0a0'
+
+branch = os.environ.get('TRAVIS_BRANCH') == 'master'
+
+if branch == 'master':
+    __version__ = os.environ.get('TRAVIS_TAG', '0.0.0')
+else:
+    __version__ = os.environ.get('TRAVIS_BUILD_NUMBER', '0')
