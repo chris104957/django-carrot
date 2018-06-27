@@ -17,9 +17,9 @@ import os
 DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/'
 
 
-branch = os.environ.get('TRAVIS_BRANCH') == 'master'
+tagged = os.environ.get('TRAVIS_TAG')
 
-if branch == 'master':
+if tagged:
     __version__ = os.environ.get('TRAVIS_TAG', '0.0.0')
 else:
     __version__ = os.environ.get('TRAVIS_BUILD_NUMBER', '0')
