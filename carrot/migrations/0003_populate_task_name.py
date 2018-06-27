@@ -22,6 +22,13 @@ def add_task_name(apps, schema_editor):
         t.task_name = task_name
         t.save()
 
+    index = 0
+    for t in ScheduledTask.objects.using(db_alias).filter(task_name=''):
+        index += 1
+        task_name = '%s-%i' % (t.task, index)
+        t.task_name = task_name
+        t.save()
+
 
 def remove_task_name(apps, schema_editor):
     """
