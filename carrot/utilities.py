@@ -16,6 +16,7 @@ from carrot.models import ScheduledTask
 from carrot.consumer import ConsumerSet
 from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
+from carrot.exceptions import CarrotConfigException
 
 
 def get_host_from_name(name):
@@ -56,7 +57,7 @@ def get_host_from_name(name):
         return vhost
 
     except IndexError:
-        raise Exception('Cannot find queue called %s in settings.CARROT queue list' % name)
+        raise CarrotConfigException('Cannot find queue called %s in settings.CARROT queue list' % name)
 
 
 def validate_task(task):

@@ -9,7 +9,7 @@ import json
 import os
 import sys
 from django.core.validators import MinValueValidator
-
+from carrot.exceptions import CarrotConfigException
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR + '/carrot')
@@ -63,7 +63,16 @@ class MessageLog(models.Model):
     @property
     def virtual_host(self):
         from carrot.utilities import get_host_from_name
-        return str(get_host_from_name(self.queue))
+        try:
+            return str(get_host_from_name(self.queue))
+        except CarrotConfigException:
+            """
+            This exception may get raised here when a MessageLog is created with a queue that is later removed from the
+            Django config. This method now returns `None` in these cases, so as not to break the monitor   
+
+            Refer to https://github.com/chris104957/django-carrot/issues/81
+            """
+            pass
 
     @property
     def keywords(self):
@@ -123,6 +132,8 @@ class ScheduledTask(models.Model):
     content = models.TextField(null=True, blank=True, verbose_name='Keyword arguments')
 
     active = models.BooleanField(default=True)
+
+    task_name = models.CharField(max_length=200, unique=True)
 
     def get_absolute_url(self):
         return reverse('edit-scheduled-task', args=[self.pk])

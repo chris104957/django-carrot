@@ -127,7 +127,6 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
                         task_choices.append(f)
                 except (ImportError, AttributeError):
                     pass
-            print(task_choices, value)
             if task_choices and not value in task_choices:
                 raise serializers.ValidationError('This is not a valid selection')
 
@@ -162,7 +161,7 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
         model = ScheduledTask
         fields = (
             'task', 'interval_display', 'active', 'id', 'queue', 'exchange', 'routing_key', 'interval_type',
-            'interval_count', 'content', 'task_args'
+            'interval_count', 'content', 'task_args', 'task_name'
         )
         extra_kwargs = {
             'queue': {

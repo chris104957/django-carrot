@@ -4,3 +4,5 @@
 dist/
 django_carrot.egg-info/
 docs/build/
+**/__pycache__/
+/test.sh

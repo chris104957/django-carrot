@@ -12,8 +12,8 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
 setup(
-    name='django-carrot',
-    version='1.0.1a3',
+    name='django-carrot%s' % ('' if os.environ.get('TRAVIS_BRANCH') == 'master' else '-dev'),
+    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     license='Apache Software License',
@@ -39,6 +39,6 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires=['django>=1.9', 'json2html==1.2.1', 'pika>=0.10.0', 'djangorestframework>=3.6']
+    install_requires=['django>=1.9', 'json2html==1.2.1', 'pika>=0.10.0', 'djangorestframework>=3.6', 'psutil==5.4.5']
 )
 

@@ -91,6 +91,9 @@ To schedule tasks to run at a given interval
     create_scheduled_task(my_task, {'seconds': 5}, hello=True)
 
 
+.. note::
+    The above commands must be made from within the Django environment
+
 Docker
 ------
 
@@ -105,6 +108,11 @@ Support
 -------
 
 If you are having any issues, please `log an issue <https://github.com/chris104957/django-carrot/issues/new>`_
+
+Contributing
+------------
+
+Django-carrot uses `PyPRI <https://www.python-private-package-index.com/>`_ to share development builds. If you'd like access to it, please send me your email address at christopherdavies553@gmail.com so I can give you access
 
 License
 -------

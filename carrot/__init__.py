@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import os
 DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/'
 
-__version__ = '1.1.3'
+__version__ = '1.1.0a0'

@@ -1,6 +1,20 @@
 release notes
 =============
 
+1.2.0
+-----
+- `Issue #81: Carrot monitor breaks when the queue from a completed message log gets removed from the config <https://github.com/chris104957/django-carrot/issues/81>`_
+- `Issue #79: Add unique task_name field to ScheduledTask object <https://github.com/chris104957/django-carrot/issues/79>`_
+- `Issue #78: Carrot service should warn users when process is already running <https://github.com/chris104957/django-carrot/issues/78>`_
+- `Issue #77: Update the docs to make it clear tasks must be published from within the Django context <https://github.com/chris104957/django-carrot/issues/77>`_
+
+.. warning::
+    This release contains new migrations. In order to upgrade from a previous version of carrot, you must apply them:
+
+.. code-block:: python
+
+    python manage.py migrate carrot
+
 1.1.3
 -----
 - `Issue #75: Add a link to the docker container sample to the docs <https://github.com/chris104957/django-carrot/issues/75>`_
@@ -35,7 +49,7 @@ Monitor material theme
 **********************
 Added a material theme to the django-carrot monitor:
 
-.. figure:: /images/1.0/monitor.png
+.. figure:: /images/monitor.png
     :align: center
     :height: 400px
     :figclass: align-center
