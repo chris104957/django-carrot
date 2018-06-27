@@ -8,12 +8,10 @@ Most users should use the functions defined in this module, rather than attempti
 
 
 import json
-from json2html.jsonconv import Json2Html
 import importlib
 from django.conf import settings
 from carrot.objects import VirtualHost, Message
 from carrot.models import ScheduledTask
-from carrot.consumer import ConsumerSet
 from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
 from carrot.exceptions import CarrotConfigException

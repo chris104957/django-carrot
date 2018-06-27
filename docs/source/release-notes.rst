@@ -1,6 +1,10 @@
 release notes
 =============
 
+1.2.2
+-----
+- `Issue #91: task_name missing in create_scheduled_task <https://github.com/chris104957/django-carrot/issues/91>`_
+
 1.2.1
 -----
 - `Issue #87: Migration error in migration 0003 <https://github.com/chris104957/django-carrot/issues/87>`_
