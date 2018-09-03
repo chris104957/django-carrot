@@ -298,7 +298,7 @@ def purge_queue():
 
     queues = carrot_settings.get('queues', [{'name': 'default', 'host': DEFAULT_BROKER}])
     for queue in queues:
-        host = VirtualHost(**queue.host)
+        host = VirtualHost(**queue['host'])
         connection = host.blocking_connection
         connection.queue_purge(queue=queue['name'])
 
