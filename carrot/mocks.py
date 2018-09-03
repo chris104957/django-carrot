@@ -27,7 +27,7 @@ class Channel(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def queue_purge(self):
+    def queue_purge(self, queue=''):
         return
 
     def add_on_close_callback(self):
