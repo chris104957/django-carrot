@@ -8,10 +8,10 @@ from carrot.consumer import Consumer, ConsumerSet
 from carrot.objects import VirtualHost
 from carrot.models import MessageLog, ScheduledTask
 from carrot.api import (failed_message_log_viewset, detail_message_log_viewset, scheduled_task_detail,
-                        scheduled_task_viewset, task_list, validate_args, run_scheduled_task)
+                        scheduled_task_viewset, task_list, validate_args, run_scheduled_task, purge_messages)
 
 from carrot.utilities import (get_host_from_name, validate_task, create_scheduled_task, decorate_class_view,
-                              decorate_function_view, purge_queue)
+                              decorate_function_view)
 
 from carrot.views import MessageList
 
@@ -257,12 +257,14 @@ class CarrotTestCase(TestCase):
     def test_purge(self):
         f = RequestFactory()
         r = f.get('/api/message-logs/purge')
+        response = purge_messages(r)
+
         MessageLog.objects.create(
             status='IN_PROGRESS',
             uuid='2c2eef00-689f-4478-ba59-2d17d1fcb23f',
             task='some.invalid.task',
 
         )
-        self.assertEqual(r.status, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED']).count(), 0)
 
