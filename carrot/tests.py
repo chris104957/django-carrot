@@ -259,9 +259,11 @@ class CarrotTestCase(TestCase):
             status='IN_PROGRESS',
             uuid='2c2eef00-689f-4478-ba59-2d17d1fcb23f',
             task='some.invalid.task',
-
         )
-        purge_queue()
+
+        with mock.patch('pika.BlockingConnection', new_callable=mock_connection):
+            purge_queue()
+
         with self.assertRaises(ObjectDoesNotExist):
             MessageLog.objects.get(uuid='2c2eef00-689f-4478-ba59-2d17d1fcb23f')
 
