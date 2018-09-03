@@ -6,10 +6,10 @@ before_install:
   - git clone https://github.com/chris104957/django-carrot.git -b $TRAVIS_BRANCH
   - cd django-carrot
   - pip install -r requirements.txt
-  - pip install django==$DJANGO_VERSION
 install:
   - python setup.py sdist
   - pip install --upgrade dist/*.gz
+  - pip install django==$DJANGO_VERSION
 script:
   - coverage run run_tests.py
 after_success:

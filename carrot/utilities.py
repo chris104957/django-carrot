@@ -282,5 +282,24 @@ def decorate_function_view(view, decorators=None):
 
 
 def purge_queue():
+    """
+    Deletes all MessageLog objects with status `IN_PROGRESS` or `PUBLISHED` add iterate through and purge all RabbitMQ
+    queues
+    """
     queued_messages = MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED'])
     queued_messages.delete()
+
+    try:
+        carrot_settings = settings.CARROT
+    except AttributeError:
+        carrot_settings = {
+            'default_broker': DEFAULT_BROKER,
+        }
+
+    queues = carrot_settings.get('queues', [{'name': 'default', 'host': DEFAULT_BROKER}])
+    for queue in queues:
+        host = VirtualHost(**queue.host)
+        connection = host.blocking_connection
+        connection.queue_purge(queue=queue['name'])
+
+
