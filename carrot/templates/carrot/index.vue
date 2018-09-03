@@ -321,6 +321,10 @@
                       </tr>
                   </template>
                 </v-data-table>
+                  <v-card-actions v-if="tabs === 'tab-queued'">
+                    <v-spacer></v-spacer>
+                    <v-btn flat text class="error" @click="purgeAll"><v-icon left>close</v-icon>Purge queue</v-btn>
+                  </v-card-actions>
                   <v-card-actions v-if="tabs === 'tab-failed'">
                       <v-spacer></v-spacer>
                       <v-btn flat text class="error" @click="deleteAll"><v-icon left>close</v-icon>Delete all</v-btn>
@@ -394,6 +398,15 @@
         },
         async requeueOne ({ commit }, id ) {
             await axios.put('/carrot/api/message-logs/' + id + '/', {},
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+        },
+        async purgeAll ({ commit }) {
+            await axios.get('/carrot/api/message-logs/purge/',
                 {
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'

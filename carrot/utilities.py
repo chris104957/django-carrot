@@ -11,10 +11,11 @@ import json
 import importlib
 from django.conf import settings
 from carrot.objects import VirtualHost, Message
-from carrot.models import ScheduledTask
+from carrot.models import ScheduledTask, MessageLog
 from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
 from carrot.exceptions import CarrotConfigException
+from django.db.utils import IntegrityError
 
 
 def get_host_from_name(name):
@@ -30,11 +31,23 @@ def get_host_from_name(name):
     :rtype: :class:`carrot.objects.VirtualHost`
 
     """
+    try:
+        carrot_settings = settings.CARROT
+    except AttributeError:
+        carrot_settings = {
+            'default_broker': DEFAULT_BROKER,
+            'queues': [
+                {
+                    'name': 'default',
+                    'host': DEFAULT_BROKER
+                }
+            ]
+        }
 
     try:
         if not name:
             try:
-                conf = settings.CARROT.get('default_broker', {})
+                conf = carrot_settings.get('default_broker', {})
             except AttributeError:
                 conf = {}
 
@@ -45,7 +58,7 @@ def get_host_from_name(name):
 
             return VirtualHost(**conf)
 
-        queues = settings.CARROT.get('queues', [])
+        queues = carrot_settings.get('queues', [])
         queue_host = list(filter(lambda queue: queue['name'] == name, queues))[0]['host']
         try:
             vhost = VirtualHost(**queue_host)
@@ -165,15 +178,20 @@ def create_scheduled_task(task, interval, task_name=None, queue=None, **kwargs):
 
     type, count = list(*interval.items())
 
-    t = ScheduledTask.objects.create(
-        queue=queue,
-        task_name=task_name,
-        interval_type=type,
-        interval_count=count,
-        routing_key=queue,
-        task=task,
-        content=json.dumps(kwargs or '{}'),
-    )
+    try:
+        t = ScheduledTask.objects.create(
+            queue=queue,
+            task_name=task_name,
+            interval_type=type,
+            interval_count=count,
+            routing_key=queue,
+            task=task,
+            content=json.dumps(kwargs or '{}'),
+        )
+    except IntegrityError:
+        raise IntegrityError('A ScheduledTask with this task_name already exists. Please specific a unique name using '
+                             'the task_name parameter')
+
     return t
 
 
@@ -261,3 +279,8 @@ def decorate_function_view(view, decorators=None):
         view = create_function_view(view, _decorator)
 
     return view
+
+
+def purge_queue():
+    queued_messages = MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED'])
+    queued_messages.delete()
