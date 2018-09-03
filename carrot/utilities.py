@@ -303,7 +303,7 @@ def purge_queue():
         else:
             filters = queue['host']
         host = VirtualHost(**filters)
-        connection = host.blocking_connection
-        connection.queue_purge(queue=queue['name'])
+        channel = host.blocking_connection.channel()
+        channel.queue_purge(queue=queue['name'])
 
 
