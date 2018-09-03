@@ -8,15 +8,14 @@ Most users should use the functions defined in this module, rather than attempti
 
 
 import json
-from json2html.jsonconv import Json2Html
 import importlib
 from django.conf import settings
 from carrot.objects import VirtualHost, Message
-from carrot.models import ScheduledTask
-from carrot.consumer import ConsumerSet
+from carrot.models import ScheduledTask, MessageLog
 from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
 from carrot.exceptions import CarrotConfigException
+from django.db.utils import IntegrityError
 
 
 def get_host_from_name(name):
@@ -32,11 +31,23 @@ def get_host_from_name(name):
     :rtype: :class:`carrot.objects.VirtualHost`
 
     """
+    try:
+        carrot_settings = settings.CARROT
+    except AttributeError:
+        carrot_settings = {
+            'default_broker': DEFAULT_BROKER,
+            'queues': [
+                {
+                    'name': 'default',
+                    'host': DEFAULT_BROKER
+                }
+            ]
+        }
 
     try:
         if not name:
             try:
-                conf = settings.CARROT.get('default_broker', {})
+                conf = carrot_settings.get('default_broker', {})
             except AttributeError:
                 conf = {}
 
@@ -47,7 +58,7 @@ def get_host_from_name(name):
 
             return VirtualHost(**conf)
 
-        queues = settings.CARROT.get('queues', [])
+        queues = carrot_settings.get('queues', [])
         queue_host = list(filter(lambda queue: queue['name'] == name, queues))[0]['host']
         try:
             vhost = VirtualHost(**queue_host)
@@ -141,18 +152,21 @@ def publish_message(task, *task_args, priority=0, queue=None, exchange='', routi
     return msg.publish()
 
 
-def create_scheduled_task(task, interval, queue=None, **kwargs):
+def create_scheduled_task(task, interval, task_name=None, queue=None, **kwargs):
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
 
     :param task: a callable, or a valid path to one as a string
     :type task: str or callable
     :param dict interval: the interval at which to publish the message, as a dict, e.g.: {'seconds': 5}
+    :param task_name: a unique task name. If not provided, defaults to the same value as task
     :param str queue: the name of the queue to publish the message to.
     :param kwargs: the keyword arguments to be passed to the function when it is executed
     :rtype: :class:`carrot.models.ScheduledTask`
-
     """
+
+    if not task_name:
+        task_name = task
 
     task = validate_task(task)
 
@@ -164,14 +178,20 @@ def create_scheduled_task(task, interval, queue=None, **kwargs):
 
     type, count = list(*interval.items())
 
-    t = ScheduledTask.objects.create(
-        queue=queue,
-        interval_type=type,
-        interval_count=count,
-        routing_key=queue,
-        task=task,
-        content=json.dumps(kwargs or '{}'),
-    )
+    try:
+        t = ScheduledTask.objects.create(
+            queue=queue,
+            task_name=task_name,
+            interval_type=type,
+            interval_count=count,
+            routing_key=queue,
+            task=task,
+            content=json.dumps(kwargs or '{}'),
+        )
+    except IntegrityError:
+        raise IntegrityError('A ScheduledTask with this task_name already exists. Please specific a unique name using '
+                             'the task_name parameter')
+
     return t
 
 
@@ -259,3 +279,31 @@ def decorate_function_view(view, decorators=None):
         view = create_function_view(view, _decorator)
 
     return view
+
+
+def purge_queue():
+    """
+    Deletes all MessageLog objects with status `IN_PROGRESS` or `PUBLISHED` add iterate through and purge all RabbitMQ
+    queues
+    """
+    queued_messages = MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED'])
+    queued_messages.delete()
+
+    try:
+        carrot_settings = settings.CARROT
+    except AttributeError:
+        carrot_settings = {
+            'default_broker': DEFAULT_BROKER,
+        }
+
+    queues = carrot_settings.get('queues', [{'name': 'default', 'host': DEFAULT_BROKER}])
+    for queue in queues:
+        if type(queue['host']) is str:
+            filters = {'url': queue['host']}
+        else:
+            filters = queue['host']
+        host = VirtualHost(**filters)
+        channel = host.blocking_connection.channel()
+        channel.queue_purge(queue=queue['name'])
+
+

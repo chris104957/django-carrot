@@ -5,6 +5,7 @@ from inspect import getmembers, isfunction
 from django.conf import settings
 from rest_framework import viewsets, serializers, fields, pagination, response
 from carrot.models import MessageLog, ScheduledTask
+from carrot.utilities import purge_queue
 
 
 class MessageLogSerializer(serializers.ModelSerializer):
@@ -43,8 +44,13 @@ class PublishedMessageLogViewSet(MessageLogViewset):
 
     queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], id__isnull=False)
 
+    def purge(self, request, *args, **kwargs):
+        purge_queue()
+        return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
+
 
 published_message_log_viewset = PublishedMessageLogViewSet.as_view({'get': 'list'})
+purge_messages = PublishedMessageLogViewSet.as_view({'get': 'purge'})
 
 
 class FailedMessageLogViewSet(MessageLogViewset):
@@ -244,3 +250,6 @@ scheduled_task_detail = ScheduledTaskViewset.as_view({'get': 'retrieve', 'patch'
 task_list = ScheduledTaskViewset.as_view({'get': 'get_task_choices'})
 validate_args = ScheduledTaskViewset.as_view({'post': 'validate_args'})
 run_scheduled_task = ScheduledTaskViewset.as_view({'get': 'run'})
+
+
+
