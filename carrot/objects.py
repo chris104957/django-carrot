@@ -6,7 +6,6 @@ import logging
 import importlib
 
 
-
 class VirtualHost(object):
     """
     A RabbitMQ virtual host. Takes the following parameters:

@@ -11,8 +11,8 @@ from carrot.api import (failed_message_log_viewset, detail_message_log_viewset, 
                         scheduled_task_viewset, task_list, validate_args, run_scheduled_task)
 
 from carrot.utilities import (get_host_from_name, validate_task, create_scheduled_task, decorate_class_view,
-                              decorate_function_view)
-
+                              decorate_function_view, purge_queue)
+from django.core.exceptions import ObjectDoesNotExist
 from carrot.views import MessageList
 
 logger = logging.getLogger('carrot')
@@ -253,3 +253,19 @@ class CarrotTestCase(TestCase):
         decorate_class_view(MessageList)
 
         decorate_function_view(failed_message_log_viewset, ['django.contrib.auth.decorators.login_required'])
+
+    def test_purge(self):
+        MessageLog.objects.create(
+            status='IN_PROGRESS',
+            uuid='2c2eef00-689f-4478-ba59-2d17d1fcb23f',
+            task='some.invalid.task',
+        )
+
+        with mock.patch('pika.BlockingConnection', new_callable=mock_connection):
+            purge_queue()
+
+        with self.assertRaises(ObjectDoesNotExist):
+            MessageLog.objects.get(uuid='2c2eef00-689f-4478-ba59-2d17d1fcb23f')
+
+        self.assertEqual(MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED']).count(), 0)
+

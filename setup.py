@@ -10,10 +10,18 @@ def readme():
 
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+if os.environ.get('TRAVIS_BRANCH') == 'develop':
+    name = 'django-carrot-dev'
+    version = os.environ.get('TRAVIS_BUILD_NUMBER')
+
+else:
+    name = 'django-carrot'
+    version = __version__
+
 
 setup(
-    name='django-carrot%s' % ('' if os.environ.get('TRAVIS_TAG') else '-dev'),
-    version=__version__,
+    name=name,
+    version=version,
     packages=find_packages(),
     include_package_data=True,
     license='Apache Software License',
