@@ -639,7 +639,7 @@
             this.selectedMessageLog = null
             this.displayMessageLog = false
         },
-        async PurgeAll () {
+        async purgeAll () {
             await this.$store.dispatch('purgeAll')
             await this.updateTasks()
         },
