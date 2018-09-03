@@ -50,7 +50,7 @@ class PublishedMessageLogViewSet(MessageLogViewset):
 
 
 published_message_log_viewset = PublishedMessageLogViewSet.as_view({'get': 'list'})
-purge_messages = PublishedMessageLogViewSet.as_view({'get_purge'})
+purge_messages = PublishedMessageLogViewSet.as_view({'get': 'purge'})
 
 
 class FailedMessageLogViewSet(MessageLogViewset):
