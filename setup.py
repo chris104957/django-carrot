@@ -30,6 +30,12 @@ setup(
     author='Christopher Davies',
     author_email='christopherdavies553@gmail.com',
     url='https://www.django-carrot.com',
+    home_page='https://github.com/chris104957/django-carrot',
+    project_urls={
+        'Documentation': 'https://www.django-carrot.com',
+        'Source': 'https://github.com/chris104957/django-carrot',
+    },
+
     classifiers=[
         'Environment :: Web Environment',
         'Development Status :: 5 - Production/Stable',
