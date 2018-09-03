@@ -14,11 +14,10 @@ def add_task_name(apps, schema_editor):
     ScheduledTask = apps.get_model("carrot", "ScheduledTask")
     db_alias = schema_editor.connection.alias
 
-    for index, t in ScheduledTask.objects.using(db_alias):
-        task_name = t.task
-        others = ScheduledTask.objects.using(db_alias).filter(task=task_name).exclude(pk=t.pk)
-        if others:
-            task_name = '%s-%i' % (task_name, index + 1)
+    index = 0
+    for t in ScheduledTask.objects.using(db_alias).filter(task_name=''):
+        index += 1
+        task_name = '%s-%i' % (t.task, index)
         t.task_name = task_name
         t.save()
 
