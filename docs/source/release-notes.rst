@@ -1,6 +1,12 @@
 release notes
 =============
 
+1.3.0
+-----
+- `Issue #96: Add purge button to the monitor <https://github.com/chris104957/django-carrot/issues/96>`_
+- `Issue #95: Adding validation to create_scheduled_task <https://github.com/chris104957/django-carrot/issues/95>`_
+- `Issue #95: Fixing versioning issues <https://github.com/chris104957/django-carrot/issues/95>`_
+
 1.2.2
 -----
 - `Issue #91: task_name missing in create_scheduled_task <https://github.com/chris104957/django-carrot/issues/91>`_
