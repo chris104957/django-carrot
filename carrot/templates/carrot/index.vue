@@ -639,6 +639,10 @@
             this.selectedMessageLog = null
             this.displayMessageLog = false
         },
+        async PurgeAll () {
+            await this.$store.dispatch('purgeAll')
+            await this.updateTasks()
+        },
         async requeueAll () {
             await this.$store.dispatch('requeueAll')
             await this.updateTasks()
