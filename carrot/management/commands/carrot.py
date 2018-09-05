@@ -173,8 +173,10 @@ class Command(BaseCommand):
 
                 if self.scheduler or options['testmode']:
                     new_qs = ScheduledTask.objects.filter(active=True)
+                    active_pks = {st.pk for st in new_qs}
+                    newly_added = set(self.pks) - active_pks
 
-                    if new_qs.count() > len(self.pks):
+                    if new_qs.count() > len(self.pks) or newly_added:
                         print('New active scheduled tasks have been added to the queryset')
                         new_tasks = new_qs.exclude(pk__in=self.pks) or [ScheduledTask()]
                         for new_task in new_tasks:
