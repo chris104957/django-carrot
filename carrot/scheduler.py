@@ -14,7 +14,7 @@ class ScheduledTaskThread(threading.Thread):
     and response accordingly
 
     :param carrot.models.ScheduledTask scheduled_task: the scheduled task to be published periodically
-    :param bool run_now: whether or not to run the task before waiting for the first interval
+    :param bool run_now: whether or not to r gun the task before waiting for the first interval
     :param dict filters: for limiting the queryset of ScheduledTasks for montoring (defaults to `active=True`)
 
     """

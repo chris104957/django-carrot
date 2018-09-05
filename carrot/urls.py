@@ -20,6 +20,7 @@ def _(v, **kwargs):
 def _f(v):
     return decorate_function_view(v, decorators)
 
+
 urlpatterns = [
     url(r'^$', _(MessageList), name='carrot-monitor'),
     url(r'^api/message-logs/published/$', _f(published_message_log_viewset), name='published-messagelog'),
