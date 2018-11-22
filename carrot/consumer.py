@@ -271,6 +271,7 @@ class Consumer(threading.Thread):
         """
         self.logger.info('Starting consumer %s' % self.name)
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
+        self.channel.basic_qos(prefetch_count=1)
         self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue)
 
     def on_consumer_cancelled(self, method_frame):
