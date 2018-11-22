@@ -76,6 +76,9 @@ class Connection(object):
     def add_on_close_callback(self, callback):
         return
 
+    def basic_qos(self, **kwargs):
+        return
+
     @property
     def on_channel_open(self):
         return
