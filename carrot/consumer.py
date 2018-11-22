@@ -512,8 +512,9 @@ class ConsumerSet(object):
         self.logger = logger
         self.host = host
         self.connection = host.blocking_connection
+        self.connection.basic_qos(prefetch_count=concurrency)
         self.channel = self.connection.channel()
-        self.channel.basic_qos(prefetch_count=concurrency)
+
         self.queue = queue
 
         self.concurrency = concurrency
