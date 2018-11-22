@@ -27,7 +27,7 @@ class Channel(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def basic_qos(self, **kwargs):
+    def basic_qos(**kwargs):
         return
 
     def queue_purge(self, queue=''):
