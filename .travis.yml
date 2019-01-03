@@ -26,8 +26,7 @@ deploy:
       condition: $DJANGO_VERSION = "2.0"
   - provider: pypi
     user: "christopherdavies553@gmail.com"
-    password:
-      secure: De9ca3UONccSHwIIeNU1BaOIA49zzkVQ/ohbpkEo7xfmovRyXBuv1S4jZFOsR8/qMiUOMaBmnJT7j5qXilomlnALwq4ginkQdvMWTI/BS0f8jZQvq+WFCw2UAVQHKfJsfsUXBFpWiW97LUEijmfsr9VbM4HYch38xrfaWcI2uZECY8BIV/mA9inDOePcQnj3sCdnukG5whe4QIjG0rsaZGCpRzYt06TJjho/n6aBInDbXDBIn0y6utUZPgayWQFzKxB4ULYi6MG/JSuy+tp6ZL3z3EPJ1jTRywfh8+7AJYpMeG8020iBD4wMuB2mCt1gzkE9ZKf+DnYgAHKVMkxvr60OQ/Lukq1etezedWFgG/qQeRP+Xc9qYM7TY0/kBoPSjZhVZXp/7PTlFGAFP8UW7cUpUYTdDw6u3Dl911HX7Aon4WaZPUIoFSBi6uGXqcJySfijQcnkWGGI8kR5kxog6YikoBxfuHo3fUASFIYB+LHir14UPcItsLGfM4sWgQsP6r5rpp3oq4ffPM/cF0C/RavdPzM1wJCkc9T1ImV5hlX0ny1yyLmz9Q2lwhXuljaJmR2dGL8P9UYkMoEkjl25+EZEUO+xI0GQ4TvAl11LKOUoFLKg/0K/49tvtoZQltTAtu0RnMadnZBJYmqdLLHUiTKC7JP6XkUpGSGtoGnkV3U=
+    password: $PACKAGR_PASSWORD
     server: https://api.packagr.app/63cdQSDO/
     on:
       branch: develop
