@@ -3,19 +3,21 @@ This module provides a backend API for creating Consumers and Consumer Sets
 
 """
 
-import json
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
+from django.db.utils import OperationalError
+from django.conf import settings
+
 from carrot.models import MessageLog
+from carrot.objects import DefaultMessageSerializer, VirtualHost
+
+import json
 import traceback
 import threading
 import logging
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 import importlib
-from carrot.objects import DefaultMessageSerializer
-from django.db.utils import OperationalError
 import pika
 import time
-from django.conf import settings
 
 
 LOGGING_FORMAT = '%(threadName)-10s %(asctime)-10s %(levelname)s:: %(message)s'
@@ -37,7 +39,8 @@ class Consumer(threading.Thread):
     remaining_save_attempts = 10
     get_message_attempts = 50
 
-    def __init__(self, host, queue, logger, name, durable=True, queue_arguments=None, exchange_arguments=None):
+    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, name: str, durable: bool=True,
+                 queue_arguments: dict=None, exchange_arguments: dict=None):
         """
         :param host: the host the queue to consume from is attached to
         :type host: :class:`carrot.objects.VirtualHost`
@@ -70,15 +73,15 @@ class Consumer(threading.Thread):
         self.exchange_arguments = exchange_arguments
         self.durable = durable
 
-    def add_failure_callback(self, cb):
+    def add_failure_callback(self, cb: function) -> None:
+        """
+        Registers a callback that gets called when there is any kind of error with the `.consume()` method
+        """
         self.failure_callbacks.append(cb)
 
-    def fail(self, log, err):
+    def fail(self, log: MessageLog, err: str) -> None:
         """
-        This function is called if there is any kind of error with the `.consume()` function
-
-        :param MessageLog log: the associated MessageLog object
-        :param str err: the exception
+        This function is called whenever there is a failure executing a specific `MessageLog` object
 
         The exception message is logged, and the MessageLog is updated with the result
 
@@ -89,8 +92,8 @@ class Consumer(threading.Thread):
             try:
                 cb(log, err)
                 self.task_log.append('Failure callback %s succeeded' % str(cb))
-            except Exception as err:
-                self.task_log.append('Failure callback %s failed due to an error: %s' % (str(cb), err))
+            except Exception as error:
+                self.task_log.append('Failure callback %s failed due to an error: %s' % (str(cb), error))
 
         if log.pk:
             if self.task_log:
@@ -102,19 +105,17 @@ class Consumer(threading.Thread):
             log.traceback = traceback.format_exc()
             log.save()
 
-    def get_task_type(self, properties, body):
+    def get_task_type(self, properties: pika.spec.BasicProperties, body: bytes) -> str:
         """
         Identifies the task type, by looking up the attribute **self.task_type** in the message properties
 
-        :param properties: the message properties
-        :param body: the message body. Not used by default, but provided so that the method can be extended if necessary
-
-        :return: The task type as a string, e.g. *myapp.mymodule.mytask*
+        The parameter `body` is not used here - However, it is included as in some cases it is useful when extending
+        the `Consumer` class
 
         """
         return properties[self.serializer.type_header]
 
-    def __get_message_log(self, properties, body):
+    def __get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> MessageLog:
         for i in range(0, self.get_message_attempts):
             log = self.get_message_log(properties, body)
 
@@ -122,9 +123,9 @@ class Consumer(threading.Thread):
                 return log
             time.sleep(0.1)
 
-    def get_message_log(self, properties, body):
+    def get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> MessageLog or None:
         """
-        Finds and returns the :class:`carrot.models.MessageLog` object associated with a RabbitMQ message
+        Finds a MessageLog based on the content of the RabbitMQ message
 
         By default, carrot finds this retrieving the MessageLog UUID from the RabbitMQ message properties.message_id
         attribute.
@@ -133,13 +134,9 @@ class Consumer(threading.Thread):
         queue containing messages that do not come from your Carrot instance, you may want to extend this method to
         create, instead of get, a MessageLog object
 
-        :param properties: the message properties
-        :param body: the message body. This is not used by default, but is included so that the function can be
-                     extended in custom consumers.
+        The `body` parameter is not used here but is included in as in some cases it is useful for customer `Consumer`
+        objects
 
-        :rtype: class:`carrot.models.MessageLog` or None
-
-        In order to avoid different consumers picking up the same message, MessageLogs are only
         .. note::
             This method does not use self.get_task_type as the intention is to get the MessageLog object before the
             **consume** method tries to do anything else. This means that if any later part of the process fails,
@@ -160,30 +157,26 @@ class Consumer(threading.Thread):
         if log.status == 'PUBLISHED':
             return log
 
-    def connect(self):
+    def connect(self) -> pika.SelectConnection:
         """
         Connects to the broker
-
-        :rtype: pika.SelectConnection
-
         """
         self.logger.info('Connecting to %s', self._url)
         return pika.SelectConnection(pika.URLParameters(self._url), self.on_connection_open, stop_ioloop_on_close=False)
 
-    def on_connection_open(self, connection):
+    def on_connection_open(self, connection: pika.SelectConnection) -> None:
         """
         Callback that gets called when the connection is opened. Adds callback in case of a closed connection, and
         establishes the connection channel
 
-        :param connection: Sent by default by pika but not used by carrot
-        :type connection: pika.SelectConnection
-
+        The `connection` parameter here is not used, as `self.connection` is defined elsewhere, but is included so that
+        the signature matches as per Pika's requirements
         """
         self.logger.info('Connection opened')
         self.connection.add_on_close_callback(self.on_connection_closed)
         self.connection.channel(on_open_callback=self.on_channel_open)
 
-    def on_connection_closed(self, *args):
+    def on_connection_closed(self, *args) -> None:
         """
         Callback that gets called when the connection is closed. Checks for the self.shutdown_requested parameter first,
         which is used to idenfity whether the shutdown has been requested by the user or not. If not, carrot attempts to
@@ -201,7 +194,7 @@ class Consumer(threading.Thread):
             self.logger.warning('Connection closed unexpectedly. Trying again in %i seconds' % self.reconnect_timeout)
             self.connection.add_timeout(self.reconnect_timeout, self.reconnect)
 
-    def reconnect(self):
+    def reconnect(self) -> None:
         """
         Reconnect to the broker in case of accidental disconnection
         """
@@ -211,24 +204,21 @@ class Consumer(threading.Thread):
             self.connection = self.connect()
             self.connection.ioloop.start()
 
-    def on_channel_open(self, channel):
+    def on_channel_open(self, channel: pika.channel.Channel) -> None:
         """
         This function is invoked when the channel is established. It adds a callback in case of channel closure, and
         establishes the exchange
-
-        :param pika.channel.Channel channel: The channel object
-
         """
         self.logger.info('Channel opened')
         self.channel = channel
         self.channel.add_on_close_callback(self.on_channel_closed)
         self.channel.exchange_declare(self.on_exchange_declare, self.exchange, **self.exchange_arguments)
 
-    def on_channel_closed(self, channel, reply_code, reply_text):
+    def on_channel_closed(self, channel: pika.channel.Channel, reply_code: int, reply_text: str) -> None:
         """
         Called when the channel is closed. Raises a warning and closes the connection
 
-        Parameters are provided by Pika but not required by Carrot
+        Parameters are require to match the signature used by Pika but are not required by Carrot
         """
         if not self.shutdown_requested:
             self.logger.warning('Consumer %s not running: %s' % (self.name, reply_text))
@@ -238,65 +228,59 @@ class Consumer(threading.Thread):
 
         self.connection.close()
 
-    def on_exchange_declare(self, *args):
+    def on_exchange_declare(self, *args) -> None:
         """
         Invoked when the exchange has been successfully established
 
-        Parameters are provided by Pika but not required by Carrot
+        Parameters are require to match the signature used by Pika but are not required by Carrot
         """
         self.logger.info('Exchange declared')
         self.channel.queue_declare(self.on_queue_declare, self.queue, durable=self.durable,
                                    arguments=self.queue_arguments)
 
-    def on_queue_declare(self, *args):
+    def on_queue_declare(self, *args) -> None:
         """
         Invoked when the queue has been successfully declared
 
-        Parameters are provided by Pika but not required by Carrot
+        Parameters are require to match the signature used by Pika but are not required by Carrot
         """
         self.channel.queue_bind(self.on_bind, self.queue, self.exchange)
 
-    def on_bind(self, *args):
+    def on_bind(self, *args) -> None:
         """
         Invoked when the queue has been successfully bound to the exchange
 
-        Parameters are provided by Pika but not required by Carrot
+        Parameters are require to match the signature used by Pika but are not required by Carrot
         """
         self.logger.info('Queue bound')
         self.start_consuming()
 
-    def start_consuming(self):
+    def start_consuming(self) -> None:
         """
-        The main consumer process. Attaches a callback to be invoked whenever there is a new message added to the queue
+        The main consumer process. Attaches a callback to be invoked whenever there is a new message added to the queue.
+
+        This method sets a channel prefetch count of zero to prevent dropouts
         """
         self.logger.info('Starting consumer %s' % self.name)
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
         self.channel.basic_qos(prefetch_count=1)
         self._consumer_tag = self.channel.basic_consume(self.on_message, self.queue)
 
-    def on_consumer_cancelled(self, method_frame):
+    def on_consumer_cancelled(self, method_frame: pika.frame.Method) -> None:
         """
         Invoked by pika when RabbitMQ sends a Basic.Cancel for a consumer receiving messages.
-
-        :param pika.frame.Method method_frame: The Basic.Cancel frame
 
         """
         self.logger.warning('Consumer was cancelled remotely, shutting down: %r', method_frame)
         if self.channel:
             self.channel.close()
 
-    def on_message(self, channel, method_frame, properties, body):
+    def on_message(self, channel: pika.channel.Channel, method_frame: pika.frame.Method,
+                   properties: pika.BasicProperties, body: bytes) -> None:
         """
         The process that takes a single message from RabbitMQ, converts it into a python executable and runs it,
         logging the output back to the assoicated :class:`carrot.models.MessageLog`
 
-        :param channel: not used
-        :type channel: pika.channel.Channel
-        :param method_frame: contains the delivery tag
-        :type method_frame: pika.Spec.Basic.Deliver
-        :param properties: the message properties
-        :type properties: pika.Spec.BasicProperties
-        :param bytes body: The message body
         """
         self.channel.basic_ack(method_frame.delivery_tag)
         log = self.__get_message_log(properties, body)
@@ -314,7 +298,6 @@ class Consumer(threading.Thread):
         except KeyError as err:
             self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s' %
                       err)
-            return
 
         self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
 
@@ -322,14 +305,12 @@ class Consumer(threading.Thread):
             func = self.serializer.get_task(properties, body)
         except (ValueError, ImportError, AttributeError) as err:
             self.fail(log, err)
-            return
 
         try:
             args, kwargs = self.serializer.serialize_arguments(body.decode())
 
         except Exception as err:
             self.fail(log, 'Unable to process the message due to an error collecting the task arguments: %s' % err)
-            return
 
         start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
                                                               timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
@@ -386,7 +367,7 @@ class Consumer(threading.Thread):
             self.task_log.append(task.get_logs())
             self.fail(log, str(err))
 
-    def stop_consuming(self):
+    def stop_consuming(self) -> None:
         """
         Stops the consumer and cancels the channel
         """
@@ -395,24 +376,23 @@ class Consumer(threading.Thread):
             self.logger.warning('Shutdown received. Cancelling the channel')
             self.channel.basic_cancel(self.on_cancel, self._consumer_tag)
 
-    def on_cancel(self, *args):
+    def on_cancel(self, *args) -> None:
         """
         Invoked when the channel cancel is completed.
 
         Parameters provided by Pika but not required by Carrot
-
         """
         self.logger.info('Closing the channel')
         self.channel.close()
 
-    def run(self):
+    def run(self) -> None:
         """
         Process starts here
         """
         self.connection = self.connect()
         self.connection.ioloop.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Cleanly exit the Consumer
         """
@@ -425,7 +405,7 @@ class Consumer(threading.Thread):
         else:
             self.logger.warning('Not running!')
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         """This method closes the connection to RabbitMQ."""
         self.logger.info('Closing connection')
         self.connection.close()
@@ -439,17 +419,17 @@ class ListHandler(logging.Handler):
     Allows for task-specific logging
 
     """
-    def __init__(self, thread_name, level):
+    def __init__(self, thread_name: str, level: str):
         self.output = []
         self.thread_name = thread_name
         super(ListHandler, self).__init__(level)
 
-    def emit(self, record):
+    def emit(self, record: str):
         msg = self.format(record)
         if msg.startswith(self.thread_name):
             self.output.append(msg)
 
-    def parse_output(self):
+    def parse_output(self) -> str:
         return '\n'.join([str(line) for line in self.output])
 
 
@@ -457,7 +437,7 @@ class LoggingTask(object):
     """
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
-    def __init__(self, task, logger, thread_name, *args, **kwargs):
+    def __init__(self, task: function, logger: logging.Logger, thread_name: str, *args, **kwargs):
         self.task = task
         self.args = args
         self.kwargs = kwargs
@@ -474,11 +454,11 @@ class LoggingTask(object):
 
         self._keep_alive = None
 
-    def run(self):
+    def run(self) -> None:
         output = self.task(*self.args, **self.kwargs)
         return output
 
-    def get_logs(self):
+    def get_logs(self) -> None or logging.Handler:
         try:
             self.logger.removeHandler(self.stream_handler)
             return self.stream_handler.parse_output()
@@ -488,28 +468,24 @@ class LoggingTask(object):
 
 class ConsumerSet(object):
     """
-    Creates and starts a number of :class:`.Consumer` objects. All consumers must belong to the same queue
-
-    :param host: The virtual host where the queue belongs
-    :param queue: The queue name
-    :param concurrency: the number of consumers to create. Defaults to 1
-    :param name: the name to assign to the individual consumers. Will be rendered as *Consumer-1, Consumer-2,* etc.
-    :param logfile: the path to the log file. Defaults to carrot.log
-    :param loglevel: the logging level. Defaults to logging.DEBUG
-
+    Creates and starts 1 or more `.Consumer` objects. All consumers must belong to the same queue
     """
     durable = True
     queue_arguments = {'x-max-priority': 255}
     exchange_arguments = {}
 
     @staticmethod
-    def get_consumer_class(consumer_class):
+    def get_consumer_class(consumer_class: str) -> Consumer.__class__:
+        """
+        Returns a `Consumer` object from a string using dynamic imports
+        """
         module = '.'.join(consumer_class.split('.')[:-1])
         _cls = consumer_class.split('.')[-1]
         mod = importlib.import_module(module)
         return getattr(mod, _cls)
 
-    def __init__(self, host, queue, logger, concurrency=1, name='consumer', consumer_class='carrot.consumer.Consumer'):
+    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, concurrency: int=1, name: str='consumer',
+                 consumer_class: str='carrot.consumer.Consumer'):
         self.logger = logger
         self.host = host
         self.connection = host.blocking_connection
@@ -537,7 +513,7 @@ class ConsumerSet(object):
             if q_settings.get('exchange_arguments', None):
                 self.exchange_arguments = q_settings['exchange_arguments']
 
-    def stop_consuming(self):
+    def stop_consuming(self) -> None:
         """
         Stops all running threads. Loops through the threads twice - firstly, to set the signal to **False** on all
         threads, secondly to wait for them all to finish
@@ -554,7 +530,7 @@ class ConsumerSet(object):
             t.join()
             print('Closed consumer %s' % t)
 
-    def start_consuming(self):
+    def start_consuming(self) -> None:
         """
         Creates a thread for each concurrency level, e.g. if concurrency is set to 5, 5 threads are created.
 

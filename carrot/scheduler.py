@@ -12,15 +12,10 @@ class ScheduledTaskThread(threading.Thread):
     While waiting for the task to be due for publication, the process continuously monitors the object in the Django
     project's database for changes to the interval, task, or arguments, or in case it gets deleted/marked as inactive
     and response accordingly
-
-    :param carrot.models.ScheduledTask scheduled_task: the scheduled task to be published periodically
-    :param bool run_now: whether or not to r gun the task before waiting for the first interval
-    :param dict filters: for limiting the queryset of ScheduledTasks for montoring (defaults to `active=True`)
-
     """
-    def __init__(self, scheduled_task, run_now=False, **filters):
+    def __init__(self, scheduled_task: ScheduledTask, run_now: bool=False, **filters):
         threading.Thread.__init__(self)
-        self.id = scheduled_task.id
+        self.id = scheduled_task.pk
         self.queue = scheduled_task.routing_key
         self.scheduled_task = scheduled_task
         self.run_now = run_now
@@ -28,7 +23,12 @@ class ScheduledTaskThread(threading.Thread):
         self.filters = filters
         self.inactive_reason = ''
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Initiates a timer, then once the timer is equal to the ScheduledTask's interval, the scheduler
+        checks to make sure that the task has not been deactivated/deleted in the mean time, and that the manager
+        has not been stopped, then publishes it to  the queue
+        """
         interval = self.scheduled_task.multiplier * self.scheduled_task.interval_count
 
         count = 0
@@ -75,7 +75,10 @@ class ScheduledTaskManager(object):
         self.run_now = options.pop('run_now', False)
         self.tasks = ScheduledTask.objects.filter(**self.filters)
 
-    def start(self):
+    def start(self) -> None:
+        """
+        Initiates and starts a scheduler for each given ScheduledTask
+        """
         print('found %i scheduled tasks to run' % self.tasks.count())
         for t in self.tasks:
             print('starting thread for task %s' % t.task)
@@ -83,12 +86,19 @@ class ScheduledTaskManager(object):
             thread.start()
             self.threads.append(thread)
 
-    def add_task(self, task):
+    def add_task(self, task: ScheduledTask) -> None:
+        """
+        After the manager has been started, this function can be used to add an additional ScheduledTask starts a
+        scheduler for it
+        """
         thread = ScheduledTaskThread(task, self.run_now, **self.filters)
         thread.start()
         self.threads.append(thread)
 
     def stop(self):
+        """
+        Safely stop the manager
+        """
         print('Attempting to stop %i running threads' % len(self.threads))
 
         for t in self.threads:

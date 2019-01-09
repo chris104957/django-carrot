@@ -4,22 +4,16 @@ import pika
 from django.utils import timezone
 import logging
 import importlib
+from typing import Tuple
+from carrot.models import MessageLog
 
 
 class VirtualHost(object):
     """
-    A RabbitMQ virtual host. Takes the following parameters:
-
-    :param str host: The url to the host, e.g. 192.168.0.1 or *localhost*
-    :param str name: The virtual host name, eg "myvirtualhost"
-    :param int port: defaults to 5672
-    :param str username: RabbitMQ username
-    :param str password: RabbitMQ password
-    :param bool secure: Whether or not to use SSL. Defaults to False
-
+    A RabbitMQ virtual host
     """
-    def __init__(self, url=None, host='localhost', name='%2f', port=5672, username='guest', password='guest',
-                 secure=False):
+    def __init__(self, url: str=None, host: str='localhost', name: str='%2f', port: int=5672, username: str='guest',
+                 password: str='guest', secure: bool=False):
 
         self.secure = secure
         if not url:
@@ -58,18 +52,16 @@ class VirtualHost(object):
             if not self.name:
                 self.name = '%2f'
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns the broker url
         """
         return 'amqp://%s:%s@%s:%s/%s' % (self.username, self.password, self.host, self.port, self.name)
 
     @property
-    def blocking_connection(self):
+    def blocking_connection(self) -> pika.BlockingConnection:
         """
         Connect to the VHOST
-
-        :return: a pika.BlockingConnection object
         """
         credentials = pika.PlainCredentials(username=self.username, password=self.password)
         if self.name == '%2f':
@@ -95,19 +87,12 @@ class BaseMessageSerializer(object):
     type_header, message_type = (None,) * 2
     task_get_attempts = 20
 
-    def get_task(self, properties, body):
+    def get_task(self, properties: pika.BasicProperties, body: bytes) -> function:
         """
         Identifies the python function to be executed from the content of the RabbitMQ message. By default, Carrot
         returns the value of the self.type_header header in the properties.
 
         Once this string has been found, carrot uses importlib to return a callable python function.
-
-        :param properties: the message properties
-        :param body: the message body. This parameter is not used by default, but is provided so that this method can
-                     be extended to identify messages based on the content from the body, instead of the properties, in
-                     custom consumers
-
-        :return: a callable python function
 
         """
         mod = '.'.join(properties.headers[self.type_header].split('.')[:-1])
@@ -116,15 +101,13 @@ class BaseMessageSerializer(object):
         func = getattr(module, task)
         return func
 
-    def __init__(self, message=None):
+    def __init__(self, message: str=None):
         self.message = message
 
-    def publish_kwargs(self):
+    def publish_kwargs(self) -> dict:
         """
         Returns a dictionary of keyword arguments to be passed to channel.basic_publish. In this implementation, the
         exchange, routing key and message body are returned
-
-        :rtype: dict
 
         """
         exchange = self.message.exchange or ''
@@ -132,7 +115,7 @@ class BaseMessageSerializer(object):
         body = self.body()
         return dict(exchange=exchange, routing_key=routing_key, body=body, mandatory=True)
 
-    def body(self):
+    def body(self) -> str:
         """
         Returns the content to be added to the RabbitMQ message body
 
@@ -148,8 +131,6 @@ class BaseMessageSerializer(object):
                 }
             }
 
-        :rtype: dict
-
         """
         args = self.message.task_args
         kwargs = self.message.task_kwargs
@@ -164,7 +145,7 @@ class BaseMessageSerializer(object):
 
         return json.dumps(data)
 
-    def properties(self):
+    def properties(self) -> dict:
         """
         Returns a dict from which a :class:`pika.BasicProperties` object can be created
 
@@ -175,8 +156,6 @@ class BaseMessageSerializer(object):
         - message id
         - message type
 
-        :rtype: dict
-
         """
         headers = {self.type_header: self.message.task}
         content_type = self.content_type
@@ -186,19 +165,18 @@ class BaseMessageSerializer(object):
 
         return dict(headers=headers, content_type=content_type, priority=priority, message_id=message_id, type=type)
 
-    def publish(self, connection, channel):
+    def publish(self, connection: pika.BlockingConnection, channel: pika.channel.Channel) -> None:
+        """
+        Publishes a message to the channel
+        """
         kwargs = self.publish_kwargs()
         kwargs['properties'] = pika.BasicProperties(**self.properties())
         channel.basic_publish(**kwargs)
         connection.close()
 
-    def serialize_arguments(self, body):
+    def serialize_arguments(self, body: str) -> Tuple(tuple, dict):
         """
         Extracts positional and keyword arguments to be sent to a function from the message body
-
-        :param str body: the message body as a JSON string
-        :return: a tuple of the positional and keyword arguments
-
         """
         content = json.loads(body)
         args = content.get('args', ())
@@ -215,15 +193,6 @@ class Message(object):
     """
     A message to publish to RabbitMQ. Takes the following parameters:
 
-    :param str task: the path to the task to execute, e.g. *myapp.mymodule.myfunction*
-    :param VirtualHost virtual_host: The host containing the queue to publish the message to
-    :param str queue: the queue name. Will be set to *default* if not provided
-    :param str routing_key: the routing key. Defaults to the queue name
-    :param str exchange: the RabbitMQ exchange name. Can be blank (i.e. a direct exchange)
-    :param tuple task_args: positional arguments to be passed to the task
-    :param dict task_kwargs: keyword arguments to be sent to the task
-    :param int priority: a priority between 0 and 255, where 255 is the highest priority
-
     .. note::
         Your RabbitMQ queue must support message priority for the *priority* parameter to have any affect. You need to
         define the x-max-priority header when creating your RabbitMQ queue to do this. See
@@ -235,8 +204,8 @@ class Message(object):
         :func:`carrot.utilities.create_msg` function instead
 
     """
-    def __init__(self, task, virtual_host=None, queue='default', routing_key=None, exchange='', priority=0,
-                 task_args=(), task_kwargs=None):
+    def __init__(self, task: str, virtual_host: VirtualHost=None, queue: str='default', routing_key: str=None,
+                 exchange: str='', priority: int=0, task_args: tuple=(), task_kwargs: dict=None):
         if not task_kwargs or task_kwargs in ['{}', '"{}"']:
             task_kwargs = {}
 
@@ -263,8 +232,9 @@ class Message(object):
 
         self.formatter = DefaultMessageSerializer(self)
 
+
     @property
-    def connection_channel(self):
+    def connection_channel(self) -> Tuple(pika.BlockingConnection, pika.channel.Channel):
         """
         Gets or creates the queue, and returns a tuple containing the object's VirtualHost's blocking connection,
         and its channel
@@ -274,14 +244,10 @@ class Message(object):
 
         return connection, channel
 
-    def publish(self, pika_log_level=logging.ERROR):
+    def publish(self, pika_log_level: int=logging.ERROR) -> MessageLog:
         """
         Publishes the message to RabbitMQ queue and creates a MessageLog object so the progress of the task can be
         tracked in the Django project's database
-
-        :param pika_log_level: the pika log level to set. defaults to logging.ERROR
-        :type pika_log_level: logging level
-
         """
         logging.getLogger("pika").setLevel(pika_log_level)
         connection, channel = self.connection_channel

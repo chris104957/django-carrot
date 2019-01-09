@@ -1,10 +1,11 @@
 from django.conf.urls import url
 from carrot.views import MessageList
-from carrot.utilities import decorate_class_view, decorate_function_view
+from carrot.utilities import decorate_class_view, decorate_function_view, create_class_view
 from django.conf import settings
 from carrot.api import (
     published_message_log_viewset, failed_message_log_viewset, completed_message_log_viewset, scheduled_task_viewset,
-    detail_message_log_viewset, scheduled_task_detail, run_scheduled_task, task_list, validate_args, purge_messages
+    detail_message_log_viewset, scheduled_task_detail, run_scheduled_task, task_list, validate_args, purge_messages,
+    MessageLogViewset
 )
 
 try:
@@ -13,11 +14,17 @@ except AttributeError:
     decorators = []
 
 
-def _(v, **kwargs):
+def _(v: MessageList.__class__, **kwargs) -> create_class_view:
+    """
+    Decorates a class based view with a custom auth decorator specified in the settings module
+    """
     return decorate_class_view(v, decorators).as_view(**kwargs)
 
 
-def _f(v):
+def _f(v: MessageLogViewset) -> create_class_view:
+    """
+    The same as the above _ method, but for function-based views
+    """
     return decorate_function_view(v, decorators)
 
 

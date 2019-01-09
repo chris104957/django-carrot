@@ -5,8 +5,6 @@ consume
 Most users should use the functions defined in this module, rather than attempting to subclass the base level objects
 
 """
-
-
 import json
 import importlib
 from django.conf import settings
@@ -16,9 +14,10 @@ from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
 from carrot.exceptions import CarrotConfigException
 from django.db.utils import IntegrityError
+from typing import Dict, List
 
 
-def get_host_from_name(name):
+def get_host_from_name(name: str) -> VirtualHost:
     """
     Gets a host object from a given queue name based on the Django configuration
 
@@ -26,9 +25,7 @@ def get_host_from_name(name):
     the CARROT.default_broker value.
 
     May raise an exception if the given queue name is not registered in the settings.
-
-    :param str name: the name of the queue to lookup.
-    :rtype: :class:`carrot.objects.VirtualHost`
+    :rtype: object
 
     """
     try:
@@ -71,7 +68,7 @@ def get_host_from_name(name):
         raise CarrotConfigException('Cannot find queue called %s in settings.CARROT queue list' % name)
 
 
-def validate_task(task):
+def validate_task(task: str or function) -> str:
     """
     Helper function for dealing with task inputs which may either be a callable, or a path to a callable as a string
 
@@ -83,10 +80,6 @@ def validate_task(task):
     This function is used by the following other utility functions:
     - :func:`.create_scheduled_task`
     - :func:`.create_message`
-
-    :param task: a callable or a path to one as a string
-    :type task: str or callable
-    :return: a validated path to the callable, as a string
 
     """
     mod, fname = (None, ) * 2
@@ -108,26 +101,12 @@ def validate_task(task):
     return task
 
 
-def create_message(task, priority=0, task_args=(), queue=None, exchange='', routing_key=None, task_kwargs=None):
+def create_message(task: str or function, priority: int=0, task_args: tuple=(), queue: str=None, exchange: str='',
+                   routing_key: str=None, task_kwargs: dict=None) -> Message:
     """
     Creates a :class:`carrot.objects.Message` object without publishing it
 
     The task to execute (as a string or a callable) needs to be supplied. All other arguments are optional
-    :param task: the task to be handled asynchronously.
-    :type task: str or func
-    :param int priority: the priority to be applied to the message when it is published to RabbitMQ
-
-    :param tuple task_args: the positional arguments to be passed to the function when it is called
-
-    :param queue: the name of the queue to publish the message to. Will be set to "default" if not provided
-    :type queue: str or None
-    :param str exchange: the exchange name
-    :param routing_key: the routing key
-    :type routing_key: str or NoneType
-
-    :param dict task_kwargs: the keyword arguments to be passed to the function when it is called
-    :rtype: :class:`carrot.objects.Message`
-
     """
 
     if not task_kwargs:
@@ -142,7 +121,8 @@ def create_message(task, priority=0, task_args=(), queue=None, exchange='', rout
     return msg
 
 
-def publish_message(task, *task_args, priority=0, queue=None, exchange='', routing_key=None, **task_kwargs):
+def publish_message(task: str or function, *task_args, priority: int=0, queue: str=None, exchange: str='',
+                    routing_key: str=None, **task_kwargs) -> MessageLog:
     """
     Wrapped for :func:`.create_message`, which publishes the task to the queue
 
@@ -152,17 +132,10 @@ def publish_message(task, *task_args, priority=0, queue=None, exchange='', routi
     return msg.publish()
 
 
-def create_scheduled_task(task, interval, task_name=None, queue=None, **kwargs):
+def create_scheduled_task(task: str or function, interval: Dict[str, int], task_name: str=None, queue: str=None,
+                          **kwargs) -> ScheduledTask:
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
-
-    :param task: a callable, or a valid path to one as a string
-    :type task: str or callable
-    :param dict interval: the interval at which to publish the message, as a dict, e.g.: {'seconds': 5}
-    :param task_name: a unique task name. If not provided, defaults to the same value as task
-    :param str queue: the name of the queue to publish the message to.
-    :param kwargs: the keyword arguments to be passed to the function when it is executed
-    :rtype: :class:`carrot.models.ScheduledTask`
     """
 
     if not task_name:
@@ -195,7 +168,7 @@ def create_scheduled_task(task, interval, task_name=None, queue=None, **kwargs):
     return t
 
 
-def get_mixin(decorator):
+def get_mixin(decorator: function) -> object:
     """
     Helper function that allows dynamic application of decorators to a class-based views
 
@@ -210,12 +183,9 @@ def get_mixin(decorator):
     return Mixin
 
 
-def create_class_view(view, decorator):
+def create_class_view(view: object, decorator: function) -> object:
     """
     Applies a decorator to the dispatch method of a given class based view. Can be chained
-
-    :param class view: the class-based view to apply the decorator to
-    :param function decorator: the decorator to apply
 
     :rtype: the updated class based view
     """
@@ -225,15 +195,9 @@ def create_class_view(view, decorator):
     return DecoratedView
 
 
-def decorate_class_view(view_class, decorators=None):
+def decorate_class_view(view_class: object, decorators: List[str]=None) -> create_class_view:
     """
     Loop through a list of string paths to decorator functions, and call :func:`.create_class_view` for each one
-
-    :param class view_class: the class-based view to attach the decorators to
-    :param list decorators: a list of string decorators, e.g. ['myapp.mymodule.decorator1', 'myapp.mymodule.decorator2']
-
-    :return: the class based view with all decorators attached to the dispatch method
-
     """
     if decorators is None:
         decorators = []
@@ -247,15 +211,10 @@ def decorate_class_view(view_class, decorators=None):
     return view_class
 
 
-def create_function_view(view, decorator):
+def create_function_view(view: function, decorator: function) -> function:
     """
     Similar to :func:`.create_class_view`, but attaches a decorator to a function based view, instead of a class-based
     one
-
-    :param func view: the function based view to attach a decorator tio
-    :param func decorator: the decorator attach
-
-    :rtype: the updated view function
 
     """
     @decorator
@@ -265,7 +224,7 @@ def create_function_view(view, decorator):
     return wrap
 
 
-def decorate_function_view(view, decorators=None):
+def decorate_function_view(view: object, decorators: List[str]=None) -> create_function_view:
     """
     Similar to :func:`.decorate_class_view`, but for function based views
     """
@@ -281,7 +240,7 @@ def decorate_function_view(view, decorators=None):
     return view
 
 
-def purge_queue():
+def purge_queue() -> None:
     """
     Deletes all MessageLog objects with status `IN_PROGRESS` or `PUBLISHED` add iterate through and purge all RabbitMQ
     queues

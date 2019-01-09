@@ -1,15 +1,18 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 
+# support for both django 1.x/2.x
 try:
     from django.core.urlresolvers import reverse
 except ImportError:
     from django.urls import reverse
 
+from carrot.exceptions import CarrotConfigException
+from carrot.objects import Message
+
 import json
 import os
 import sys
-from django.core.validators import MinValueValidator
-from carrot.exceptions import CarrotConfigException
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR + '/carrot')
@@ -61,7 +64,7 @@ class MessageLog(models.Model):
     log = models.TextField(blank=True, null=True)
 
     @property
-    def virtual_host(self):
+    def virtual_host(self) -> str or None:
         from carrot.utilities import get_host_from_name
         try:
             return str(get_host_from_name(self.queue))
@@ -75,17 +78,17 @@ class MessageLog(models.Model):
             pass
 
     @property
-    def keywords(self):
+    def keywords(self) -> dict:
         """
         Used in :class:`carrot.views.MessageView` to display the keyword arguments as a table
         """
         return json.loads(self.content or '{}')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.task
 
     @property
-    def positionals(self):
+    def positionals(self) -> iter:
         import ast
         if self.task_args == '()':
             return ()
@@ -93,7 +96,7 @@ class MessageLog(models.Model):
             return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',') if arg != '']
 
     # noinspection PyTypeChecker
-    def requeue(self):
+    def requeue(self) -> Message:
         """
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
@@ -101,7 +104,7 @@ class MessageLog(models.Model):
         msg = publish_message(self.task, *self.positionals, priority=self.priority, queue=self.queue,
                               exchange=self.exchange, routing_key=self.routing_key, **self.keywords)
 
-        if self.id:
+        if self.pk:
             self.delete()
 
         return msg
@@ -139,12 +142,12 @@ class ScheduledTask(models.Model):
         return reverse('edit-scheduled-task', args=[self.pk])
 
     @property
-    def interval_display(self):
+    def interval_display(self) -> str:
         return 'Every %i %s' % (self.interval_count, self.interval_type if self.interval_count > 1 else
             self.interval_type[:-1])
 
     @property
-    def multiplier(self):
+    def multiplier(self) -> int:
         if self.interval_type == 'minutes':
             return 60
 
@@ -157,13 +160,13 @@ class ScheduledTask(models.Model):
         return 1
 
     @property
-    def positional_arguments(self):
+    def positional_arguments(self) -> tuple:
         if self.task_args:
             return tuple([a.strip() for a in self.task_args.split(',') if a])
         else:
             return ()
 
-    def publish(self, priority=0):
+    def publish(self, priority=0) -> Message:
         from carrot.utilities import publish_message
         kwargs = json.loads(self.content or '{}')
         if isinstance(kwargs, str):
@@ -172,7 +175,5 @@ class ScheduledTask(models.Model):
                                exchange=self.exchange or '', routing_key=self.routing_key or self.queue,
                                **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.task
-
-

@@ -3,9 +3,12 @@ import ast
 import importlib
 from inspect import getmembers, isfunction
 from django.conf import settings
-from rest_framework import viewsets, serializers, fields, pagination, response
+from rest_framework import viewsets, serializers, pagination, response
+from rest_framework.request import Request
 from carrot.models import MessageLog, ScheduledTask
 from carrot.utilities import purge_queue
+from django.contrib.postgres.search import SearchVector
+from django.db.models import QuerySet
 
 
 class MessageLogSerializer(serializers.ModelSerializer):
@@ -24,15 +27,23 @@ class MessageLogViewset(viewsets.ModelViewSet):
     serializer_class = MessageLogSerializer
     pagination_class = SmallPagination
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
+        """
+        Returns a queryset of `carrot.models.MessageLog` objects. If a `search_term` is provided in the request query
+        params, then the result is filtered based on this. If using postgres, this is done using SearchVectors for
+        improved performance
+        """
         search_term = self.request.query_params.get('search', None)
         qs = self.queryset.all()
         if search_term:
-            qs = (
-                qs.filter(task__icontains=search_term) |
-                qs.filter(content__icontains=search_term) |
-                qs.filter(task_args__icontains=search_term)
-            ).distinct()
+            if settings.DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.postgresql_psycopg2':
+                qs = qs.annotate(search=SearchVector('task', 'content', 'task_args')).filter(search=search_term)
+            else:
+                qs = (
+                    qs.filter(task__icontains=search_term) |
+                    qs.filter(content__icontains=search_term) |
+                    qs.filter(task_args__icontains=search_term)
+                ).distinct()
 
         return qs
 
@@ -44,7 +55,10 @@ class PublishedMessageLogViewSet(MessageLogViewset):
 
     queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], id__isnull=False)
 
-    def purge(self, request, *args, **kwargs):
+    def purge(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
+        """
+        Deletes all items in the pending queue
+        """
         purge_queue()
         return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
 
@@ -60,18 +74,17 @@ class FailedMessageLogViewSet(MessageLogViewset):
 
     queryset = MessageLog.objects.filter(status='FAILED', id__isnull=False)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Deletes all `MessageLog` objects in the queryset
         """
         self.queryset.delete()
         return response.Response(status=204)
 
-    def retry(self, request, *args, **kwargs):
+    def retry(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
         """
         Retries all `MessageLog` objects in the queryset
         """
-
         queryset = self.get_queryset()
         for task in queryset:
             task.requeue()
@@ -99,15 +112,15 @@ class MessageLogDetailViewset(MessageLogViewset):
     queryset = MessageLog.objects.all()
     kwargs = {}
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request: Request, *args, **kwargs) -> MessageLogViewset.destroy:
         """
         Deletes the given `MessageLog` object
         """
         return super(MessageLogDetailViewset, self).destroy(request, *args, **kwargs)
 
-    def retry(self, request, *args, **kwargs):
+    def retry(self, request: Request, *args, **kwargs) -> MessageLogViewset.retrieve:
         """
-        Requeue a failed task then calls the `retrieve()` method of the newly created `MessageLog` object
+        Requeue a single task
         """
         _object = self.get_object()
         new_object = _object.requeue()
@@ -119,7 +132,7 @@ detail_message_log_viewset = MessageLogDetailViewset.as_view({'get': 'retrieve',
 
 
 class ScheduledTaskSerializer(serializers.ModelSerializer):
-    def validate_task(self, value):
+    def validate_task(self, value: str) -> str:
         modules = settings.CARROT.get('task_modules', None)
         if modules:
             task_choices = []
@@ -138,7 +151,13 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate_task_args(self, value):
+    def validate_task_args(self, value: str) -> str:
+        """
+        Takes an input string and verifies that it can be interpreted as valid positional arguments, e.g.
+
+        Valid: "1, True, None"
+        Invalid: "foo, bar"
+        """
         if value:
             for arg in value.split(','):
                 try:
@@ -148,7 +167,10 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate_content(self, value):
+    def validate_content(self, value: str) -> str:
+        """
+        Validates that the given input string is valid JSON
+        """
         if value:
             try:
                 json.loads(value)
@@ -157,7 +179,10 @@ class ScheduledTaskSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate_queue(self, value):
+    def validate_queue(self, value: str) -> str:
+        """
+        Validates that a queue name has been given and is not blank
+        """
         if value == '' or not value:
             raise serializers.ValidationError('This field is required')
 
@@ -187,7 +212,7 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
     Returns a list of `ScheduledTask` objects
     """
 
-    def validate_args(self, request, *args, **kwargs):
+    def validate_args(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Validates that the input is a valid Python tuple that can be used as a function's positional arguments
         """
@@ -203,7 +228,7 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
 
         return response.Response({'errors': errors})
 
-    def get_task_choices(self, request, *args, **kwargs):
+    def get_task_choices(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Gets a list of python functions from the task_modules settings in the config
         """
@@ -223,19 +248,22 @@ class ScheduledTaskViewset(viewsets.ModelViewSet):
 
         return response.Response(data=task_choices)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs) -> viewsets.ModelViewSet.create:
         """
         Create a new `ScheduledTask` object
         """
         return super(ScheduledTaskViewset, self).create(request, *args, **kwargs)
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request: Request, *args, **kwargs) -> viewsets.ModelViewSet.update:
         """
         Update an existing `ScheduledTask` object
         """
         return super(ScheduledTaskViewset, self).update(request, *args, **kwargs)
 
-    def run(self, request, *args, **kwargs):
+    def run(self, request: Request, *args, **kwargs) -> viewsets.ModelViewSet.retrieve:
+        """
+        Triggers a given scheduled task now
+        """
         _object = self.get_object()
         _object.publish()
         return self.retrieve(request, *args, **kwargs)
