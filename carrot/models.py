@@ -8,7 +8,6 @@ except ImportError:
     from django.urls import reverse
 
 from carrot.exceptions import CarrotConfigException
-from carrot.objects import Message
 
 import json
 import os
@@ -96,7 +95,7 @@ class MessageLog(models.Model):
             return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',') if arg != '']
 
     # noinspection PyTypeChecker
-    def requeue(self) -> Message:
+    def requeue(self):
         """
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
@@ -166,7 +165,7 @@ class ScheduledTask(models.Model):
         else:
             return ()
 
-    def publish(self, priority=0) -> Message:
+    def publish(self, priority=0):
         from carrot.utilities import publish_message
         kwargs = json.loads(self.content or '{}')
         if isinstance(kwargs, str):

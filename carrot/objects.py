@@ -5,7 +5,6 @@ from django.utils import timezone
 import logging
 import importlib
 from typing import Tuple
-from carrot.models import MessageLog
 
 
 class VirtualHost(object):
@@ -87,7 +86,7 @@ class BaseMessageSerializer(object):
     type_header, message_type = (None,) * 2
     task_get_attempts = 20
 
-    def get_task(self, properties: pika.BasicProperties, body: bytes) -> function:
+    def get_task(self, properties: pika.BasicProperties, body: bytes) -> callable:
         """
         Identifies the python function to be executed from the content of the RabbitMQ message. By default, Carrot
         returns the value of the self.type_header header in the properties.
@@ -174,7 +173,7 @@ class BaseMessageSerializer(object):
         channel.basic_publish(**kwargs)
         connection.close()
 
-    def serialize_arguments(self, body: str) -> Tuple(tuple, dict):
+    def serialize_arguments(self, body: str) -> Tuple[tuple, dict]:
         """
         Extracts positional and keyword arguments to be sent to a function from the message body
         """
@@ -234,7 +233,7 @@ class Message(object):
 
 
     @property
-    def connection_channel(self) -> Tuple(pika.BlockingConnection, pika.channel.Channel):
+    def connection_channel(self) -> Tuple[pika.BlockingConnection, pika.channel.Channel]:
         """
         Gets or creates the queue, and returns a tuple containing the object's VirtualHost's blocking connection,
         and its channel
@@ -244,7 +243,7 @@ class Message(object):
 
         return connection, channel
 
-    def publish(self, pika_log_level: int=logging.ERROR) -> MessageLog:
+    def publish(self, pika_log_level: int=logging.ERROR):
         """
         Publishes the message to RabbitMQ queue and creates a MessageLog object so the progress of the task can be
         tracked in the Django project's database

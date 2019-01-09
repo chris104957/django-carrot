@@ -96,7 +96,7 @@ class Connection(object):
 class Properties(object):
     message_id = 1234
     delivery_tag = 1
-    headers = {}
+    headers = {'type': 'test'}
 
 
 class Consumer(object):

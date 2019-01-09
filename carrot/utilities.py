@@ -168,7 +168,7 @@ def create_scheduled_task(task: str or function, interval: Dict[str, int], task_
     return t
 
 
-def get_mixin(decorator: function) -> object:
+def get_mixin(decorator: callable) -> object:
     """
     Helper function that allows dynamic application of decorators to a class-based views
 
@@ -183,7 +183,7 @@ def get_mixin(decorator: function) -> object:
     return Mixin
 
 
-def create_class_view(view: object, decorator: function) -> object:
+def create_class_view(view: object, decorator: callable) -> object:
     """
     Applies a decorator to the dispatch method of a given class based view. Can be chained
 
@@ -211,7 +211,7 @@ def decorate_class_view(view_class: object, decorators: List[str]=None) -> creat
     return view_class
 
 
-def create_function_view(view: function, decorator: function) -> function:
+def create_function_view(view: callable, decorator: callable) -> callable:
     """
     Similar to :func:`.create_class_view`, but attaches a decorator to a function based view, instead of a class-based
     one

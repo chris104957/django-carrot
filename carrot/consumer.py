@@ -73,7 +73,7 @@ class Consumer(threading.Thread):
         self.exchange_arguments = exchange_arguments
         self.durable = durable
 
-    def add_failure_callback(self, cb: function) -> None:
+    def add_failure_callback(self, cb: callable) -> None:
         """
         Registers a callback that gets called when there is any kind of error with the `.consume()` method
         """
@@ -298,6 +298,7 @@ class Consumer(threading.Thread):
         except KeyError as err:
             self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s' %
                       err)
+            return
 
         self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
 
@@ -305,12 +306,14 @@ class Consumer(threading.Thread):
             func = self.serializer.get_task(properties, body)
         except (ValueError, ImportError, AttributeError) as err:
             self.fail(log, err)
+            return
 
         try:
             args, kwargs = self.serializer.serialize_arguments(body.decode())
 
         except Exception as err:
             self.fail(log, 'Unable to process the message due to an error collecting the task arguments: %s' % err)
+            return
 
         start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
                                                               timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
@@ -437,7 +440,7 @@ class LoggingTask(object):
     """
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
-    def __init__(self, task: function, logger: logging.Logger, thread_name: str, *args, **kwargs):
+    def __init__(self, task: callable, logger: logging.Logger, thread_name: str, *args, **kwargs):
         self.task = task
         self.args = args
         self.kwargs = kwargs
