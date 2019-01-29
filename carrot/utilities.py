@@ -266,3 +266,12 @@ def purge_queue() -> None:
         channel.queue_purge(queue=queue['name'])
 
 
+def requeue_all() -> None:
+    """
+    Requeues all pending MessageLogs
+    """
+    logs = MessageLog.objects.filter(status__in=['IN_PROGRESS', 'PUBLISHED'])
+
+    for log in logs:
+        log.requeue()
+
