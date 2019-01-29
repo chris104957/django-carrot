@@ -323,8 +323,8 @@
                 </v-data-table>
                   <v-card-actions v-if="tabs === 'tab-published'">
                     <v-spacer></v-spacer>
-                    <v-btn flat text class="warning" @click="requeuePending"><v-icon left>close</v-icon>Requeue all</v-btn>
                     <v-btn flat text class="error" @click="purgeAll"><v-icon left>close</v-icon>Purge queue</v-btn>
+                    <v-btn flat text class="blue" @click="requeuePending"><v-icon left>cached</v-icon>Requeue all</v-btn>
                   </v-card-actions>
                   <v-card-actions v-if="tabs === 'tab-failed'">
                       <v-spacer></v-spacer>

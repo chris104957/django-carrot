@@ -195,7 +195,7 @@ def create_class_view(view: object, decorator: callable) -> object:
     return DecoratedView
 
 
-def decorate_class_view(view_class: object, decorators: List[str]=None) -> create_class_view:
+def decorate_class_view(view_class: object, decorators: List[str] = None) -> create_class_view:
     """
     Loop through a list of string paths to decorator functions, and call :func:`.create_class_view` for each one
     """
