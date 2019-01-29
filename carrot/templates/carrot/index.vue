@@ -651,7 +651,7 @@
         },
         async requeuePending () {
             await this.$store.dispatch('requeuePending')
-            await this.$updateTasks()
+            await this.updateTasks()
         },
         async purgeAll () {
             await this.$store.dispatch('purgeAll')
