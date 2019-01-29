@@ -11,8 +11,15 @@ class VirtualHost(object):
     """
     A RabbitMQ virtual host
     """
-    def __init__(self, url: str=None, host: str='localhost', name: str='%2f', port: int=5672, username: str='guest',
-                 password: str='guest', secure: bool=False):
+
+    def __init__(self,
+                 url: str = None,
+                 host: str = 'localhost',
+                 name: str = '%2f',
+                 port: int = 5672,
+                 username: str = 'guest',
+                 password: str = 'guest',
+                 secure: bool = False) -> None:
 
         self.secure = secure
         if not url:
@@ -100,7 +107,7 @@ class BaseMessageSerializer(object):
         func = getattr(module, task)
         return func
 
-    def __init__(self, message: str=None):
+    def __init__(self, message: str = None):
         self.message = message
 
     def publish_kwargs(self) -> dict:
@@ -203,8 +210,16 @@ class Message(object):
         :func:`carrot.utilities.create_msg` function instead
 
     """
-    def __init__(self, task: str, virtual_host: VirtualHost=None, queue: str='default', routing_key: str=None,
-                 exchange: str='', priority: int=0, task_args: tuple=(), task_kwargs: dict=None):
+
+    def __init__(self,
+                 task: str,
+                 virtual_host: VirtualHost = None,
+                 queue: str = 'default',
+                 routing_key: str = None,
+                 exchange: str = '',
+                 priority: int = 0,
+                 task_args: tuple = (),
+                 task_kwargs: dict = None) -> None:
         if not task_kwargs or task_kwargs in ['{}', '"{}"']:
             task_kwargs = {}
 
@@ -231,7 +246,6 @@ class Message(object):
 
         self.formatter = DefaultMessageSerializer(self)
 
-
     @property
     def connection_channel(self) -> Tuple[pika.BlockingConnection, pika.channel.Channel]:
         """
@@ -243,7 +257,7 @@ class Message(object):
 
         return connection, channel
 
-    def publish(self, pika_log_level: int=logging.ERROR):
+    def publish(self, pika_log_level: int = logging.ERROR) -> 'MessageLog':
         """
         Publishes the message to RabbitMQ queue and creates a MessageLog object so the progress of the task can be
         tracked in the Django project's database
@@ -258,18 +272,17 @@ class Message(object):
             keyword_arguments = json.dumps(self.task_kwargs)
 
         log = MessageLog.objects.create(
-            status='PUBLISHED',
-            queue=self.queue,
-            exchange=self.exchange or '',
-            routing_key=self.routing_key or self.queue,
-            uuid=str(self.uuid),
-            priority=self.priority,
-            task_args=self.task_args,
-            content=keyword_arguments,
-            task=self.task,
-            publish_time=timezone.now(),
+                status='PUBLISHED',
+                queue=self.queue,
+                exchange=self.exchange or '',
+                routing_key=self.routing_key or self.queue,
+                uuid=str(self.uuid),
+                priority=self.priority,
+                task_args=self.task_args,
+                content=keyword_arguments,
+                task=self.task,
+                publish_time=timezone.now(),
         )
 
         self.formatter.publish(connection, channel)
         return log
-

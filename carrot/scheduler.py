@@ -13,7 +13,11 @@ class ScheduledTaskThread(threading.Thread):
     project's database for changes to the interval, task, or arguments, or in case it gets deleted/marked as inactive
     and response accordingly
     """
-    def __init__(self, scheduled_task: ScheduledTask, run_now: bool=False, **filters):
+
+    def __init__(self,
+                 scheduled_task: ScheduledTask,
+                 run_now: bool = False,
+                 **filters) -> None:
         threading.Thread.__init__(self)
         self.id = scheduled_task.pk
         self.queue = scheduled_task.routing_key
@@ -69,7 +73,8 @@ class ScheduledTaskManager(object):
     gets created, and implements a .stop() method to stop all threads
 
     """
-    def __init__(self, **options):
+
+    def __init__(self, **options) -> None:
         self.threads = []
         self.filters = options.pop('filters', {'active': True})
         self.run_now = options.pop('run_now', False)
@@ -95,7 +100,7 @@ class ScheduledTaskManager(object):
         thread.start()
         self.threads.append(thread)
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Safely stop the manager
         """

@@ -25,15 +25,13 @@ def get_host_from_name(name: str) -> VirtualHost:
     the CARROT.default_broker value.
 
     May raise an exception if the given queue name is not registered in the settings.
-    :rtype: object
-
     """
     try:
         carrot_settings = settings.CARROT
     except AttributeError:
         carrot_settings = {
             'default_broker': DEFAULT_BROKER,
-            'queues': [
+            'queues'        : [
                 {
                     'name': 'default',
                     'host': DEFAULT_BROKER
@@ -68,7 +66,7 @@ def get_host_from_name(name: str) -> VirtualHost:
         raise CarrotConfigException('Cannot find queue called %s in settings.CARROT queue list' % name)
 
 
-def validate_task(task: str or function) -> str:
+def validate_task(task: str or callable) -> str:
     """
     Helper function for dealing with task inputs which may either be a callable, or a path to a callable as a string
 
@@ -82,7 +80,7 @@ def validate_task(task: str or function) -> str:
     - :func:`.create_message`
 
     """
-    mod, fname = (None, ) * 2
+    mod, fname = (None,) * 2
 
     if isinstance(task, str):
         try:
@@ -101,8 +99,13 @@ def validate_task(task: str or function) -> str:
     return task
 
 
-def create_message(task: str or function, priority: int=0, task_args: tuple=(), queue: str=None, exchange: str='',
-                   routing_key: str=None, task_kwargs: dict=None) -> Message:
+def create_message(task: str or callable,
+                   priority: int = 0,
+                   task_args: tuple = (),
+                   queue: str = None,
+                   exchange: str = '',
+                   routing_key: str = None,
+                   task_kwargs: dict = None) -> Message:
     """
     Creates a :class:`carrot.objects.Message` object without publishing it
 
@@ -121,8 +124,13 @@ def create_message(task: str or function, priority: int=0, task_args: tuple=(), 
     return msg
 
 
-def publish_message(task: str or function, *task_args, priority: int=0, queue: str=None, exchange: str='',
-                    routing_key: str=None, **task_kwargs) -> MessageLog:
+def publish_message(task: str or callable,
+                    *task_args,
+                    priority: int = 0,
+                    queue: str = None,
+                    exchange: str = '',
+                    routing_key: str = None,
+                    **task_kwargs) -> MessageLog:
     """
     Wrapped for :func:`.create_message`, which publishes the task to the queue
 
@@ -132,7 +140,10 @@ def publish_message(task: str or function, *task_args, priority: int=0, queue: s
     return msg.publish()
 
 
-def create_scheduled_task(task: str or function, interval: Dict[str, int], task_name: str=None, queue: str=None,
+def create_scheduled_task(task: str or callable,
+                          interval: Dict[str, int],
+                          task_name: str = None,
+                          queue: str = None,
                           **kwargs) -> ScheduledTask:
     """
     Helper function for creating a :class:`carrot.models.ScheduledTask`
@@ -153,13 +164,13 @@ def create_scheduled_task(task: str or function, interval: Dict[str, int], task_
 
     try:
         t = ScheduledTask.objects.create(
-            queue=queue,
-            task_name=task_name,
-            interval_type=type,
-            interval_count=count,
-            routing_key=queue,
-            task=task,
-            content=json.dumps(kwargs or '{}'),
+                queue=queue,
+                task_name=task_name,
+                interval_type=type,
+                interval_count=count,
+                routing_key=queue,
+                task=task,
+                content=json.dumps(kwargs or '{}'),
         )
     except IntegrityError:
         raise IntegrityError('A ScheduledTask with this task_name already exists. Please specific a unique name using '
@@ -173,8 +184,8 @@ def get_mixin(decorator: callable) -> object:
     Helper function that allows dynamic application of decorators to a class-based views
 
     :param func decorator: the decorator to apply to the view
-    :return:
     """
+
     class Mixin:
         @method_decorator(decorator)
         def dispatch(self, request, *args, **kwargs):
@@ -186,16 +197,16 @@ def get_mixin(decorator: callable) -> object:
 def create_class_view(view: object, decorator: callable) -> object:
     """
     Applies a decorator to the dispatch method of a given class based view. Can be chained
-
-    :rtype: the updated class based view
     """
+
     class DecoratedView(get_mixin(decorator), view):
         pass
 
     return DecoratedView
 
 
-def decorate_class_view(view_class: object, decorators: List[str] = None) -> create_class_view:
+def decorate_class_view(view_class: object,
+                        decorators: List[str] = None) -> create_class_view:
     """
     Loop through a list of string paths to decorator functions, and call :func:`.create_class_view` for each one
     """
@@ -211,12 +222,13 @@ def decorate_class_view(view_class: object, decorators: List[str] = None) -> cre
     return view_class
 
 
-def create_function_view(view: callable, decorator: callable) -> callable:
+def create_function_view(view: callable,
+                         decorator: callable) -> callable:
     """
     Similar to :func:`.create_class_view`, but attaches a decorator to a function based view, instead of a class-based
     one
-
     """
+
     @decorator
     def wrap(request, *args, **kwargs):
         return view(request, *args, **kwargs)
@@ -224,7 +236,8 @@ def create_function_view(view: callable, decorator: callable) -> callable:
     return wrap
 
 
-def decorate_function_view(view: object, decorators: List[str]=None) -> create_function_view:
+def decorate_function_view(view: object,
+                           decorators: List[str] = None) -> create_function_view:
     """
     Similar to :func:`.decorate_class_view`, but for function based views
     """
@@ -274,4 +287,3 @@ def requeue_all() -> None:
 
     for log in logs:
         log.requeue()
-

@@ -42,13 +42,13 @@ class MessageLog(models.Model):
     ) #:
 
     status = models.CharField(max_length=11, choices=STATUS_CHOICES, default='PUBLISHED')
-    exchange = models.CharField(max_length=200, blank=True, null=True) #: the exchange
+    exchange = models.CharField(max_length=200, blank=True, null=True)  #: the exchange
     queue = models.CharField(max_length=200, blank=True, null=True)
     routing_key = models.CharField(max_length=200, blank=True, null=True)
     uuid = models.CharField(max_length=200)
     priority = models.PositiveIntegerField(default=0)
 
-    task = models.CharField(max_length=200)#: the import path for the task to be executed
+    task = models.CharField(max_length=200)  #: the import path for the task to be executed
     task_args = models.TextField(null=True, blank=True, verbose_name='Task positional arguments')
     content = models.TextField(null=True, blank=True, verbose_name='Task keyword arguments')
 
@@ -83,7 +83,7 @@ class MessageLog(models.Model):
         """
         return json.loads(self.content or '{}')
 
-    def __str__(self) -> str:
+    def __str__(self) -> models.CharField:
         return self.task
 
     @property
@@ -94,8 +94,7 @@ class MessageLog(models.Model):
         else:
             return [ast.literal_eval(arg.strip()) for arg in self.task_args[1:-1].split(',') if arg != '']
 
-    # noinspection PyTypeChecker
-    def requeue(self):
+    def requeue(self) -> 'MessageLog':
         """
         Sends a failed MessageLog back to the queue. The original MessageLog is deleted
         """
@@ -137,7 +136,7 @@ class ScheduledTask(models.Model):
 
     task_name = models.CharField(max_length=200, unique=True)
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse('edit-scheduled-task', args=[self.pk])
 
     @property
@@ -165,7 +164,7 @@ class ScheduledTask(models.Model):
         else:
             return ()
 
-    def publish(self, priority=0):
+    def publish(self, priority: int = 0) -> MessageLog:
         from carrot.utilities import publish_message
         kwargs = json.loads(self.content or '{}')
         if isinstance(kwargs, str):
@@ -174,5 +173,5 @@ class ScheduledTask(models.Model):
                                exchange=self.exchange or '', routing_key=self.routing_key or self.queue,
                                **kwargs)
 
-    def __str__(self) -> str:
+    def __str__(self) -> models.CharField:
         return self.task

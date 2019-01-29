@@ -39,8 +39,8 @@ class Consumer(threading.Thread):
     remaining_save_attempts = 10
     get_message_attempts = 50
 
-    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, name: str, durable: bool=True,
-                 queue_arguments: dict=None, exchange_arguments: dict=None):
+    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, name: str, durable: bool = True,
+                 queue_arguments: dict = None, exchange_arguments: dict = None):
         """
         :param host: the host the queue to consume from is attached to
         :type host: :class:`carrot.objects.VirtualHost`
@@ -332,7 +332,7 @@ class Consumer(threading.Thread):
 
             success = '{} {} INFO:: Task {} completed successfully with response {}'.format(self.name,
                                                                                             timezone.now().strftime(
-                                                                                                "%Y-%m-%d %H:%M:%S,%f")[
+                                                                                                    "%Y-%m-%d %H:%M:%S,%f")[
                                                                                             :-3],
                                                                                             log.task, output)
             self.logger.info(success)
@@ -422,6 +422,7 @@ class ListHandler(logging.Handler):
     Allows for task-specific logging
 
     """
+
     def __init__(self, thread_name: str, level: str):
         self.output = []
         self.thread_name = thread_name
@@ -440,6 +441,7 @@ class LoggingTask(object):
     """
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
+
     def __init__(self, task: callable, logger: logging.Logger, thread_name: str, *args, **kwargs):
         self.task = task
         self.args = args
@@ -487,8 +489,9 @@ class ConsumerSet(object):
         mod = importlib.import_module(module)
         return getattr(mod, _cls)
 
-    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, concurrency: int=1, name: str='consumer',
-                 consumer_class: str='carrot.consumer.Consumer'):
+    def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, concurrency: int = 1,
+                 name: str = 'consumer',
+                 consumer_class: str = 'carrot.consumer.Consumer'):
         self.logger = logger
         self.host = host
         self.connection = host.blocking_connection
@@ -546,5 +549,3 @@ class ConsumerSet(object):
                                            exchange_arguments=self.exchange_arguments)
             self.threads.append(consumer)
             consumer.start()
-
-

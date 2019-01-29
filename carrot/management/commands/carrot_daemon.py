@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandParser
 import sys
 import os
 import signal
@@ -22,14 +22,14 @@ class Command(BaseCommand):
     pid_file = None
     options = None
 
-    def delete_pid(self):
+    def delete_pid(self) -> None:
         """
         Deletes the pid file, if it exists
         """
         if os.path.exists(self.pid_file):
             os.remove(self.pid_file)
 
-    def stop(self, hard_stop=False):
+    def stop(self, hard_stop: bool = False) -> None:
         """
         Attempts to stop the process. Performs the following actions:
 
@@ -57,14 +57,10 @@ class Command(BaseCommand):
 
         self.delete_pid()
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         """
         This Command inherits the same arguments as :class:`carrot.management.commands.carrot.Command`, with the
         addition of one positional argument: **mode**
-
-        :param mode:  Must be "start", "stop", "restart" or "status"
-        :type mode: str
-
         """
         parser.add_argument('mode')
         parser.add_argument("-l", "--logfile", type=str, help='The path to the log file',
@@ -85,14 +81,12 @@ class Command(BaseCommand):
         parser.add_argument('--testmode', dest='testmode', action='store_true', default=False,
                             help='Run in test mode. Prevents the command from running as a service. Should only be '
                                  'used when running Carrot\'s tests')
+
     @property
-    def pid(self):
+    def pid(self) -> int:
         """
         Opens and reads the file stored at `self.pidfile`, and returns the content as an integer. If the pidfile doesn't
         exist, then None is returned.
-
-        :rtype: int
-
         """
         try:
             with open(self.pid_file, 'r') as pf:
@@ -100,14 +94,14 @@ class Command(BaseCommand):
         except IOError:
             pass
 
-    def write_pid(self, pid):
+    def write_pid(self, pid: int) -> None:
         """
         Writes the pid to the pidfile
         """
         with open(self.pid_file, 'w') as f:
             f.write(str(pid) + '\n')
 
-    def start(self, **options):
+    def start(self, **options) -> None:
         """
         Starts the carrot service as a subprocess and records the pid
         """
@@ -129,7 +123,7 @@ class Command(BaseCommand):
 
         self.write_pid(proc.pid)
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:
         """
         The main handler. Initiates :class:`CarrotService`, then handles it based on the options supplied
 

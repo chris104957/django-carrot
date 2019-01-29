@@ -62,7 +62,7 @@ class PublishedMessageLogViewSet(MessageLogViewset):
         purge_queue()
         return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
 
-    def requeue(self, request: Request, *args, **kwargs) ->MessageLogViewset.list:
+    def requeue(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
         """
         Requeues all pending MessageLogs. Useful when stuff gets stuck due to system update
         """

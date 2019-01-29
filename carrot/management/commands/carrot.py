@@ -4,7 +4,7 @@ from carrot.consumer import ConsumerSet, LOGGING_FORMAT
 from carrot.models import ScheduledTask
 from carrot.objects import VirtualHost
 from carrot.scheduler import ScheduledTaskManager
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandParser
 from django.conf import settings
 from carrot import DEFAULT_BROKER
 import sys
@@ -12,27 +12,39 @@ import os
 import logging
 import signal
 import psutil
+import types
 
 
 class Command(BaseCommand):
     """
     The main process for creating and running :class:`carrot.consumer.ConsumerSet` objects and starting thes scheduler
     """
+    pks = []
     run = True
     help = 'Starts the carrot service.'
     scheduler = None
     active_consumer_sets = []
 
-    def __init__(self, stdout=None, stderr=None, nocolor=False):
+    def __init__(self,
+                 stdout: str = None,
+                 stderr: str = None,
+                 nocolor: bool = False) -> None:
+        """
+        Initiates the Carrot process. All params are passed straight to the base class. SIGINT and SIGTERM signals
+        bound; the process will exit gracefully on these events
+        """
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
         super(Command, self).__init__(stdout, stderr, nocolor)
 
-    def exit_gracefully(self, signum, frame):
+    def exit_gracefully(self, signum: int, frame: types.FrameType) -> None:
         self.stdout.write(self.style.WARNING('Shutdown requested'))
         self.run = False
 
-    def terminate(self, *args):
+    def terminate(self, *args) -> None:
+        """
+        Tells the scheduler (if running) and consumer sets to stop running, and waits for the response
+        """
         if self.scheduler:
             self.scheduler.stop()
             self.stdout.write(self.style.SUCCESS('Successfully closed scheduler'))
@@ -46,7 +58,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Successfully closed %i consumer sets' % count))
         sys.exit()
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
+        """
+        Adds the relevant command line arguments
+        """
         parser.add_argument("-l", "--logfile", type=str, help='The path to the log file',
                             default='/var/log/carrot.log')
         parser.add_argument('--no-scheduler', dest='run_scheduler', action='store_false', default=False,
@@ -59,7 +74,7 @@ class Command(BaseCommand):
                             help='Run in test mode. Prevents the command from running as a service. Should only be '
                                  'used when running Carrot\'s tests')
 
-    def handle(self, **options):
+    def handle(self, **options) -> None:
         """
         The actual handler process. Performs the following actions:
 
