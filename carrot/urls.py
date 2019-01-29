@@ -5,7 +5,7 @@ from django.conf import settings
 from carrot.api import (
     published_message_log_viewset, failed_message_log_viewset, completed_message_log_viewset, scheduled_task_viewset,
     detail_message_log_viewset, scheduled_task_detail, run_scheduled_task, task_list, validate_args, purge_messages,
-    MessageLogViewset
+    MessageLogViewset, requeue_pending
 )
 
 try:
@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^api/message-logs/published/$', _f(published_message_log_viewset), name='published-messagelog'),
     url(r'^api/message-logs/failed/$', _f(failed_message_log_viewset)),
     url(r'^api/message-logs/purge/$', _f(purge_messages)),
+    url(r'^api/message-logs/requeue/$', _f(requeue_pending)),
     url(r'^api/message-logs/completed/$', _f(completed_message_log_viewset)),
     url(r'^api/message-logs/(?P<pk>[0-9]+)/$', _f(detail_message_log_viewset)),
     url(r'^api/scheduled-tasks/$', _f(scheduled_task_viewset)),

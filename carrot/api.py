@@ -6,7 +6,7 @@ from django.conf import settings
 from rest_framework import viewsets, serializers, pagination, response
 from rest_framework.request import Request
 from carrot.models import MessageLog, ScheduledTask
-from carrot.utilities import purge_queue
+from carrot.utilities import purge_queue, requeue_all
 from django.contrib.postgres.search import SearchVector
 from django.db.models import QuerySet
 
@@ -62,9 +62,17 @@ class PublishedMessageLogViewSet(MessageLogViewset):
         purge_queue()
         return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
 
+    def requeue(self, request: Request, *args, **kwargs) ->MessageLogViewset.list:
+        """
+        Requeues all pending MessageLogs. Useful when stuff gets stuck due to system update
+        """
+        requeue_all()
+        return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
+
 
 published_message_log_viewset = PublishedMessageLogViewSet.as_view({'get': 'list'})
 purge_messages = PublishedMessageLogViewSet.as_view({'get': 'purge'})
+requeue_pending = PublishedMessageLogViewSet.as_view({'get': 'requeue'})
 
 
 class FailedMessageLogViewSet(MessageLogViewset):

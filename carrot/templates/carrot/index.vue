@@ -323,6 +323,7 @@
                 </v-data-table>
                   <v-card-actions v-if="tabs === 'tab-published'">
                     <v-spacer></v-spacer>
+                    <v-btn flat text class="warning" @click="requeuePending"><v-icon left>close</v-icon>Requeue all</v-btn>
                     <v-btn flat text class="error" @click="purgeAll"><v-icon left>close</v-icon>Purge queue</v-btn>
                   </v-card-actions>
                   <v-card-actions v-if="tabs === 'tab-failed'">
@@ -407,6 +408,15 @@
         },
         async purgeAll ({ commit }) {
             await axios.get('/carrot/api/message-logs/purge/',
+                {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }
+            )
+        },
+        async requeuePending ({ commit }) {
+            await axios.get('/carrot/api/message-logs/requeue/',
                 {
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
@@ -638,6 +648,10 @@
             await this.updateTasks()
             this.selectedMessageLog = null
             this.displayMessageLog = false
+        },
+        async requeuePending () {
+            await this.$store.dispatch('requeuePending')
+            await this.$updateTasks()
         },
         async purgeAll () {
             await this.$store.dispatch('purgeAll')
