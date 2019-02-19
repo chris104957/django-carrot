@@ -9,7 +9,7 @@ from django.db.utils import OperationalError
 from django.conf import settings
 
 from carrot.models import MessageLog
-from carrot.objects import DefaultMessageSerializer, VirtualHost
+from carrot.objects import VirtualHost, BaseMessageSerializer
 
 import json
 import traceback
@@ -18,11 +18,13 @@ import logging
 import importlib
 import pika
 import time
+from typing import Optional, Type, List, Dict, Any, Callable, Union
 
 
 LOGGING_FORMAT = '%(threadName)-10s %(asctime)-10s %(levelname)s:: %(message)s'
 
 
+# noinspection PyUnusedLocal,PyUnresolvedReferences
 class Consumer(threading.Thread):
     """
     An individual Consumer object. This class is run on a detached thread and watches a specific RabbitMQ queue for
@@ -30,14 +32,13 @@ class Consumer(threading.Thread):
     :class:`.ConsumerSet` object.
     """
 
-    serializer = DefaultMessageSerializer()
-    reconnect_timeout = 5
-    task_log = []
-    queue_arguments = {}
-    exchange_arguments = {}
-    active_message_log = None
-    remaining_save_attempts = 10
-    get_message_attempts = 50
+    serializer: Type[BaseMessageSerializer] = BaseMessageSerializer
+    reconnect_timeout: int = 5
+    task_log: List[str] = []
+    exchange_arguments: Dict[str, Any] = {}
+    active_message_log: Optional[MessageLog] = None
+    remaining_save_attempts: int = 10
+    get_message_attempts: int = 50
 
     def __init__(self, host: VirtualHost, queue: str, logger: logging.Logger, name: str, durable: bool = True,
                  queue_arguments: dict = None, exchange_arguments: dict = None):
@@ -49,7 +50,7 @@ class Consumer(threading.Thread):
         :param name: the name of the consumer
 
         """
-        super(Consumer, self).__init__()
+        super().__init__()
 
         if queue_arguments is None:
             queue_arguments = {}
@@ -57,14 +58,14 @@ class Consumer(threading.Thread):
         if not exchange_arguments:
             exchange_arguments = {}
 
-        self.failure_callbacks = []
+        self.failure_callbacks: List[Callable] = []
         self.name = name
         self.logger = logger
         self.queue = queue
         self.exchange = queue
 
-        self.connection = None
-        self.channel = None
+        self.connection: pika.SelectConnection = None
+        self.channel: pika.channel = None
         self.shutdown_requested = False
         self._consumer_tag = None
         self._url = str(host)
@@ -73,13 +74,13 @@ class Consumer(threading.Thread):
         self.exchange_arguments = exchange_arguments
         self.durable = durable
 
-    def add_failure_callback(self, cb: callable) -> None:
+    def add_failure_callback(self, cb: Callable) -> None:
         """
         Registers a callback that gets called when there is any kind of error with the `.consume()` method
         """
         self.failure_callbacks.append(cb)
 
-    def fail(self, log: MessageLog, err: str) -> None:
+    def fail(self, log: MessageLog, err: Union[str, Exception]) -> None:
         """
         This function is called whenever there is a failure executing a specific `MessageLog` object
 
@@ -123,7 +124,7 @@ class Consumer(threading.Thread):
                 return log
             time.sleep(0.1)
 
-    def get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> MessageLog or None:
+    def get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> Optional[MessageLog]:
         """
         Finds a MessageLog based on the content of the RabbitMQ message
 
@@ -152,10 +153,12 @@ class Consumer(threading.Thread):
         try:
             log = MessageLog.objects.get(uuid=properties.message_id)
         except ObjectDoesNotExist:
-            return
+            return None
 
         if log.status == 'PUBLISHED':
             return log
+
+        return None
 
     def connect(self) -> pika.SelectConnection:
         """
@@ -296,39 +299,36 @@ class Consumer(threading.Thread):
         try:
             task_type = self.get_task_type(properties.headers, body)
         except KeyError as err:
-            self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s' %
+            return self.fail(log, 'Unable to identify the task type because a key was not found in the message header: %s' %
                       err)
-            return
 
         self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
 
         try:
             func = self.serializer.get_task(properties, body)
         except (ValueError, ImportError, AttributeError) as err:
-            self.fail(log, err)
-            return
+            return self.fail(log, err)
 
         try:
             args, kwargs = self.serializer.serialize_arguments(body.decode())
 
         except Exception as err:
-            self.fail(log, 'Unable to process the message due to an error collecting the task arguments: %s' % err)
-            return
+            return self.fail(log, 'Unable to process the message due to an error collecting the task arguments: %s' % err)
 
         start_msg = '{} {} INFO:: Starting task {}.{}'.format(self.name,
                                                               timezone.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
                                                               func.__module__, func.__name__)
         self.logger.info(start_msg)
-        self.task_log = [
-            start_msg
-        ]
+        self.task_log = [start_msg]
         task = LoggingTask(func, self.logger, self.name, *args, **kwargs)
 
         try:
             output = task.run()
 
-            self.task_log.append(task.get_logs())
-            self.logger.info(task.get_logs())
+            task_logs = task.get_logs()
+            if task_logs:
+                self.task_log.append(task_logs)
+                self.logger.info(task_logs)
 
             success = '{} {} INFO:: Task {} completed successfully with response {}'.format(self.name,
                                                                                             timezone.now().strftime(
@@ -367,7 +367,9 @@ class Consumer(threading.Thread):
                     self.connection.sleep(10)
 
         except Exception as err:
-            self.task_log.append(task.get_logs())
+            task_logs = task.get_logs()
+            if task_logs:
+                self.task_log.append(task_logs)
             self.fail(log, str(err))
 
     def stop_consuming(self) -> None:
@@ -423,12 +425,12 @@ class ListHandler(logging.Handler):
 
     """
 
-    def __init__(self, thread_name: str, level: str):
-        self.output = []
+    def __init__(self, thread_name: str, level: int):
+        self.output: List[str] = []
         self.thread_name = thread_name
         super(ListHandler, self).__init__(level)
 
-    def emit(self, record: str):
+    def emit(self, record: logging.LogRecord):
         msg = self.format(record)
         if msg.startswith(self.thread_name):
             self.output.append(msg)
@@ -442,14 +444,13 @@ class LoggingTask(object):
     Turns a function into a class with :meth:`.run()` method, and attaches a :class:`ListHandler` logging handler
     """
 
-    def __init__(self, task: callable, logger: logging.Logger, thread_name: str, *args, **kwargs):
+    def __init__(self, task: Callable, logger: logging.Logger, thread_name: str, *args, **kwargs):
         self.task = task
         self.args = args
         self.kwargs = kwargs
 
         self.logger = logger
         self.thread_name = thread_name
-        self.out = []
         self.stream_handler = ListHandler(thread_name, self.logger.getEffectiveLevel())
         self.stream_handler.setLevel(self.logger.getEffectiveLevel())
         formatter = logging.Formatter(LOGGING_FORMAT)
@@ -459,16 +460,17 @@ class LoggingTask(object):
 
         self._keep_alive = None
 
-    def run(self) -> None:
+    def run(self) -> Callable:
         output = self.task(*self.args, **self.kwargs)
         return output
 
-    def get_logs(self) -> None or logging.Handler:
+    def get_logs(self) -> Optional[str]:
         try:
             self.logger.removeHandler(self.stream_handler)
             return self.stream_handler.parse_output()
         except:
-            return
+            pass
+        return None
 
 
 class ConsumerSet(object):
@@ -477,10 +479,10 @@ class ConsumerSet(object):
     """
     durable = True
     queue_arguments = {'x-max-priority': 255}
-    exchange_arguments = {}
+    exchange_arguments: Dict[str, Any] = {}
 
     @staticmethod
-    def get_consumer_class(consumer_class: str) -> Consumer.__class__:
+    def get_consumer_class(consumer_class: str) -> Type[Consumer]:
         """
         Returns a `Consumer` object from a string using dynamic imports
         """
@@ -501,12 +503,12 @@ class ConsumerSet(object):
         self.concurrency = concurrency
         self.name = '%s-%s' % (self.queue, name)
         self.consumer_class = self.get_consumer_class(consumer_class)
-        self.threads = []
+        self.threads: List[Consumer] = []
 
         try:
             queue_settings = [q for q in settings.CARROT.get('queues', []) if q.get('name', None) == self.queue]
         except AttributeError:
-            queue_settings = {}
+            queue_settings = [{}]
 
         if queue_settings:
             q_settings = queue_settings[0]

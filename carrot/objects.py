@@ -1,10 +1,13 @@
-import uuid
+import importlib
 import json
+import logging
+import uuid
+from typing import Tuple, Callable, Dict, Any, Union
+
 import pika
 from django.utils import timezone
-import logging
-import importlib
-from typing import Tuple
+
+from carrot.models import MessageLog
 
 
 class VirtualHost(object):
@@ -90,10 +93,10 @@ class BaseMessageSerializer(object):
 
     """
     content_type = 'application/json'
-    type_header, message_type = (None,) * 2
+    type_header, message_type = ('',) * 2
     task_get_attempts = 20
 
-    def get_task(self, properties: pika.BasicProperties, body: bytes) -> callable:
+    def get_task(self, properties: pika.BasicProperties, body: bytes) -> Callable:
         """
         Identifies the python function to be executed from the content of the RabbitMQ message. By default, Carrot
         returns the value of the self.type_header header in the properties.
@@ -107,7 +110,7 @@ class BaseMessageSerializer(object):
         func = getattr(module, task)
         return func
 
-    def __init__(self, message: str = None):
+    def __init__(self, message: 'Message') -> None:
         self.message = message
 
     def publish_kwargs(self) -> dict:
@@ -141,7 +144,7 @@ class BaseMessageSerializer(object):
         args = self.message.task_args
         kwargs = self.message.task_kwargs
 
-        data = {}
+        data: Dict[str, Any] = {}
 
         if args:
             data['args'] = args
@@ -157,19 +160,20 @@ class BaseMessageSerializer(object):
 
         In this implementation, the following is returned:
         - headers
-        - content type
+        - content message_type
         - priority
         - message id
-        - message type
+        - message message_type
 
         """
         headers = {self.type_header: self.message.task}
         content_type = self.content_type
         priority = self.message.priority
         message_id = str(self.message.uuid)
-        type = self.message_type
+        message_type = self.message_type
 
-        return dict(headers=headers, content_type=content_type, priority=priority, message_id=message_id, type=type)
+        return dict(headers=headers, content_type=content_type, priority=priority, message_id=message_id,
+                    type=message_type)
 
     def publish(self, connection: pika.BlockingConnection, channel: pika.channel.Channel) -> None:
         """
@@ -195,6 +199,7 @@ class DefaultMessageSerializer(BaseMessageSerializer):
     message_type = 'django-carrot message'
 
 
+# noinspection PyUnresolvedReferences
 class Message(object):
     """
     A message to publish to RabbitMQ. Takes the following parameters:
@@ -219,7 +224,8 @@ class Message(object):
                  exchange: str = '',
                  priority: int = 0,
                  task_args: tuple = (),
-                 task_kwargs: dict = None) -> None:
+                 task_kwargs: Union[str, dict] = None) -> None:
+
         if not task_kwargs or task_kwargs in ['{}', '"{}"']:
             task_kwargs = {}
 
@@ -257,31 +263,34 @@ class Message(object):
 
         return connection, channel
 
-    def publish(self, pika_log_level: int = logging.ERROR) -> 'MessageLog':
+    def publish(self, pika_log_level: int = logging.ERROR) -> MessageLog:
         """
         Publishes the message to RabbitMQ queue and creates a MessageLog object so the progress of the task can be
         tracked in the Django project's database
         """
         logging.getLogger("pika").setLevel(pika_log_level)
         connection, channel = self.connection_channel
-        from carrot.models import MessageLog
 
-        try:
-            keyword_arguments = json.dumps(json.loads(self.task_kwargs or '{}') or {})
-        except TypeError:
+        if isinstance(self.task_kwargs, str):
+            try:
+                json.dumps(self.task_kwargs)
+                keyword_arguments = self.task_kwargs
+            except json.decoder.JSONDecodeError:
+                keyword_arguments = '{}'
+        else:
             keyword_arguments = json.dumps(self.task_kwargs)
 
         log = MessageLog.objects.create(
-                status='PUBLISHED',
-                queue=self.queue,
-                exchange=self.exchange or '',
-                routing_key=self.routing_key or self.queue,
-                uuid=str(self.uuid),
-                priority=self.priority,
-                task_args=self.task_args,
-                content=keyword_arguments,
-                task=self.task,
-                publish_time=timezone.now(),
+            status='PUBLISHED',
+            queue=self.queue,
+            exchange=self.exchange or '',
+            routing_key=self.routing_key or self.queue,
+            uuid=str(self.uuid),
+            priority=self.priority,
+            task_args=self.task_args,
+            content=keyword_arguments,
+            task=self.task,
+            publish_time=timezone.now(),
         )
 
         self.formatter.publish(connection, channel)

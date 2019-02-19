@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from carrot import DEFAULT_BROKER
 from carrot.exceptions import CarrotConfigException
 from django.db.utils import IntegrityError
-from typing import Dict, List
+from typing import Dict, List, Union, Callable, Type, Any
 
 
 def get_host_from_name(name: str) -> VirtualHost:
@@ -66,7 +66,7 @@ def get_host_from_name(name: str) -> VirtualHost:
         raise CarrotConfigException('Cannot find queue called %s in settings.CARROT queue list' % name)
 
 
-def validate_task(task: str or callable) -> str:
+def validate_task(task: Union[str, Callable]) -> str:
     """
     Helper function for dealing with task inputs which may either be a callable, or a path to a callable as a string
 
@@ -94,18 +94,20 @@ def validate_task(task: str or callable) -> str:
         except AttributeError as err:
             raise AttributeError('Unable to find a function called %s in the module %s: %s' % (fname, mod, err))
     else:
+        # noinspection PyUnresolvedReferences
         task = '%s.%s' % (task.__module__, task.__name__)
 
     return task
 
 
-def create_message(task: str or callable,
+def create_message(task: Union[str, Callable],
+                   queue: str,
                    priority: int = 0,
                    task_args: tuple = (),
-                   queue: str = None,
                    exchange: str = '',
                    routing_key: str = None,
-                   task_kwargs: dict = None) -> Message:
+                   task_kwargs: dict = None
+                   ) -> Message:
     """
     Creates a :class:`carrot.objects.Message` object without publishing it
 
@@ -124,7 +126,7 @@ def create_message(task: str or callable,
     return msg
 
 
-def publish_message(task: str or callable,
+def publish_message(task: Union[str, Callable],
                     *task_args,
                     priority: int = 0,
                     queue: str = None,
@@ -136,11 +138,13 @@ def publish_message(task: str or callable,
 
     This function is the primary method of publishing tasks to a message queue
     """
-    msg = create_message(task, priority, task_args, queue, exchange, routing_key, task_kwargs)
+    if not queue:
+        queue = 'default'
+    msg = create_message(task, queue, priority, task_args, exchange, routing_key, task_kwargs)
     return msg.publish()
 
 
-def create_scheduled_task(task: str or callable,
+def create_scheduled_task(task: Union[str, Callable],
                           interval: Dict[str, int],
                           task_name: str = None,
                           queue: str = None,
@@ -150,7 +154,10 @@ def create_scheduled_task(task: str or callable,
     """
 
     if not task_name:
-        task_name = task
+        if isinstance(task, str):
+            task_name = task
+        else:
+            raise Exception('You must provide a task_name or task')
 
     task = validate_task(task)
 
@@ -160,13 +167,13 @@ def create_scheduled_task(task: str or callable,
     except AssertionError:
         raise AttributeError('Interval must be a dict with a single key value pairing, e.g.: {\'seconds\': 5}')
 
-    type, count = list(*interval.items())
+    interval_type, count = list(*interval.items())
 
     try:
         t = ScheduledTask.objects.create(
                 queue=queue,
                 task_name=task_name,
-                interval_type=type,
+                interval_type=interval_type,
                 interval_count=count,
                 routing_key=queue,
                 task=task,
@@ -179,14 +186,14 @@ def create_scheduled_task(task: str or callable,
     return t
 
 
-def get_mixin(decorator: callable) -> object:
+def get_mixin(decorator: Callable) -> Type[object]:
     """
     Helper function that allows dynamic application of decorators to a class-based views
 
     :param func decorator: the decorator to apply to the view
     """
 
-    class Mixin:
+    class Mixin(object):
         @method_decorator(decorator)
         def dispatch(self, request, *args, **kwargs):
             return super(Mixin, self).dispatch(request, *args, **kwargs)
@@ -194,19 +201,21 @@ def get_mixin(decorator: callable) -> object:
     return Mixin
 
 
-def create_class_view(view: object, decorator: callable) -> object:
+def create_class_view(view: Any, decorator: Any) -> object:
     """
     Applies a decorator to the dispatch method of a given class based view. Can be chained
     """
+    mixin: Any = get_mixin(decorator)
+    base_view: Any = view
 
-    class DecoratedView(get_mixin(decorator), view):
+    class DecoratedView(mixin, base_view):
         pass
 
     return DecoratedView
 
 
 def decorate_class_view(view_class: object,
-                        decorators: List[str] = None) -> create_class_view:
+                        decorators: List[str] = None) -> Any:
     """
     Loop through a list of string paths to decorator functions, and call :func:`.create_class_view` for each one
     """
@@ -222,8 +231,7 @@ def decorate_class_view(view_class: object,
     return view_class
 
 
-def create_function_view(view: callable,
-                         decorator: callable) -> callable:
+def create_function_view(view: Callable, decorator: Callable) -> Callable:
     """
     Similar to :func:`.create_class_view`, but attaches a decorator to a function based view, instead of a class-based
     one
@@ -236,8 +244,7 @@ def create_function_view(view: callable,
     return wrap
 
 
-def decorate_function_view(view: object,
-                           decorators: List[str] = None) -> create_function_view:
+def decorate_function_view(view: Any, decorators: List[str] = None) -> Any:
     """
     Similar to :func:`.decorate_class_view`, but for function based views
     """
@@ -253,6 +260,7 @@ def decorate_function_view(view: object,
     return view
 
 
+# noinspection PyUnresolvedReferences
 def purge_queue() -> None:
     """
     Deletes all MessageLog objects with status `IN_PROGRESS` or `PUBLISHED` add iterate through and purge all RabbitMQ

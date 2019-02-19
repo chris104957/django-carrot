@@ -1,7 +1,10 @@
 import threading
-from carrot.models import ScheduledTask
 import time
+from typing import List
+
 from django.core.exceptions import ObjectDoesNotExist
+
+from carrot.models import ScheduledTask
 
 
 class ScheduledTaskThread(threading.Thread):
@@ -75,7 +78,7 @@ class ScheduledTaskManager(object):
     """
 
     def __init__(self, **options) -> None:
-        self.threads = []
+        self.threads: List[ScheduledTaskThread] = []
         self.filters = options.pop('filters', {'active': True})
         self.run_now = options.pop('run_now', False)
         self.tasks = ScheduledTask.objects.filter(**self.filters)

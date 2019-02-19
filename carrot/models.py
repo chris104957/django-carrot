@@ -13,6 +13,8 @@ import json
 import os
 import sys
 
+from typing import Optional, Iterable
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR + '/carrot')
 
@@ -63,7 +65,7 @@ class MessageLog(models.Model):
     log = models.TextField(blank=True, null=True)
 
     @property
-    def virtual_host(self) -> str or None:
+    def virtual_host(self) -> Optional[str]:
         from carrot.utilities import get_host_from_name
         try:
             return str(get_host_from_name(self.queue))
@@ -74,7 +76,7 @@ class MessageLog(models.Model):
 
             Refer to https://github.com/chris104957/django-carrot/issues/81
             """
-            pass
+            return None
 
     @property
     def keywords(self) -> dict:
@@ -87,7 +89,7 @@ class MessageLog(models.Model):
         return self.task
 
     @property
-    def positionals(self) -> iter:
+    def positionals(self) -> Iterable:
         import ast
         if self.task_args == '()':
             return ()
