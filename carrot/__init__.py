@@ -16,4 +16,4 @@ limitations under the License.
 
 DEFAULT_BROKER = 'amqp://guest:guest@localhost:5672/'
 
-__version__ = "1.4.0a5"
+__version__ = "1.4.0a6"

@@ -208,7 +208,15 @@ class Command(BaseCommand):
                     raise SystemExit()
 
         except Exception as err:
-            self.stderr.write(self.style.ERROR(err))
+            try:
+                self.stderr.write(self.style.ERROR(err))
+            except AttributeError:
+                """
+                This attribute error will happen when a pika exceptions.ChannelClosed error happens, as django can't 
+                deal with the error styling for this type of exception. Instead, we write the stderr without the 
+                colorisation
+                """
+                self.stderr.write(str(err))
 
         except (KeyboardInterrupt, SystemExit):
             # self.terminate()
