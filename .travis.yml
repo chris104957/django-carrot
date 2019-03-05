@@ -1,6 +1,5 @@
 language: python
 python:
-  - "3.7"
   - "3.6"
 before_install:
   - git clone https://github.com/chris104957/django-carrot.git -b $TRAVIS_BRANCH
