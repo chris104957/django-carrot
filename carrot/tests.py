@@ -48,7 +48,7 @@ class CarrotTestCase(TestCase):
         consumer.task_log = ['blah']
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
 
-        consumer.get_task_type({'type': 'carrot.tests.test_task'}, None)
+        # consumer.get_task_type({'type': 'carrot.tests.test_task'}, None)
         p = Properties()
         self.assertEqual(consumer.get_message_log(p, None), log)
 
@@ -99,8 +99,7 @@ class CarrotTestCase(TestCase):
 
         log.delete()
         log = MessageLog.objects.create(task='carrot.tests.test_task', uuid=1234, status='PUBLISHED', task_args='()')
-
-        consumer.serializer = MessageSerializer()
+        consumer.serializer = MessageSerializer(log)
         consumer.on_message(consumer.channel, p, p, b'{}')
 
         log.delete()
@@ -231,7 +230,7 @@ class CarrotTestCase(TestCase):
 
         validate_task(test_task)
 
-        task = create_scheduled_task(test_task, {'days':1})
+        task = create_scheduled_task(task='carrot.tests.test_task', interval={'days':1})
 
         self.assertEqual(task.multiplier, 86400)
         task.interval_type = 'hours'
@@ -247,7 +246,7 @@ class CarrotTestCase(TestCase):
         self.assertTrue(isinstance(task, ScheduledTask))
 
         with self.assertRaises(AttributeError):
-            create_scheduled_task(test_task, None)
+            create_scheduled_task(task='carrot.tests.test_task', interval=None)
 
         decorate_class_view(MessageList, ['django.contrib.auth.decorators.login_required'])
         decorate_class_view(MessageList)

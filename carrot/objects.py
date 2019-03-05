@@ -7,7 +7,6 @@ from typing import Tuple, Callable, Dict, Any, Union
 import pika
 from django.utils import timezone
 
-from carrot.models import MessageLog
 
 
 class VirtualHost(object):
@@ -263,11 +262,12 @@ class Message(object):
 
         return connection, channel
 
-    def publish(self, pika_log_level: int = logging.ERROR) -> MessageLog:
+    def publish(self, pika_log_level: int = logging.ERROR) -> Any:
         """
         Publishes the message to RabbitMQ queue and creates a MessageLog object so the progress of the task can be
         tracked in the Django project's database
         """
+        from carrot.models import MessageLog
         logging.getLogger("pika").setLevel(pika_log_level)
         connection, channel = self.connection_channel
 

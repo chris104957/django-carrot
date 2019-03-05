@@ -36,6 +36,10 @@ def runner(options):
         ),
         CARROT={
             'default_broker': str(_vhost),
+            'queues': [{
+                'name': 'default',
+                'host': str(_vhost),
+            }],
         },
         TEMPLATES=[
             {
