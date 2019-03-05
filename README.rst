@@ -102,7 +102,7 @@ A sample docker config is available `here <https://github.com/chris104957/django
 Full documentation
 ------------------
 
-The full documentation is available at `www.django-carrot.com <http://www.django-carrot.com>`_
+The full documentation is available `here <https://django-carrot.readthedocs.io/>`_
 
 Support
 -------
@@ -112,7 +112,7 @@ If you are having any issues, please `log an issue <https://github.com/chris1049
 Contributing
 ------------
 
-Django-carrot uses `PyPRI <https://www.python-private-package-index.com/>`_ to share development builds. If you'd like access to it, please send me your email address at christopherdavies553@gmail.com so I can give you access
+Django-carrot uses `Packagr <https://www.packagr.app/>`_ to share development builds. If you'd like access to it, please send me your email address at christopherdavies553@gmail.com so I can give you access
 
 License
 -------
