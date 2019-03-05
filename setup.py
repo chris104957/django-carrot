@@ -29,10 +29,10 @@ setup(
     long_description=readme(),
     author='Christopher Davies',
     author_email='christopherdavies553@gmail.com',
-    url='https://www.django-carrot.com',
+    url='https://django-carrot.readthedocs.io',
     home_page='https://github.com/chris104957/django-carrot',
     project_urls={
-        'Documentation': 'https://www.django-carrot.com',
+        'Documentation': 'https://django-carrot.readthedocs.io',
         'Source': 'https://github.com/chris104957/django-carrot',
     },
 
