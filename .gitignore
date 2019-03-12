@@ -1,0 +1,9 @@
+.idea
+*.iml
+.idea/
+dist/
+django_carrot.egg-info/
+docs/build/
+**/__pycache__/
+/test.sh
+carrot/.mypy_cache
