@@ -28,7 +28,6 @@ packages = [
 ]
 
 
-
 [tool.poetry.dependencies]
 python = "^3.6.3"
 sphinx_bootstrap_theme = "^0.6.5"
