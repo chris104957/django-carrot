@@ -14,7 +14,7 @@ emphasis on quick and easy configuration and task tracking
 - Supports Django 2.0
 
 
-![Alt text](images/1.0/monitor.png "Carrot monitor")
+![Carrot monitor](images/1.0/monitor.png "Carrot monitor")
 
 
 Click [here](quick-start.md) to get started
