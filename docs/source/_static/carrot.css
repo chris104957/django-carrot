@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css?family=PT+Sans');
+
+
+.navbar-default {
+    background-color: #ff8907;
+}
+
+body, h1, h2, h3, h4, h5, h6 {
+    font-family: 'PT Sans', serif;
+}
+
+h2 {
+    margin: 15px 0;
+}
+
+.navbar-brand {
+    padding: 13px 15px;
+    font-size: 32px;
+}
+
+p {
+    margin: 20px 0 10px
+}
+
+
+
