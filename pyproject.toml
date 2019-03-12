@@ -30,7 +30,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
+python = "^3.6.3"
 sphinx_bootstrap_theme = "^0.6.5"
 djangorestframework = "^3.9"
 pika = "^0.13.1"
