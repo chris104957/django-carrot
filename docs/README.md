@@ -1,7 +1,3 @@
-
-![Alt text](images/carrot-logo-big.png "Carrot logo")
-
-
 # The lightweight task queue for Django
 
     
