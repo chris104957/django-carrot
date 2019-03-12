@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "django-carrot"
-version = "1.4.1"
+version = "1.4.2"
 description = "A RabbitMQ asynchronous task queue for Django."
 authors = ["Christoper Davies <christopherdavies553@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/chris104957/django-carrot"
 homepage = "https://django-carrot.readthedocs.io"
+readme = "README.rst"
 classifiers = [
     'Environment :: Web Environment',
     'Development Status :: 5 - Production/Stable',
