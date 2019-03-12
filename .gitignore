@@ -3,6 +3,6 @@
 .idea/
 dist/
 django_carrot.egg-info/
-docs/build/
+legacy_docs/build/
 **/__pycache__/
 /test.sh
