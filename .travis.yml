@@ -24,7 +24,7 @@ deploy:
   - provider: script
     script: poetry publish --build
     on:
-      tags: true
+      branch: master
 
   - provider: script
     script: poetry publish --build -r packagr
