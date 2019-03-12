@@ -1,6 +1,6 @@
 theme: jekyll-theme-minimal
 google_analytics: UA-108134557-1
 show_downloads: "false"
-logo: images/carrot-logo.png
+logo: images/carrot-logo-big.png
 title: django-carrot
 description: Documentation site for django-carrot
