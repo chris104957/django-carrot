@@ -17,6 +17,7 @@ after_success:
 
 before_deploy:
   - poetry config repositories.packagr https://api.packagr.app/63cdQSDO/
+  - poetry config repositories.pypi https://pypi.org
   - poetry config http-basic.packagr christopherdavies553@gmail.com $PACKAGR_PASSWORD
   - poetry config http-basic.pypi chris140957 $PYPI_PASSWORD
 
