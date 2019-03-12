@@ -147,7 +147,7 @@ urlpatterns = [
 ]
 ```
 
-For more information, refer to [the carrot monitor](/monitor.html)
+For more information, refer to [the carrot monitor](monitor.html)
 
 ## Docker
 
