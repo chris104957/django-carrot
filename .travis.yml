@@ -18,11 +18,11 @@ after_success:
 before_deploy:
   - poetry config repositories.packagr https://api.packagr.app/63cdQSDO/
   - poetry config http-basic.packagr christopherdavies553@gmail.com $PACKAGR_PASSWORD
-  - poetry config http-basic.pypi chris140957 $PACKAGR_PASSWORD
+  - poetry config http-basic.pypi chris140957 $PYPI_PASSWORD
 
 deploy:
   - provider: script
-    script: poetry publish --build
+    script: poetry publish --build -r pypi
     on:
       branch: master
 
