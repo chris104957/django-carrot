@@ -1,0 +1,7 @@
+include README.rst
+include carrot/carrot.sh
+include docs/source/readme.rst
+recursive-include carrot/static *
+recursive-include carrot/templates *
+recursive-include carrot/templatetags *
+
