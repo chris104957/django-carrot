@@ -30,6 +30,4 @@ deploy:
   - provider: script
     script: poetry publish -r packagr
     on:
-      condition: "1 == 1"
-env:
-  - DJANGO_VERSION=2.1
+      all_branches: true
