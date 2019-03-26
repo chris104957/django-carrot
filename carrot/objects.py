@@ -95,7 +95,8 @@ class BaseMessageSerializer(object):
     type_header, message_type = ('',) * 2
     task_get_attempts = 20
 
-    def get_task(self, properties: pika.BasicProperties, body: bytes) -> Callable:
+    @classmethod
+    def get_task(cls, properties: pika.BasicProperties, body: bytes) -> Callable:
         """
         Identifies the python function to be executed from the content of the RabbitMQ message. By default, Carrot
         returns the value of the self.type_header header in the properties.
@@ -103,8 +104,8 @@ class BaseMessageSerializer(object):
         Once this string has been found, carrot uses importlib to return a callable python function.
 
         """
-        mod = '.'.join(properties.headers[self.type_header].split('.')[:-1])
-        task = properties.headers[self.type_header].split('.')[-1]
+        mod = '.'.join(properties.headers[cls.type_header].split('.')[:-1])
+        task = properties.headers[cls.type_header].split('.')[-1]
         module = importlib.import_module(mod)
         func = getattr(module, task)
         return func
@@ -183,7 +184,8 @@ class BaseMessageSerializer(object):
         channel.basic_publish(**kwargs)
         connection.close()
 
-    def serialize_arguments(self, body: str) -> Tuple[tuple, dict]:
+    @classmethod
+    def serialize_arguments(cls, body: str) -> Tuple[tuple, dict]:
         """
         Extracts positional and keyword arguments to be sent to a function from the message body
         """

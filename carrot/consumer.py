@@ -9,7 +9,7 @@ from django.db.utils import OperationalError
 from django.conf import settings
 
 from carrot.models import MessageLog
-from carrot.objects import VirtualHost, BaseMessageSerializer
+from carrot.objects import VirtualHost, BaseMessageSerializer, DefaultMessageSerializer
 
 import json
 import traceback
@@ -32,7 +32,7 @@ class Consumer(threading.Thread):
     :class:`.ConsumerSet` object.
     """
 
-    serializer: Type[BaseMessageSerializer] = BaseMessageSerializer
+    serializer: Type[BaseMessageSerializer] = DefaultMessageSerializer
     reconnect_timeout: int = 5
     task_log: List[str] = []
     exchange_arguments: Dict[str, Any] = {}
@@ -282,7 +282,7 @@ class Consumer(threading.Thread):
                    properties: pika.BasicProperties, body: bytes) -> None:
         """
         The process that takes a single message from RabbitMQ, converts it into a python executable and runs it,
-        logging the output back to the assoicated :class:`carrot.models.MessageLog`
+        logging the output back to the associated :class:`carrot.models.MessageLog`
 
         """
         self.channel.basic_ack(method_frame.delivery_tag)
@@ -305,7 +305,7 @@ class Consumer(threading.Thread):
         self.logger.info('Consuming task %s, ID=%s' % (task_type, properties.message_id))
 
         try:
-            func = self.serializer.get_task(properties, body)
+            func = func = self.serializer.get_task(properties, body)
         except (ValueError, ImportError, AttributeError) as err:
             return self.fail(log, err)
 
