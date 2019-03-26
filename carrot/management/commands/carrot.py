@@ -13,17 +13,18 @@ import logging
 import signal
 import psutil
 import types
+from typing import Optional
 
 
 class Command(BaseCommand):
     """
     The main process for creating and running :class:`carrot.consumer.ConsumerSet` objects and starting thes scheduler
     """
-    pks = []
+    pks: list = []
     run = True
     help = 'Starts the carrot service.'
-    scheduler = None
-    active_consumer_sets = []
+    scheduler: Optional[ScheduledTaskManager] = None
+    active_consumer_sets: list = []
 
     def __init__(self,
                  stdout: str = None,
@@ -196,7 +197,8 @@ class Command(BaseCommand):
                         new_tasks = new_qs.exclude(pk__in=self.pks) or [ScheduledTask()]
                         for new_task in new_tasks:
                             print('adding new task %s' % new_task)
-                            self.scheduler.add_task(new_task)
+                            if self.scheduler:
+                                self.scheduler.add_task(new_task)
 
                         self.pks = [t.pk for t in new_qs]
 

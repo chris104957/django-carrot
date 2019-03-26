@@ -5,6 +5,7 @@ import signal
 import time
 import subprocess
 import argparse
+from typing import Optional
 
 
 class PidExists(Exception):
@@ -19,14 +20,14 @@ class Command(BaseCommand):
     """
     The daemon process for controlling the :class:`carrot.management.commands.carrot` service
     """
-    pid_file = None
-    options = None
+    pid_file: Optional[str] = None
+    options: dict = {}
 
     def delete_pid(self) -> None:
         """
         Deletes the pid file, if it exists
         """
-        if os.path.exists(self.pid_file):
+        if self.pid_file and os.path.exists(self.pid_file):
             os.remove(self.pid_file)
 
     def stop(self, hard_stop: bool = False) -> None:
@@ -83,34 +84,40 @@ class Command(BaseCommand):
                                  'used when running Carrot\'s tests')
 
     @property
-    def pid(self) -> int:
+    def pid(self) -> Optional[int]:
         """
         Opens and reads the file stored at `self.pidfile`, and returns the content as an integer. If the pidfile doesn't
         exist, then None is returned.
         """
-        try:
-            with open(self.pid_file, 'r') as pf:
-                return int(pf.read().strip())
-        except IOError:
-            pass
+        if self.pid_file:
+            try:
+                with open(self.pid_file, 'r') as pf:
+                    return int(pf.read().strip())
+            except IOError:
+                pass
+
+        return None
 
     def write_pid(self, pid: int) -> None:
         """
         Writes the pid to the pidfile
         """
-        with open(self.pid_file, 'w') as f:
-            f.write(str(pid) + '\n')
+        if self.pid_file:
+            with open(self.pid_file, 'w') as f:
+                f.write(str(pid) + '\n')
 
-    def start(self, **options) -> None:
+    def start(self, **kwargs: dict) -> None:
         """
         Starts the carrot service as a subprocess and records the pid
         """
         if self.pid:
             raise PidExists('Process already running!')
 
-        self.options = options
-        options = ['python3', 'manage.py', 'carrot', '--verbosity', str(options.get('verbosity', 2)),
-                   '--logfile', self.options['logfile'], '--loglevel', self.options['loglevel'],]
+        if kwargs:
+            self.options = kwargs
+
+        options: list = ['python3', 'manage.py', 'carrot', '--verbosity', str(kwargs.get('verbosity', 2)),
+                         '--logfile', self.options['logfile'], '--loglevel', self.options['loglevel']]
 
         if not self.options['run_scheduler']:
             options.append('--no-scheduler')
@@ -122,6 +129,8 @@ class Command(BaseCommand):
         proc = subprocess.Popen(options, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         self.write_pid(proc.pid)
+
+        return None
 
     def handle(self, *args, **options) -> None:
         """

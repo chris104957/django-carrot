@@ -55,14 +55,14 @@ class PublishedMessageLogViewSet(MessageLogViewset):
 
     queryset = MessageLog.objects.filter(status__in=['PUBLISHED', 'IN_PROGRESS'], id__isnull=False)
 
-    def purge(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
+    def purge(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Deletes all items in the pending queue
         """
         purge_queue()
         return super(PublishedMessageLogViewSet, self).list(request, *args, **kwargs)
 
-    def requeue(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
+    def requeue(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Requeues all pending MessageLogs. Useful when stuff gets stuck due to system update
         """
@@ -89,7 +89,7 @@ class FailedMessageLogViewSet(MessageLogViewset):
         self.queryset.delete()
         return response.Response(status=204)
 
-    def retry(self, request: Request, *args, **kwargs) -> MessageLogViewset.list:
+    def retry(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Retries all `MessageLog` objects in the queryset
         """
@@ -118,15 +118,15 @@ class MessageLogDetailViewset(MessageLogViewset):
     Shows the detail of a single `MessageLog` object
     """
     queryset = MessageLog.objects.all()
-    kwargs = {}
+    kwargs: dict = {}
 
-    def destroy(self, request: Request, *args, **kwargs) -> MessageLogViewset.destroy:
+    def destroy(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Deletes the given `MessageLog` object
         """
         return super(MessageLogDetailViewset, self).destroy(request, *args, **kwargs)
 
-    def retry(self, request: Request, *args, **kwargs) -> MessageLogViewset.retrieve:
+    def retry(self, request: Request, *args, **kwargs) -> response.Response:
         """
         Requeue a single task
         """

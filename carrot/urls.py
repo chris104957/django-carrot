@@ -7,6 +7,7 @@ from carrot.api import (
     detail_message_log_viewset, scheduled_task_detail, run_scheduled_task, task_list, validate_args, purge_messages,
     MessageLogViewset, requeue_pending
 )
+from typing import Any
 
 try:
     decorators = settings.CARROT.get('monitor_authentication', [])
@@ -14,14 +15,14 @@ except AttributeError:
     decorators = []
 
 
-def _(v: MessageList.__class__, **kwargs) -> create_class_view:
+def _(v: Any, **kwargs) -> Any:
     """
     Decorates a class based view with a custom auth decorator specified in the settings module
     """
     return decorate_class_view(v, decorators).as_view(**kwargs)
 
 
-def _f(v: MessageLogViewset) -> create_class_view:
+def _f(v: MessageLogViewset) -> Any:
     """
     The same as the above _ method, but for function-based views
     """

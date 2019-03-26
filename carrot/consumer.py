@@ -116,13 +116,15 @@ class Consumer(threading.Thread):
         """
         return properties[self.serializer.type_header]
 
-    def __get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> MessageLog:
+    def __get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> Optional[MessageLog]:
         for i in range(0, self.get_message_attempts):
             log = self.get_message_log(properties, body)
 
             if log:
                 return log
             time.sleep(0.1)
+
+        return None
 
     def get_message_log(self, properties: pika.spec.BasicProperties, body: bytes) -> Optional[MessageLog]:
         """
