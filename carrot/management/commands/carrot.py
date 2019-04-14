@@ -106,8 +106,12 @@ class Command(BaseCommand):
         for q in psutil.process_iter():
             if 'python' in q.name():
                 if len(q.cmdline()) > 1 and 'manage.py' in q.cmdline()[1] and 'carrot' in q.cmdline()[2]:
-                    if not q._pid == os.getpgid(0):
-                        running_pids.append(q._pid)
+                    if os.name == 'nt':
+                        if not q._pid == os.getpid():
+                            running_pids.append(q._pid)
+                    else:
+                        if not q._pid == os.getpgid(0):
+                            running_pids.append(q._pid)
 
         if running_pids:
             self.stdout.write(

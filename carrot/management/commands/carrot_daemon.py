@@ -116,7 +116,7 @@ class Command(BaseCommand):
         if kwargs:
             self.options = kwargs
 
-        options: list = ['python3', 'manage.py', 'carrot', '--verbosity', str(kwargs.get('verbosity', 2)),
+        options: list = [sys.executable, sys.argv[0], 'carrot', '--verbosity', str(kwargs.get('verbosity', 2)),
                          '--logfile', self.options['logfile'], '--loglevel', self.options['loglevel']]
 
         if not self.options['run_scheduler']:
